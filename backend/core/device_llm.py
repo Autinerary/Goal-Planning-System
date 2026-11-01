@@ -49,7 +49,8 @@ class DeviceRelay:
         self.chat = SimpleNamespace(completions=SimpleNamespace(create=self._create))
 
     async def _create(self, *, messages: Any, temperature: Optional[float] = None, max_tokens: Optional[int] = None,
-                      max_completion_tokens: Optional[int] = None, response_format: Any = None, **_ignored: Any):
+                      max_completion_tokens: Optional[int] = None, response_format: Any = None,
+                      agent: Optional[str] = None, think: bool = False, **_ignored: Any):
         if self.closed:
             self.failed += 1
             raise DeviceUnavailable("the connection to your device closed")
@@ -67,6 +68,10 @@ class DeviceRelay:
                     "max_tokens": max_tokens or max_completion_tokens,
                     # The agent wants JSON back: the browser asks the model for it where the model can do so.
                     "json": bool(response_format),
+                    # Which agent asks, and whether thinking first helps here; the browser decides what the person
+                    # allowed (Settings, "Think first").
+                    "agent": agent,
+                    "think": bool(think),
                 })
             except Exception as e:
                 # A socket the browser has left raises here.

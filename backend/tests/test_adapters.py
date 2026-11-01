@@ -1,9 +1,12 @@
-"""Shared starter models (api/routes/adapters.py): the checks before anything is public, and using one.
+"""Shared starter models (api/routes/adapters.py): the checks before anything is shared, who can see one, how they're
+ranked for each person, which models came from which, and using one.
 
 What must hold: nothing is shared unless the owner approved a scrubbed training set, their memory check passed and
-their title and description name no one; the files are an adapter and a config with nothing from the owner's
-computer; the public list never says who shared one; only the owner edits or takes one down; nobody rates their own;
-reports go to the moderation queue; and it's all off unless SHARED_ADAPTERS=on.
+their title and description name no one; shared with everyone, its tags must not narrow its owner down to a handful of
+real people; shared with people, only the owner's connections; a private link only for whoever has it; the files are
+an adapter and a settings file with nothing from the owner's computer; nothing public says who shared one; models are
+ranked for you by your onboarding answers and by ratings from people like you; only the owner edits or takes one down;
+nobody rates their own; reports go to the moderation queue; and it's all off unless SHARED_ADAPTERS=on.
 
 Run from backend/:  python -m unittest tests.test_adapters -v
 """
@@ -20,9 +23,10 @@ from fastapi import HTTPException
 from api.routes import adapters
 from core import scrubber
 
-OWNER, OTHER = "owner-1", "other-1"
+OWNER, OTHER, FRIEND, STRANGER = "owner-1", "other-1", "friend-1", "stranger-1"
 CONSENT = "c0000000-0000-4000-8000-000000000001"
 BASE = "mlx-community/Llama-3.2-3B-Instruct-bf16"
+PARENT = "a0000000-0000-4000-8000-00000000000a"
 
 
 def weights(header=None, metadata=None):
@@ -34,7 +38,12 @@ def weights(header=None, metadata=None):
     return struct.pack("<Q", len(raw)) + raw + b"\0" * 512
 
 
-CLEAN_CONFIG = {"fine_tune_type": "lora", "num_layers": 8, "lora_parameters": {"rank": 8, "scale": 20.0, "dropout": 0.05}, "model": BASE}
+def clean_config(adapter_id, built_on=None, model=BASE):
+    config = {"fine_tune_type": "lora", "num_layers": 8, "lora_parameters": {"rank": 8, "scale": 20.0, "dropout": 0.05},
+              "model": model, "shared_id": adapter_id}
+    if built_on:
+        config["built_on"] = built_on
+    return config
 
 
 class FakeQuery:
@@ -56,6 +65,9 @@ class FakeQuery:
         return self
 
     def limit(self, *_):
+        return self
+
+    def range(self, *_):
         return self
 
     def insert(self, row):
@@ -80,8 +92,10 @@ class FakeQuery:
         rows = self.db.tables.setdefault(self.table, [])
         match = [r for r in rows if all(f(r) for f in self.filters)]
         if self.op == "insert":
-            rows.append({"created_at": "2026-10-31T12:00:00+00:00", **self.row})
-            return SimpleNamespace(data=[self.row])
+            new = self.row if isinstance(self.row, list) else [self.row]
+            for r in new:
+                rows.append({"created_at": f"2026-10-31T12:00:{len(rows):02d}+00:00", **r})
+            return SimpleNamespace(data=new)
         if self.op == "upsert":
             same = [r for r in rows if all(r.get(k) == self.row.get(k) for k in self.keys)]
             if same:
@@ -119,14 +133,43 @@ class FakeBucket:
         return []
 
 
+def person(uid, norms=(), audience=None, goals=(), internal=False):
+    """A person with their onboarding answers, as the tables hold them (the selects' aliases included)."""
+    return ([{"user_id": uid, "barrier_type": n} for n in norms],
+            {"id": uid, "internal_account": internal, "audience": audience, "display_name": uid.title()},
+            {"user_id": uid, "is_active": True, "goals": list(goals), "chosen": {}})
+
+
 class FakeDB:
-    def __init__(self, missing=()):
+    def __init__(self, missing=(), crowd=6):
         self.missing = set(missing)
         self.files = {}
         self.tables = {"training_set_consents": [{"id": CONSENT, "user_id": OWNER, "created_at": "2026-10-31T10:00:00+00:00",
                                                   "item_count": 24, "scrubber_version": "2026-10-31.1+patterns"}],
-                       "profiles": [{"id": OWNER, "display_name": "Priya Sharma", "username": "priya_s"}]}
+                       "user_barriers": [], "profiles": [], "user_paths": [],
+                       "social_connections": [{"owner_id": OWNER, "target_user_id": FRIEND, "status": "connected"},
+                                              {"owner_id": OWNER, "target_user_id": STRANGER, "status": "pending"}]}
+        people = [person(OWNER, ["Autism spectrum disorder"], goals=["Get a job"]),
+                  person(OTHER, ["autism", "ADHD"], goals=["Find an internship"]),
+                  person(FRIEND, ["Dyslexia"], goals=["Graduate college"])]
+        # A crowd of real people who are autistic and looking for work, and test accounts who'd swell it.
+        people += [person(f"crowd-{i}", ["autism"], goals=["Get a job"]) for i in range(max(0, crowd - 2))]
+        people += [person(f"test-{i}", ["autism", "Tourette"], goals=["Get a job"], internal=True) for i in range(10)]
+        for barriers, profile, plan in people:
+            self.tables["user_barriers"] += barriers
+            self.tables["profiles"].append(profile)
+            self.tables["user_paths"].append(plan)
+        self.tables["profiles"][0]["display_name"] = "Priya Sharma"
+        self.tables["profiles"][0]["username"] = "priya_s"
         self.storage = SimpleNamespace(from_=lambda bucket: FakeBucket(self))
+
+    def add_people(self, prefix, count, norms=(), goals=()):
+        for i in range(count):
+            barriers, profile, plan = person(f"{prefix}-{i}", norms, goals=goals)
+            self.tables["user_barriers"] += barriers
+            self.tables["profiles"].append(profile)
+            self.tables["user_paths"].append(plan)
+        return self
 
     def table(self, name):
         return FakeQuery(self, name)
@@ -150,27 +193,25 @@ def run(fn, db, *args, flag="on", **kwargs):
         return asyncio.run(fn(*args, **kwargs))
 
 
-def share(db, **changes):
-    """Check, create, upload the clean files, publish: the whole way, as the page does it."""
-    made = run(adapters.create_adapter, db, body(**changes), user_id=OWNER)
+def share(db, user=OWNER, **changes):
+    """Check, create, upload the files the page makes, publish: the whole way, as the page does it."""
+    made = run(adapters.create_adapter, db, body(**changes), user_id=user)
     db.files[f"{made['id']}/adapters.safetensors"] = weights()
-    db.files[f"{made['id']}/adapter_config.json"] = json.dumps(CLEAN_CONFIG).encode()
-    return made, run(adapters.publish_adapter, db, made["id"], user_id=OWNER)
+    db.files[f"{made['id']}/adapter_config.json"] = json.dumps(clean_config(made["id"], made["builtOn"], changes.get("baseModel", BASE))).encode()
+    return made, run(adapters.publish_adapter, db, made["id"], user_id=user)
 
 
 class CheckTests(unittest.TestCase):
-    def test_all_three_pass_for_a_clean_adapter(self):
+    def test_every_check_passes_for_a_clean_adapter(self):
         out = run(adapters.check_adapter, FakeDB(), body(), user_id=OWNER)
         self.assertTrue(out["passed"], out)
-        self.assertEqual(out["checks"]["scrub_review"]["itemCount"], 24)
+        self.assertEqual(set(out["checks"]), {"scrub_review", "memorization", "metadata", "crowd", "audience", "lineage"})
         self.assertTrue(out["checks"]["memorization"]["selfReported"])
 
     def test_no_scrub_review_no_sharing(self):
         out = run(adapters.check_adapter, FakeDB(), body(consentId="c0000000-0000-4000-8000-000000000999"), user_id=OWNER)
         self.assertFalse(out["checks"]["scrub_review"]["passed"])
-        # Someone else's approval doesn't count either.
-        out = run(adapters.check_adapter, FakeDB(), body(), user_id=OTHER)
-        self.assertFalse(out["passed"])
+        self.assertFalse(run(adapters.check_adapter, FakeDB(), body(), user_id=OTHER)["passed"])
 
     def test_a_model_that_says_training_answers_back_isnt_shared(self):
         for memory in ({"model": "m", "probes": 20, "failed": 3, "maxCloseness": 1.0},
@@ -181,20 +222,45 @@ class CheckTests(unittest.TestCase):
             self.assertFalse(out["checks"]["memorization"]["passed"], memory)
 
     def test_personal_information_in_the_title_or_description_blocks_it(self):
-        # The owner's own name (from their profile) is the likeliest, even where nothing else would spot it.
         for title, description in (("Priya's planner", "Mine."), ("Calm steps", "From priya_s."),
                                    ("Calm steps", "Made with my friend Ama."), ("Calm steps", "Email me at sam@example.org"),
-                                   ("Calm steps", "Made at Humber College, my school."),
-                                   ("Calm steps", "My therapist Dr. Okafor helped."), ("Calm steps", "Call 416-555-0199")):
+                                   ("Calm steps", "Made at Humber College, my school."), ("Calm steps", "Call 416-555-0199")):
             out = run(adapters.check_adapter, FakeDB(), body(title=title, description=description), user_id=OWNER)
             self.assertFalse(out["checks"]["metadata"]["passed"], (title, description))
-        # Saying which community it's for names no one.
         out = run(adapters.check_adapter, FakeDB(), body(description="For autistic adults with ADHD starting work."), user_id=OWNER)
         self.assertTrue(out["checks"]["metadata"]["passed"], out["checks"]["metadata"])
 
     def test_tags_and_base_models_from_the_lists_only(self):
         self.assertFalse(run(adapters.check_adapter, FakeDB(), body(tags=["my-school"]), user_id=OWNER)["passed"])
         self.assertFalse(run(adapters.check_adapter, FakeDB(), body(baseModel="meta-llama/Llama-3.1-70B"), user_id=OWNER)["passed"])
+        self.assertTrue(run(adapters.check_adapter, FakeDB(), body(baseModel="Qwen/Qwen3-4B"), user_id=OWNER)["passed"])
+
+
+class CrowdTests(unittest.TestCase):
+    def test_tags_shared_by_enough_real_people_pass(self):
+        # autism + work: the owner, another, and the crowd of four: six real people.
+        self.assertTrue(run(adapters.check_adapter, FakeDB(crowd=6), body(), user_id=OWNER)["checks"]["crowd"]["passed"])
+
+    def test_a_rare_combination_is_refused_and_test_accounts_dont_make_a_crowd(self):
+        out = run(adapters.check_adapter, FakeDB(crowd=3), body(), user_id=OWNER)
+        self.assertFalse(out["checks"]["crowd"]["passed"])
+        self.assertNotRegex(out["checks"]["crowd"]["why"], r"\b[0-4]\b people", "it never says how many")
+        # Ten test accounts are autistic with Tourette and looking for work; no real person here is.
+        self.assertFalse(run(adapters.check_adapter, FakeDB(), body(tags=["autism", "tourette"]), user_id=OWNER)["checks"]["crowd"]["passed"])
+
+    def test_only_sharing_with_everyone_needs_a_crowd(self):
+        out = run(adapters.check_adapter, FakeDB(crowd=3), body(visibility="people", people=[FRIEND]), user_id=OWNER)
+        self.assertTrue(out["checks"]["crowd"]["passed"])
+
+
+class AudienceTests(unittest.TestCase):
+    def test_only_the_owners_connections(self):
+        db = FakeDB()
+        self.assertTrue(run(adapters.check_adapter, db, body(visibility="people", people=[FRIEND]), user_id=OWNER)["passed"])
+        for picked in ([STRANGER], [OTHER], []):     # a pending request, someone not connected, nobody
+            out = run(adapters.check_adapter, db, body(visibility="people", people=picked), user_id=OWNER)
+            self.assertFalse(out["checks"]["audience"]["passed"], picked)
+        self.assertEqual(run(adapters.people, db, user_id=OWNER), {"people": [{"id": FRIEND, "name": "Friend-1"}]})
 
 
 class FileTests(unittest.TestCase):
@@ -208,11 +274,15 @@ class FileTests(unittest.TestCase):
         self.assertIsNotNone(adapters.weights_problem(b"PK\x03\x04 a zip"))
         self.assertIsNotNone(adapters.weights_problem(b""))
 
-    def test_the_config_has_only_the_four_settings_so_no_path_from_the_owners_computer(self):
-        self.assertIsNone(adapters.config_problem(CLEAN_CONFIG, BASE))
-        leaky = {**CLEAN_CONFIG, "data": "/Users/jordanellis/.autinerary-model/my-model/data"}
-        self.assertIn("may only have", adapters.config_problem(leaky, BASE))
-        self.assertIn("different base model", adapters.config_problem({**CLEAN_CONFIG, "model": "other"}, BASE))
+    def test_the_settings_file_has_only_what_the_tools_need_and_its_own_ids(self):
+        aid = "b0000000-0000-4000-8000-00000000000b"
+        self.assertIsNone(adapters.config_problem(clean_config(aid), BASE, aid))
+        self.assertIsNone(adapters.config_problem(clean_config(aid, PARENT), BASE, aid, PARENT))
+        leaky = {**clean_config(aid), "data": "/Users/jordanellis/.autinerary-model/my-model/data"}
+        self.assertIn("may only have", adapters.config_problem(leaky, BASE, aid))
+        self.assertIn("different base model", adapters.config_problem({**clean_config(aid), "model": "other"}, BASE, aid))
+        self.assertIn("isn't the one this page made", adapters.config_problem(clean_config("someone-else"), BASE, aid))
+        self.assertIn("different model it was built on", adapters.config_problem(clean_config(aid, PARENT), BASE, aid, None))
 
     def test_publishing_checks_the_files_that_arrived(self):
         db = FakeDB()
@@ -223,33 +293,105 @@ class FileTests(unittest.TestCase):
             run(adapters.publish_adapter, db, made["id"], user_id=OWNER)
         self.assertEqual(caught.exception.status_code, 422)
         db.files[f"{made['id']}/adapters.safetensors"] = weights()
-        db.files[f"{made['id']}/adapter_config.json"] = json.dumps({**CLEAN_CONFIG, "adapter_path": "/Users/jordan/x"}).encode()
+        db.files[f"{made['id']}/adapter_config.json"] = json.dumps({**clean_config(made["id"]), "adapter_path": "/Users/jordan/x"}).encode()
         with self.assertRaises(HTTPException):
             run(adapters.publish_adapter, db, made["id"], user_id=OWNER)
         self.assertEqual(db.tables["shared_adapters"][0]["moderation_status"], "pending")
-        db.files[f"{made['id']}/adapter_config.json"] = json.dumps(CLEAN_CONFIG).encode()
-        out = run(adapters.publish_adapter, db, made["id"], user_id=OWNER)
-        self.assertEqual(out["status"], "approved")
+        db.files[f"{made['id']}/adapter_config.json"] = json.dumps(clean_config(made["id"])).encode()
+        self.assertEqual(run(adapters.publish_adapter, db, made["id"], user_id=OWNER)["status"], "approved")
 
 
-class UsingTests(unittest.TestCase):
-    def test_the_public_list_never_says_who_shared_it(self):
+class ListTests(unittest.TestCase):
+    def test_the_list_never_says_who_shared_one(self):
         db = FakeDB()
         made, _ = share(db)
         listed = run(adapters.list_adapters, db, caller=None)["adapters"]
         self.assertEqual([a["id"] for a in listed], [made["id"]])
         self.assertNotIn(OWNER, json.dumps(listed))
         self.assertNotIn(CONSENT, json.dumps(listed))
-        self.assertEqual(listed[0]["ollamaBase"], "llama3.2:3b")
+        self.assertEqual((listed[0]["ollamaBase"], listed[0]["family"]), ("llama3.2:3b", "llama3"))
         self.assertTrue(run(adapters.list_adapters, db, caller=OWNER)["adapters"][0]["mine"])
 
-    def test_pending_ones_arent_listed_or_downloadable_by_others(self):
+    def test_best_for_you_first_by_your_onboarding_answers(self):
+        db = FakeDB().add_people("student", 5, goals=["Graduate college"])
+        share(db, title="Reading help", tags=["dyslexia"], visibility="people", people=[FRIEND])  # not listed for everyone
+        share(db, title="Study blocks", tags=["students"], description="Short study sessions.")
+        share(db, title="Interview nerves", tags=["work"], description="Getting ready for interviews.")
+        share(db, title="Calm first steps", tags=["autism", "work"])
+        listed = run(adapters.list_adapters, db, caller=OTHER)       # autistic, with ADHD, looking for an internship
+        self.assertTrue(listed["forYou"])
+        self.assertEqual([a["title"] for a in listed["adapters"]], ["Calm first steps", "Interview nerves", "Study blocks"])
+        self.assertEqual(listed["adapters"][0]["match"], {"score": 1.0, "shared": ["autism", "work"]})
+        self.assertEqual(listed["adapters"][2]["match"]["score"], 0.0)
+
+    def test_ratings_weighted_towards_people_like_you(self):
         db = FakeDB()
-        made = run(adapters.create_adapter, db, body(), user_id=OWNER)
+        made, _ = share(db)
+        run(adapters.rate_adapter, db, made["id"], adapters.RatingIn(rating=5), user_id=OTHER)    # autistic, like the crowd
+        run(adapters.rate_adapter, db, made["id"], adapters.RatingIn(rating=1), user_id=FRIEND)   # dyslexic, unlike them
+        for_crowd = run(adapters.list_adapters, db, caller="crowd-0")["adapters"][0]
+        self.assertEqual(for_crowd["rating"], {"average": 3.0, "count": 2})
+        self.assertGreater(for_crowd["ratingForYou"], 3.0)
+        self.assertLess(run(adapters.list_adapters, db, caller=FRIEND)["adapters"][0]["ratingForYou"], 3.0)
+
+    def test_which_models_came_from_which(self):
+        db = FakeDB()
+        db.tables["training_set_consents"].append({"id": "c0000000-0000-4000-8000-000000000002", "user_id": OTHER,
+                                                   "created_at": "2026-10-31T10:00:00+00:00", "item_count": 24,
+                                                   "scrubber_version": "2026-10-31.1+patterns"})
+        parent, _ = share(db, title="Calm first steps")
+        child, _ = share(db, user=OTHER, title="Calm first steps for interns", builtOn=parent["id"],
+                         consentId="c0000000-0000-4000-8000-000000000002", description="Built on another.")
+        listed = {a["id"]: a for a in run(adapters.list_adapters, db, caller=None)["adapters"]}
+        self.assertEqual(listed[child["id"]]["builtOn"], {"id": parent["id"], "title": "Calm first steps"})
+        self.assertEqual(listed[parent["id"]]["builtOnCount"], 1)
+
+    def test_a_model_built_on_one_that_isnt_shared_any_more_cant_name_it(self):
+        out = run(adapters.check_adapter, FakeDB(), body(builtOn=PARENT), user_id=OWNER)
+        self.assertFalse(out["checks"]["lineage"]["passed"])
+
+
+class VisibilityTests(unittest.TestCase):
+    def test_shared_with_people_is_seen_by_them_only(self):
+        db = FakeDB()
+        made, _ = share(db, visibility="people", people=[FRIEND])
         self.assertEqual(run(adapters.list_adapters, db, caller=None)["adapters"], [])
+        self.assertEqual([a["id"] for a in run(adapters.list_adapters, db, caller=FRIEND)["sharedWithMe"]], [made["id"]])
+        self.assertEqual(run(adapters.list_adapters, db, caller=OTHER)["sharedWithMe"], [])
+        run(adapters.download_adapter, db, made["id"], caller=FRIEND)
         with self.assertRaises(HTTPException):
             run(adapters.download_adapter, db, made["id"], caller=OTHER)
 
+    def test_a_private_link_works_for_whoever_has_it_and_is_never_listed(self):
+        db = FakeDB()
+        made, published = share(db, visibility="link")
+        key = published["linkKey"]
+        self.assertTrue(key and len(key) >= 24)
+        self.assertEqual(run(adapters.list_adapters, db, caller=OTHER)["adapters"], [])
+        self.assertEqual(run(adapters.by_link, db, key, caller=None)["adapter"]["id"], made["id"])
+        self.assertEqual(len(run(adapters.download_adapter, db, made["id"], key=key, caller=None)["files"]), 2)
+        for wrong in (None, "x" * 32):
+            with self.assertRaises(HTTPException):
+                run(adapters.download_adapter, db, made["id"], key=wrong, caller=OTHER)
+        with self.assertRaises(HTTPException):
+            run(adapters.by_link, db, "nope", caller=None)
+
+    def test_the_owner_changes_who_can_see_it(self):
+        db = FakeDB()
+        made, _ = share(db)
+        out = run(adapters.edit_adapter, db, made["id"], adapters.AdapterEdit(title="Calm first steps", visibility="link"), user_id=OWNER)
+        self.assertTrue(out["linkKey"])
+        self.assertEqual(run(adapters.list_adapters, db, caller=None)["adapters"], [])
+        run(adapters.edit_adapter, db, made["id"], adapters.AdapterEdit(title="Calm first steps", visibility="people", people=[FRIEND]), user_id=OWNER)
+        self.assertEqual(db.tables["shared_adapters"][0]["link_token"], None)
+        self.assertEqual([a["user_id"] for a in db.tables["shared_adapter_access"]], [FRIEND])
+        mine = run(adapters.my_adapters, db, user_id=OWNER)["adapters"][0]
+        self.assertEqual((mine["visibility"], mine["people"]), ("people", [{"id": FRIEND, "name": "Friend-1"}]))
+        with self.assertRaises(HTTPException):        # back to everyone with a rare combination
+            run(adapters.edit_adapter, db, made["id"], adapters.AdapterEdit(title="Calm", tags=["autism", "tourette"], visibility="everyone"), user_id=OWNER)
+
+
+class UsingTests(unittest.TestCase):
     def test_download_links_with_friendly_names(self):
         db = FakeDB()
         made, _ = share(db)
@@ -283,7 +425,7 @@ class UsingTests(unittest.TestCase):
         with self.assertRaises(HTTPException) as caught:
             run(adapters.edit_adapter, db, made["id"], adapters.AdapterEdit(title="Calm", description="Ask Priya Sharma"), user_id=OWNER)
         self.assertEqual(caught.exception.status_code, 422)
-        run(adapters.edit_adapter, db, made["id"], adapters.AdapterEdit(title="Calmer first steps", tags=["adhd"]), user_id=OWNER)
+        run(adapters.edit_adapter, db, made["id"], adapters.AdapterEdit(title="Calmer first steps", tags=["autism"]), user_id=OWNER)
         self.assertEqual(db.tables["shared_adapters"][0]["title"], "Calmer first steps")
         with self.assertRaises(HTTPException):
             run(adapters.delete_adapter, db, made["id"], user_id=OTHER)
@@ -293,7 +435,8 @@ class UsingTests(unittest.TestCase):
 
 class SwitchTests(unittest.TestCase):
     def test_off_unless_switched_on(self):
-        self.assertEqual(run(adapters.list_adapters, FakeDB(), caller=None, flag=""), {"enabled": False, "adapters": []})
+        self.assertEqual(run(adapters.list_adapters, FakeDB(), caller=None, flag=""),
+                         {"enabled": False, "adapters": [], "sharedWithMe": [], "forYou": False})
         self.assertFalse(run(adapters.status, FakeDB(), flag="")["enabled"])
         with self.assertRaises(HTTPException) as caught:
             run(adapters.create_adapter, FakeDB(), body(), user_id=OWNER, flag="")

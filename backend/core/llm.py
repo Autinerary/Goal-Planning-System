@@ -423,12 +423,21 @@ def _record(model: registry.Model, resp, agent: Optional[str] = None) -> None:
     )
 
 
+def _device_hints(model: registry.Model, agent: Optional[str], think: bool) -> Dict[str, Any]:
+    """What a model on the person's own device is told about a call (core/device_llm.py): which agent asks, and
+    whether it's one of the few where thinking first pays off (it's slow on a laptop). Cloud models get nothing extra."""
+    if getattr(model, "provider", None) != "device":
+        return {}
+    return {"agent": agent, "think": bool(think)}
+
+
 async def complete_text(
     system: str,
     user: str,
     temperature: float = 0.7,
     max_tokens: int = 600,
     agent: Optional[str] = None,
+    think: bool = False,
 ) -> Optional[str]:
     """Return raw text completion, or None on failure / no backend."""
     model, effort = resolve(agent)
@@ -446,6 +455,7 @@ async def complete_text(
                 {"role": "user", "content": user},
             ],
             **tuned,
+            **_device_hints(model, agent, think),
         )
         _record(model, resp, agent)
         return (resp.choices[0].message.content or "").strip()
@@ -459,6 +469,7 @@ async def complete_chat(
     temperature: float = 0.7,
     max_tokens: int = 700,
     agent: Optional[str] = None,
+    think: bool = False,
 ) -> Optional[str]:
     """Multi-turn chat completion. `messages` is a list of
     {"role": "system"|"user"|"assistant", "content": str}. Returns the reply
@@ -475,6 +486,7 @@ async def complete_chat(
         resp = await client.chat.completions.create(
             messages=_styled_messages(messages),
             **tuned,
+            **_device_hints(model, agent, think),
         )
         _record(model, resp, agent)
         return (resp.choices[0].message.content or "").strip()
@@ -489,6 +501,7 @@ async def complete_json(
     temperature: float = 0.4,
     max_tokens: int = 1200,
     agent: Optional[str] = None,
+    think: bool = False,
 ) -> Optional[Dict[str, Any]]:
     """Return parsed JSON object, or None on failure / no backend.
 
@@ -512,6 +525,7 @@ async def complete_json(
                 {"role": "user", "content": user},
             ],
             **tuned,
+            **_device_hints(model, agent, think),
         }
         if registry.PROVIDERS[model.provider].supports_json_mode:
             kwargs["response_format"] = {"type": "json_object"}

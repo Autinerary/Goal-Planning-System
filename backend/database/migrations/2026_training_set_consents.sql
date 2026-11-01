@@ -7,7 +7,8 @@
 -- that they approved it: which items, when, and which scrubber checked them. Never the text: the set is made in their
 -- browser and not kept here (api/routes/training.py).
 --
---   item_refs         [{"kind": "reflection" | "note", "id": "<uuid>" or "<uuid>:<n>"}], the items approved
+--   item_refs         [{"kind": "reflection" | "note" | "step", "id": ...}], the items approved: a reflection's
+--                     answer ("<uuid>:<n>"), a note ("<uuid>"), or a step of the plan ("<path id>:<milestone id>")
 --   item_count        how many
 --   scrubber_version  core/scrubber.py's version and what found names, e.g. "2026-10-31.1+en_core_web_sm-3.8.0"
 --
@@ -40,9 +41,9 @@ ALTER TABLE public.training_set_consents ADD CONSTRAINT training_set_consents_re
             AND NOT jsonb_path_exists(item_refs, '$[*] ? (@.type() != "object")')
             AND NOT jsonb_path_exists(item_refs, '$[*].keyvalue() ? (@.key != "kind" && @.key != "id")')
             AND NOT jsonb_path_exists(item_refs, '$[*] ? (!exists(@.kind) || !exists(@.id))')
-            AND NOT jsonb_path_exists(item_refs, '$[*] ? (!(@.kind == "reflection" || @.kind == "note"))')
+            AND NOT jsonb_path_exists(item_refs, '$[*] ? (!(@.kind == "reflection" || @.kind == "note" || @.kind == "step"))')
             AND NOT jsonb_path_exists(item_refs,
-              '$[*] ? (!(@.id like_regex "^[0-9a-fA-F-]{36}(:([0-9]{1,2}|free))?$"))')
+              '$[*] ? (!(@.id like_regex "^([0-9a-fA-F-]{36}(:([0-9]{1,2}|free))?|path_[A-Za-z0-9_-]{1,64}:[A-Za-z0-9_.-]{1,120})$"))')
        ELSE false END
 );
 

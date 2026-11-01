@@ -1,7 +1,8 @@
 """Building a training set from your own writing (Settings, Models, "Build my training set").
 
   GET  /api/training/items     your journal entries, reflections and plan notes, as the pieces a training example is
-                               made of: a question and your answer
+                               made of: a question and your answer; and the steps of your plan you put in your own
+                               words, rated useful, loved or finished, each with your goal as the question
   POST /api/training/scrub     { items: [{kind, id}] }: each one before and after scrubbing (core/scrubber.py), or
                                { texts: [...] }: text you edited, scrubbed again so a name you typed back in is caught
   POST /api/training/consent   { items: [{kind, id}], scrubberVersion }: records which items you approved, when, and
@@ -49,12 +50,23 @@ ITEM_ID = {
     # One reflection gives one item per answered question ("<id>:0"), or its free text ("<id>:free").
     "reflection": re.compile(rf"^{_UUID}:(?:\d{{1,2}}|free)$"),
     "note": re.compile(rf"^{_UUID}$"),
+    # A step of the plan: "<path id>:<milestone id>".
+    "step": re.compile(r"^path_[A-Za-z0-9_-]{1,64}:[A-Za-z0-9_.-]{1,120}$"),
 }
+# Why a step is offered, strongest first: the person's own words beat a step they only finished.
+STEP_LABELS = {
+    "edited": "Step you put in your own words",
+    "rated": "Step you rated useful",
+    "loved": "Step you loved",
+    "finished": "Step you finished",
+}
+STEP_PROMPT = "My goal: {goal}. What's one small, clear step toward it?"
 
 
 class ItemRef(BaseModel):
-    kind: Literal["reflection", "note"]
-    id: str = Field(..., min_length=36, max_length=48)
+    kind: Literal["reflection", "note", "step"]
+    # Its shape is checked per kind (ITEM_ID).
+    id: str = Field(..., min_length=3, max_length=200)
 
 
 class ScrubIn(BaseModel):
@@ -100,14 +112,71 @@ def note_item(row: Dict[str, Any]) -> Optional[Dict[str, Any]]:
             "date": str(row.get("created_at") or "")[:10], "prompt": prompt, "text": body}
 
 
+def plan_milestones(payload: Any) -> List[Dict[str, Any]]:
+    """Every step of a stored plan, once each (the path's list, then any only in the Race view's)."""
+    payload = payload if isinstance(payload, dict) else {}
+    seen: Dict[str, Dict[str, Any]] = {}
+    lists = [(payload.get("path") or {}).get("milestones")] + [r.get("milestones") for r in payload.get("races") or [] if isinstance(r, dict)]
+    for milestones in lists:
+        for m in milestones if isinstance(milestones, list) else []:
+            if isinstance(m, dict) and isinstance(m.get("id"), str) and m["id"] not in seen:
+                seen[m["id"]] = m
+    return list(seen.values())
+
+
+def step_items(path_id: str, payload: Any, ratings: List[Dict[str, Any]], progress: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """The steps of the active plan the person made their own: put in their own words (payload.stepEdits, frontend
+    app/api/me/path/step), rated 4 or 5 (milestone_ratings, the latest per step), loved or finished (race_progress).
+    Each is one item: their goal as the question, the step (in their words where they wrote it) as the answer."""
+    payload = payload if isinstance(payload, dict) else {}
+    edits = payload.get("stepEdits") if isinstance(payload.get("stepEdits"), dict) else {}
+    latest: Dict[str, Dict[str, Any]] = {}
+    for r in ratings:
+        mid = r.get("milestone_id")
+        if mid and (mid not in latest or str(r.get("created_at") or "") >= str(latest[mid].get("created_at") or "")):
+            latest[mid] = r
+    loved = {r.get("milestone_id"): r for r in progress if r.get("kind") == "hearted"}
+    finished = {r.get("milestone_id"): r for r in progress if r.get("kind") == "completed"}
+    items = []
+    for m in plan_milestones(payload):
+        mid = m["id"]
+        edit = edits.get(mid) if isinstance(edits.get(mid), dict) else None
+        rated = latest.get(mid) if int((latest.get(mid) or {}).get("rating") or 0) >= 4 else None
+        why = ("edited" if edit else "rated" if rated else "loved" if mid in loved else "finished" if mid in finished else None)
+        if not why:
+            continue
+        name = str((edit or {}).get("name") or m.get("name") or "").strip()
+        description = str(((edit or {}).get("description") if edit else m.get("description")) or "").strip()
+        goal = str(m.get("goal") or (edit or {}).get("goal") or "").strip()[:300]
+        text = f"{name}. {description}" if description and not name.endswith((".", "!", "?")) else f"{name} {description}".strip()
+        if not name or not goal:
+            continue
+        when = ((edit or {}).get("editedAt") or (rated or {}).get("created_at") or (loved.get(mid) or {}).get("completed_at")
+                or (finished.get(mid) or {}).get("completed_at") or "")
+        items.append({"kind": "step", "id": f"{path_id}:{mid}", "label": STEP_LABELS[why], "date": str(when)[:10],
+                      "prompt": STEP_PROMPT.format(goal=goal), "text": text})
+    return items
+
+
 def load_items(sb, user_id: str) -> List[Dict[str, Any]]:
-    """Everything this person wrote that can go into a training set, newest first."""
+    """Everything this person wrote, or made their own in their plan, that can go into a training set, newest first."""
     reflections = (sb.table("reflections").select("id, created_at, context_type, questions, free_form_text")
                    .eq("user_id", user_id).order("created_at", desc=True).limit(MAX_REFLECTIONS).execute().data or [])
     notes = (sb.table("future_notes").select("id, created_at, kind, body")
              .eq("user_id", user_id).order("created_at", desc=True).limit(MAX_NOTES).execute().data or [])
     items = [item for row in reflections for item in reflection_items(row)]
     items += [item for item in (note_item(row) for row in notes) if item]
+    plans = (sb.table("user_paths").select("path_id, payload").eq("user_id", user_id)
+             .order("is_active", desc=True).order("updated_at", desc=True).limit(1).execute().data or [])
+    if plans:
+        try:
+            ratings = (sb.table("milestone_ratings").select("milestone_id, rating, created_at")
+                       .eq("user_id", user_id).eq("path_id", plans[0]["path_id"]).execute().data or [])
+        except Exception:
+            ratings = []          # STEP 54 not applied: no ratings
+        progress = (sb.table("race_progress").select("milestone_id, kind, completed_at")
+                    .eq("user_id", user_id).execute().data or [])
+        items += step_items(plans[0]["path_id"], plans[0].get("payload"), ratings, progress)
     return sorted(items, key=lambda item: item["date"], reverse=True)
 
 

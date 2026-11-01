@@ -69,6 +69,12 @@ class RelayTests(unittest.TestCase):
         with self.assertRaises(device_llm.DeviceUnavailable):
             asyncio.run(browser.relay.chat.completions.create(messages=[]))
 
+    def test_the_browser_is_told_which_agent_asks_and_whether_to_think(self):
+        browser = with_browser()
+        asyncio.run(browser.relay.chat.completions.create(messages=[], agent="path_planning", think=True))
+        asyncio.run(browser.relay.chat.completions.create(messages=[]))
+        self.assertEqual([(m["agent"], m["think"]) for m in browser.sent], [("path_planning", True), (None, False)])
+
     def test_a_socket_the_browser_has_left_fails_the_call_as_unavailable(self):
         async def gone(_message):
             raise RuntimeError("Unexpected ASGI message 'websocket.send', after sending 'websocket.close'")
@@ -123,6 +129,35 @@ class HarnessTests(unittest.TestCase):
         self.assertEqual(text, '{"steps": ["Call the clinic"]}')
         self.assertTrue(browser.sent[0]["json"])
         self.assertIn("Respond ONLY with valid JSON", browser.sent[0]["messages"][0]["content"])
+        # The agent's name goes along; only a call marked for it may think first.
+        self.assertEqual([(m["agent"], m["think"]) for m in browser.sent], [("path_planning", False), ("adaptation", False)])
+
+    def test_only_the_plan_itself_may_think_first(self):
+        browser = with_browser(reply='{"education": ["Pick a class"]}')
+        with llm.use_selection(llm.parse_selection({"model": "device"})):
+            with device_llm.use_device(browser.relay):
+                asyncio.run(llm.complete_json("Plan.", "Goal: swim", agent="path_planning", think=True))
+        self.assertTrue(browser.sent[0]["think"])
+
+    def test_cloud_models_get_no_device_hints(self):
+        captured = {}
+
+        class Cloud:
+            class chat:
+                class completions:
+                    @staticmethod
+                    async def create(**kwargs):
+                        captured.update(kwargs)
+                        from types import SimpleNamespace
+                        return SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(content="{}"))], usage=None)
+
+        model = registry.MODELS["gpt-4o-mini"]
+        with mock.patch.object(llm, "resolve", return_value=(model, registry.resolve_effort(None))), \
+                mock.patch.object(llm, "_client_for", mock.AsyncMock(return_value=Cloud)), \
+                mock.patch.object(llm, "_guard", mock.AsyncMock()), mock.patch.object(llm, "_record"):
+            asyncio.run(llm.complete_json("s", "u", agent="path_planning", think=True))
+        self.assertNotIn("agent", captured)
+        self.assertNotIn("think", captured)
 
     def test_a_device_that_fails_gives_the_agent_no_answer_not_a_cloud_one(self):
         browser = with_browser(reply=None, timeout=0.05)

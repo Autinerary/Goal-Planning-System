@@ -483,6 +483,9 @@ class PathPlanningAgent(BaseAgent):
                 temperature=0.7,
                 max_tokens=900,
                 agent="path_planning",
+                # The plan itself: the one call per goal where a model on the person's device that can think first is
+                # allowed to (core/llm.py _device_hints). Cloud models are unaffected.
+                think=True,
             )
             if isinstance(data, dict):
                 for key, _, _ in dimensions:

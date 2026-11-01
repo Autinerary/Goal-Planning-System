@@ -108,6 +108,65 @@ class ItemTests(unittest.TestCase):
         self.assertNotIn("Not yours.", str(out))
 
 
+PLAN = "path_abc123"
+
+
+def with_plan(db):
+    """A plan with four steps: one put in the person's own words, one rated 5, one loved, one only finished, and one
+    left alone."""
+    milestones = [
+        {"id": "m_edit", "goal": "Swim once a week", "name": "Book a pool slot", "description": "Pick a quiet time."},
+        {"id": "m_rated", "goal": "Swim once a week", "name": "Pack a swim bag", "description": "Towel, goggles, lock."},
+        {"id": "m_loved", "goal": "Swim once a week", "name": "Walk to the pool", "description": ""},
+        {"id": "m_done", "goal": "Swim once a week", "name": "Buy goggles", "description": "Any pair that fits."},
+        {"id": "m_none", "goal": "Swim once a week", "name": "Try the deep end", "description": ""},
+    ]
+    db.tables["user_paths"] = [{"user_id": U1, "path_id": PLAN, "is_active": True, "payload": {
+        "path": {"milestones": milestones},
+        "stepEdits": {"m_edit": {"name": "Book Tuesday 7 am at the pool", "description": "My friend Priya swims then too.",
+                                 "editedAt": "2026-10-30T10:00:00Z",
+                                 "original": {"name": "Book a pool slot", "description": "Pick a quiet time."}}}}}]
+    db.tables["milestone_ratings"] = [
+        {"user_id": U1, "path_id": PLAN, "milestone_id": "m_rated", "rating": 2, "created_at": "2026-10-20T00:00:00Z"},
+        {"user_id": U1, "path_id": PLAN, "milestone_id": "m_rated", "rating": 5, "created_at": "2026-10-29T00:00:00Z"},
+        {"user_id": U1, "path_id": PLAN, "milestone_id": "m_none", "rating": 2, "created_at": "2026-10-29T00:00:00Z"},
+    ]
+    db.tables["race_progress"] = [
+        {"user_id": U1, "milestone_id": "m_loved", "kind": "hearted", "completed_at": "2026-10-28T00:00:00Z"},
+        {"user_id": U1, "milestone_id": "m_done", "kind": "completed", "completed_at": "2026-10-27T00:00:00Z"},
+        {"user_id": U2, "milestone_id": "m_none", "kind": "completed", "completed_at": "2026-10-27T00:00:00Z"},
+    ]
+    return db
+
+
+class StepItemTests(unittest.TestCase):
+    def test_steps_made_their_own_are_items_and_the_rest_are_not(self):
+        items = {i["id"]: i for i in training.load_items(with_plan(FakeDB()), U1) if i["kind"] == "step"}
+        self.assertEqual(set(items), {f"{PLAN}:m_edit", f"{PLAN}:m_rated", f"{PLAN}:m_loved", f"{PLAN}:m_done"})
+        self.assertEqual(items[f"{PLAN}:m_edit"]["label"], "Step you put in your own words")
+        self.assertEqual(items[f"{PLAN}:m_edit"]["text"], "Book Tuesday 7 am at the pool. My friend Priya swims then too.")
+        self.assertEqual(items[f"{PLAN}:m_edit"]["prompt"], "My goal: Swim once a week. What's one small, clear step toward it?")
+        self.assertEqual(items[f"{PLAN}:m_rated"]["label"], "Step you rated useful")   # the latest rating counts
+        self.assertEqual(items[f"{PLAN}:m_loved"]["text"], "Walk to the pool")
+        self.assertEqual(items[f"{PLAN}:m_done"]["label"], "Step you finished")
+
+    def test_a_step_is_scrubbed_like_anything_else(self):
+        body = training.ScrubIn(items=[{"kind": "step", "id": f"{PLAN}:m_edit"}])
+        with patch.object(scrubber, "_ner", return_value=None):
+            out = call(training.scrub_mine, with_plan(FakeDB()), body)
+        self.assertEqual(out["items"][0]["after"], "Book Tuesday 7 am at the pool. My friend [NAME] swims then too.")
+
+    def test_approving_steps_records_their_ids(self):
+        db = with_plan(FakeDB())
+        with patch.object(scrubber, "_ner", return_value=None):
+            version = f"{scrubber.SCRUBBER_VERSION}+patterns"
+            out = call(training.record_consent, db, training.ConsentIn(items=[{"kind": "step", "id": f"{PLAN}:m_done"}], scrubberVersion=version))
+        self.assertEqual(out["itemCount"], 1)
+        self.assertEqual(db.tables["training_set_consents"][0]["item_refs"], [{"kind": "step", "id": f"{PLAN}:m_done"}])
+        with patch.object(scrubber, "_ner", return_value=None), self.assertRaises(HTTPException):
+            call(training.record_consent, db, training.ConsentIn(items=[{"kind": "step", "id": f"{PLAN}:m_none"}], scrubberVersion=version))
+
+
 class ScrubTests(unittest.TestCase):
     def test_chosen_items_before_and_after_and_another_persons_ids_are_skipped(self):
         body = training.ScrubIn(items=[{"kind": "reflection", "id": f"{R1}:0"}, {"kind": "reflection", "id": f"{R2}:free"},
