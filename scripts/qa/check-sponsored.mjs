@@ -27,4 +27,18 @@ for (const file of ['sponsored.ts', 'infoMode.ts', 'filters/tags.ts', 'filters/t
     failed = true
   } else console.log(`${file}: ok (the two copies match)`)
 }
+// Components kept the same in both apps: ResourceHub's star rating, which the app's Community models uses
+// (Settings, Models). Blank lines left by the removed comment don't count.
+for (const [hub, app] of [['servicehub-mvp/components/ratings/StarRating.tsx', 'frontend/app/components/StarRating.tsx']]) {
+  const tidy = (s) => body(s).replace(/\n{3,}/g, '\n\n')
+  const a = tidy(read(hub))
+  const b = tidy(read(app))
+  if (a !== b) {
+    const al = a.split('\n')
+    const bl = b.split('\n')
+    const i = al.findIndex((line, n) => line !== bl[n])
+    console.error(`${hub} and ${app} differ from line ${i + 1} of the code:\n  hub: ${al[i]}\n  app: ${bl[i]}`)
+    failed = true
+  } else console.log(`${app.split('/').pop()}: ok (the two copies match)`)
+}
 if (failed) process.exit(1)

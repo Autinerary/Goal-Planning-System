@@ -26,6 +26,7 @@ import {
   toJsonl,
   trainingFileName,
 } from '@/lib/trainingSet'
+import { sharingStatus } from '@/lib/sharedModels'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -60,8 +61,10 @@ export default function TrainingSetPage() {
   const [saving, setSaving] = useState(false)
   const [done, setDone] = useState<{ file: string; count: number; at: string } | null>(null)
   const [records, setRecords] = useState<ConsentRecord[]>([])
+  const [sharing, setSharing] = useState(false)
 
   useEffect(() => {
+    sharingStatus(API_URL).then((s) => setSharing(s.enabled)).catch(() => {})
     ;(async () => {
       const token = await freshToken()
       if (!token) {
@@ -344,10 +347,20 @@ export default function TrainingSetPage() {
         </p>
       </section>
 
-      <section aria-labelledby="share-heading" className="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-600 space-y-1">
-        <h2 id="share-heading" className="font-semibold text-slate-800">Share it with your community <span className="text-slate-500 font-normal">Coming soon</span></h2>
-        <p>Sharing a tuned model, and starting from one someone else shared, isn&apos;t available yet.</p>
-      </section>
+      {sharing ? (
+        <section aria-labelledby="share-heading" className="rounded-xl border border-slate-200 p-4 text-sm text-slate-700 space-y-1">
+          <h2 id="share-heading" className="font-semibold text-slate-900">Share it with your community</h2>
+          <p>
+            Once you&apos;ve trained it, you can <Link href="/settings/models/share" className="underline">share your model</Link>,
+            or start from one someone else shared in <Link href="/settings/models/community" className="underline">Community models</Link>.
+          </p>
+        </section>
+      ) : (
+        <section aria-labelledby="share-heading" className="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-600 space-y-1">
+          <h2 id="share-heading" className="font-semibold text-slate-800">Share it with your community <span className="text-slate-500 font-normal">Coming soon</span></h2>
+          <p>Sharing a tuned model, and starting from one someone else shared, isn&apos;t available yet.</p>
+        </section>
+      )}
 
       {records.length > 0 && (
         <section aria-labelledby="records-heading" className="text-sm text-slate-600 space-y-1">

@@ -21,6 +21,9 @@ import {
   pingOwnModel,
   saveOwnModel,
 } from '@/lib/localModel'
+import { sharingStatus } from '@/lib/sharedModels'
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 export default function OwnModel() {
   const [settings, setSettings] = useState<OwnModelSettings>(DEFAULT_OWN_MODEL)
@@ -30,6 +33,7 @@ export default function OwnModel() {
   const [checking, setChecking] = useState(false)
   const [test, setTest] = useState<{ state: 'idle' | 'running' | 'done' | 'failed'; text?: string; seconds?: number }>({ state: 'idle' })
   const [origin, setOrigin] = useState('this site')
+  const [sharing, setSharing] = useState(false)
 
   const check = useCallback(async (current: OwnModelSettings) => {
     setChecking(true)
@@ -44,6 +48,7 @@ export default function OwnModel() {
     setModel(loaded.model)
     setOrigin(window.location.origin)
     if (loaded.enabled) check(loaded)
+    sharingStatus(API_URL).then((s) => setSharing(s.enabled)).catch(() => {})
   }, [check])
 
   const urlOk = cleanBaseUrl(baseUrl) !== null
@@ -197,7 +202,14 @@ export default function OwnModel() {
             <Link href="/settings/models/training-set" className="underline">Build my training set</Link>, then train it on
             your laptop.
           </li>
-          <li>Sharing a tuned model with your community. <span className="text-slate-500">Coming soon.</span></li>
+          {sharing ? (
+            <li>
+              Sharing it with your community: <Link href="/settings/models/share" className="underline">Share my model</Link>, or
+              start from one someone shared in <Link href="/settings/models/community" className="underline">Community models</Link>.
+            </li>
+          ) : (
+            <li>Sharing a tuned model with your community. <span className="text-slate-500">Coming soon.</span></li>
+          )}
         </ul>
       </div>
     </section>

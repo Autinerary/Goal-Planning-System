@@ -45,9 +45,13 @@ export async function GET() {
   const userIds = (reports ?? [])
     .filter((r) => r.target_type === 'user')
     .map((r) => r.target_id);
+  // Starter models shared from the app (STEP 96): their title and description, never who shared one.
+  const adapterIds = (reports ?? [])
+    .filter((r) => r.target_type === 'adapter')
+    .map((r) => r.target_id);
   const reporterIds = Array.from(new Set((reports ?? []).map((r) => r.reporter_id)));
 
-  const [postsRes, answersRes, profilesRes] = await Promise.all([
+  const [postsRes, answersRes, profilesRes, adaptersRes] = await Promise.all([
     postIds.length
       ? client
           .from('community_posts')
@@ -64,10 +68,14 @@ export async function GET() {
       .from('community_profiles')
       .select('user_id, pseudonym')
       .in('user_id', Array.from(new Set([...reporterIds, ...userIds]))),
+    adapterIds.length
+      ? client.from('shared_adapters').select('id, title, description').in('id', adapterIds)
+      : Promise.resolve({ data: [] as Array<{ id: string; title: string; description: string }> }),
   ]);
 
   const postMap = new Map((postsRes.data ?? []).map((p) => [p.id, p]));
   const answerMap = new Map((answersRes.data ?? []).map((a) => [a.id, a]));
+  const adapterMap = new Map((adaptersRes.data ?? []).map((a) => [a.id, a]));
   const profileMap = new Map(
     (profilesRes.data ?? []).map((p) => [p.user_id, p.pseudonym] as const)
   );
@@ -85,6 +93,10 @@ export async function GET() {
       const a = answerMap.get(r.target_id);
       target_excerpt = a?.body_markdown?.slice(0, 200) ?? null;
       target_author_id = a?.author_id ?? null;
+    } else if (r.target_type === 'adapter') {
+      const m = adapterMap.get(r.target_id);
+      target_title = m ? `Shared model: ${m.title}` : 'Shared model';
+      target_excerpt = m?.description?.slice(0, 200) || null;
     } else {
       target_author_id = r.target_id;
     }

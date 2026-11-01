@@ -20,6 +20,9 @@
 #   OLLAMA_BASE  the Ollama model with the same chat format (default llama3.2:3b, or llama3.2:1b)
 #   EPOCHS       times through your set (default 2; more makes it start repeating your words back)
 #   WORK_DIR     where the adapter and the merged model go (default ~/.autinerary-model/<model-name>)
+#   FROM_ADAPTER start from a model someone shared (Community models): the .safetensors file, with its
+#                .adapter_config.json beside it. Your set tunes it a little further, once through unless EPOCHS says
+#                otherwise; the base model and the adapter's shape come from its settings.
 #
 # Llama 3.2 is under Meta's Llama 3.2 Community License, and a model made from it is too.
 set -euo pipefail
@@ -58,6 +61,24 @@ fi
 
 MEMORY_GB=$(( $(sysctl -n hw.memsize) / 1073741824 ))
 if (( MEMORY_GB >= 16 )); then SIZE=3B; else SIZE=1B; fi
+NUM_LAYERS=8 RANK=8 SCALE=20.0
+FROM_ADAPTER="${FROM_ADAPTER:-}"
+if [[ -n "$FROM_ADAPTER" ]]; then
+  SHARED_CONFIG="${FROM_ADAPTER%.safetensors}.adapter_config.json"
+  if [[ "$FROM_ADAPTER" != *.safetensors || ! -f "$FROM_ADAPTER" || ! -f "$SHARED_CONFIG" ]]; then
+    echo "✗ FROM_ADAPTER needs the .safetensors file from Community models, with its .adapter_config.json beside it." >&2
+    exit 1
+  fi
+  # The shared adapter's base model and shape, so training picks up where it left off.
+  read -r BASE_MODEL NUM_LAYERS RANK SCALE < <("$PYTHON" -c 'import json, sys; c = json.load(open(sys.argv[1])); p = c["lora_parameters"]
+print(c["model"], int(c["num_layers"]), int(p["rank"]), float(p["scale"]))' "$SHARED_CONFIG")
+  case "$BASE_MODEL" in
+    mlx-community/Llama-3.2-1B-Instruct-bf16) OLLAMA_BASE=llama3.2:1b ;;
+    mlx-community/Llama-3.2-3B-Instruct-bf16) OLLAMA_BASE=llama3.2:3b ;;
+    *) echo "✗ That adapter starts from $BASE_MODEL, which this script doesn't know." >&2; exit 1 ;;
+  esac
+  EPOCHS="${EPOCHS:-1}"
+fi
 BASE_MODEL="${BASE_MODEL:-mlx-community/Llama-3.2-$SIZE-Instruct-bf16}"
 OLLAMA_BASE="${OLLAMA_BASE:-llama3.2:$(echo "$SIZE" | tr 'B' 'b')}"
 EPOCHS="${EPOCHS:-2}"
@@ -70,6 +91,7 @@ if ! ollama show "$OLLAMA_BASE" >/dev/null 2>&1; then
 fi
 
 echo "Tuning $BASE_MODEL on $DATA for Ollama as $NAME ($MEMORY_GB GB of memory)."
+if [[ -n "$FROM_ADAPTER" ]]; then echo "Starting from $(basename "$FROM_ADAPTER")."; fi
 echo "Working in $WORK"
 
 # ---- 1. Tools ----------------------------------------------------------------------------------------------------
@@ -124,7 +146,7 @@ adapter_path: "$WORK/adapter"
 batch_size: $BATCH
 iters: $ITERS
 learning_rate: 5.0e-5
-num_layers: 8
+num_layers: $NUM_LAYERS
 max_seq_length: 1024
 mask_prompt: true
 val_batches: -1
@@ -133,10 +155,11 @@ steps_per_eval: $ITERS
 save_every: $(( ITERS + 1 ))
 seed: 0
 lora_parameters:
-  rank: 8
-  scale: 20.0
+  rank: $RANK
+  scale: $SCALE
   dropout: 0.05
 YAML
+if [[ -n "$FROM_ADAPTER" ]]; then echo "resume_adapter_file: \"$FROM_ADAPTER\"" >> "$WORK/lora.yaml"; fi
 "$PY" -m mlx_lm lora --config "$WORK/lora.yaml"
 
 # ---- 4. Merge it into the model, and add that to Ollama with the base model's chat format ---------------------------

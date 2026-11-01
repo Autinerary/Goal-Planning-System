@@ -46,6 +46,33 @@ Then in Autinerary, under **Use my own model**, set the model name to `my-model`
   `ollama run my-model` with the same question) and keep the one you prefer. To go back, set the model name back.
 - To remove it: `ollama rm my-model`, and delete `~/.autinerary-model`.
 
+## Start from a model someone shared
+
+**Community models** (Settings, Models) lists starter models people tuned from their own scrubbed writing and shared.
+Each has two files; download both and keep them side by side.
+
+```bash
+ollama pull llama3.2:3b                      # the model it starts from (Community models says which)
+bash use-shared-model.sh ~/Downloads/calm-first-steps.safetensors
+```
+
+That adds it to Ollama as `calm-first-steps`. To tune it a little with your own approved items, start from it:
+
+```bash
+FROM_ADAPTER=~/Downloads/calm-first-steps.safetensors bash train-my-model.sh ~/Downloads/my-training-set-2026-10-31.jsonl my-calm-first-steps
+```
+
+It goes through your set once (unless you set `EPOCHS`), starting where the shared one left off.
+
+## Share yours
+
+**Share my model** (Settings, Models) shares your adapter (`~/.autinerary-model/my-model/adapter`), never your
+training set. Before it's listed, it's checked: the training set it came from was scrubbed and approved by you; a
+memory check, run in your browser against the model on your computer, finds it doesn't say your training answers back;
+its title and description name no one; and only the adapter and four of its settings go up (the settings file the
+tools write has folders from your computer in it, so the rest is left out). If the memory check fails, train again
+with `EPOCHS=1` or with more items.
+
 ## Settings
 
 Set these before the command, for example `EPOCHS=3 bash train-my-model.sh my-set.jsonl`:
@@ -56,6 +83,7 @@ Set these before the command, for example `EPOCHS=3 bash train-my-model.sh my-se
 | `OLLAMA_BASE` | `llama3.2:3b` (or `llama3.2:1b`) | The Ollama model with the same chat format |
 | `EPOCHS` | `2` | Times through your set. More makes it start repeating your words back |
 | `WORK_DIR` | `~/.autinerary-model/<model name>` | Where the adapter and the merged model go |
+| `FROM_ADAPTER` | none | A shared adapter's `.safetensors` file to start from (its `.adapter_config.json` beside it) |
 
 ## Licence
 
