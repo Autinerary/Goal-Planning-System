@@ -162,8 +162,9 @@ export default function TrainingSetPage() {
         </Link>
         <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Build my training set</h1>
         <p className="text-slate-600">
-          Choose things you wrote, like journal entries, reflections and notes on your plan, to tune a small open model on
-          your device to how you talk about your steps. The training happens on your laptop, not on our servers.
+          Choose things you wrote, like journal entries, reflections, notes on your plan and steps you made your own, to
+          tune a small open model on your device to how you talk about your steps. The training happens on your laptop,
+          not on our servers.
         </p>
       </header>
 
@@ -203,7 +204,8 @@ export default function TrainingSetPage() {
           {!items && !error && <p className="text-sm text-slate-500">Loading what you wrote…</p>}
           {items && items.length === 0 && (
             <p className="text-sm text-slate-600">
-              Nothing here yet. Your journal entries, reflections and notes on your plan will show up here once you write some.
+              Nothing here yet. Your journal entries, reflections and notes on your plan will show up here once you write some,
+              and so will steps of your plan you put in your own words, rated useful, loved or finished.
             </p>
           )}
           {items && items.length > 0 && (
@@ -343,7 +345,9 @@ export default function TrainingSetPage() {
         </ol>
         <p className="text-slate-500">
           A few dozen items change the model only a little, and a tuned model can get worse as well as better. Try it with
-          Send a test prompt and keep the one you prefer. Windows and Linux: coming soon.
+          Send a test prompt and keep the one you prefer. On Windows or Linux with an NVIDIA graphics card,{' '}
+          <a className="underline" href="/own-model/autinerary_model.py" download>autinerary_model.py</a> tunes it and makes an
+          adapter you can share; using it in Ollama there is <span className="text-slate-500">coming soon</span>.
         </p>
       </section>
 

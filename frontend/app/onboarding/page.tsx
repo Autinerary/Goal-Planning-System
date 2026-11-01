@@ -1098,14 +1098,16 @@ export default function OnboardingPage() {
       let madeOnDevice = false
       const ownModel = loadOwnModel()
       if (ownModel.enabled) {
-        const route = planRoute(await pingOwnModel(ownModel), !!session?.access_token)
+        const ping = await pingOwnModel(ownModel)
+        const route = planRoute(ping, !!session?.access_token)
         if (route.route === 'device' && session?.access_token) {
           setGenerationStage('Asking the model on your device')
           const result = await makePlanOnDevice({
             apiUrl: API_URL,
             token: session.access_token,
             body: onboardingBody,
-            settings: ownModel,
+            // Whether it can think first, as of now (a different model may be installed since Settings was opened).
+            settings: { ...ownModel, thinks: ping.ok && !!ping.thinks },
             onStage: setGenerationStage,
           })
           response = { data: { pathId: result.pathId } }

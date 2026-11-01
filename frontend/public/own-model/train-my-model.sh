@@ -16,6 +16,8 @@
 # pulled (ollama pull llama3.2:3b, or llama3.2:1b on a Mac with less than 16 GB), and about 20 GB of free disk space.
 #
 # You can change, with environment variables:
+#   MODEL        llama-3b or llama-1b (default llama-3b, or llama-1b with less than 16 GB of memory); tuning qwen3-4b,
+#                which thinks first, is coming soon
 #   BASE_MODEL   the model to tune, from Hugging Face (default mlx-community/Llama-3.2-3B-Instruct-bf16, or -1B-)
 #   OLLAMA_BASE  the Ollama model with the same chat format (default llama3.2:3b, or llama3.2:1b)
 #   EPOCHS       times through your set (default 2; more makes it start repeating your words back)
@@ -24,7 +26,7 @@
 #                .adapter_config.json beside it. Your set tunes it a little further, once through unless EPOCHS says
 #                otherwise; the base model and the adapter's shape come from its settings.
 #
-# Llama 3.2 is under Meta's Llama 3.2 Community License, and a model made from it is too.
+# Llama 3.2 is under Meta's Llama 3.2 Community License, and a model made from it is too; Qwen3 is under Apache 2.0.
 set -euo pipefail
 
 DATA="${1:-}"
@@ -75,12 +77,29 @@ print(c["model"], int(c["num_layers"]), int(p["rank"]), float(p["scale"]))' "$SH
   case "$BASE_MODEL" in
     mlx-community/Llama-3.2-1B-Instruct-bf16) OLLAMA_BASE=llama3.2:1b ;;
     mlx-community/Llama-3.2-3B-Instruct-bf16) OLLAMA_BASE=llama3.2:3b ;;
+    Qwen/Qwen3-4B) OLLAMA_BASE=qwen3:4b ;;
     *) echo "✗ That adapter starts from $BASE_MODEL, which this script doesn't know." >&2; exit 1 ;;
   esac
   EPOCHS="${EPOCHS:-1}"
 fi
+case "${MODEL:-}" in
+  "") ;;
+  llama-3b) BASE_MODEL="${BASE_MODEL:-mlx-community/Llama-3.2-3B-Instruct-bf16}" ;;
+  llama-1b) BASE_MODEL="${BASE_MODEL:-mlx-community/Llama-3.2-1B-Instruct-bf16}" ;;
+  qwen3-4b)
+    # Tested 1 November 2026: tuned on answers without thinking, Qwen3 stopped thinking or couldn't stop; and Ollama
+    # 0.40 brings a tuned Qwen3 in through its newer engine, where thinking can't be switched off and 4-bit
+    # compression gave nonsense. The untuned qwen3:4b runs fine in Ollama.
+    echo "✗ Tuning Qwen3 is coming soon: tuned, it doesn't keep its thinking yet. You can use the untuned qwen3:4b in Ollama, or tune MODEL=llama-3b." >&2
+    exit 1 ;;
+  *) echo "✗ MODEL is llama-3b or llama-1b." >&2; exit 1 ;;
+esac
 BASE_MODEL="${BASE_MODEL:-mlx-community/Llama-3.2-$SIZE-Instruct-bf16}"
-OLLAMA_BASE="${OLLAMA_BASE:-llama3.2:$(echo "$SIZE" | tr 'B' 'b')}"
+case "$BASE_MODEL" in
+  Qwen/Qwen3-4B) OLLAMA_BASE="${OLLAMA_BASE:-qwen3:4b}" ;;
+  *-1B-*) OLLAMA_BASE="${OLLAMA_BASE:-llama3.2:1b}" ;;
+  *) OLLAMA_BASE="${OLLAMA_BASE:-llama3.2:$(echo "$SIZE" | tr 'B' 'b')}" ;;
+esac
 EPOCHS="${EPOCHS:-2}"
 HOME_DIR="$HOME/.autinerary-model"
 WORK="${WORK_DIR:-$HOME_DIR/$NAME}"
@@ -135,10 +154,34 @@ N_TRAIN=$(grep -c . "$WORK/data/train.jsonl")
 ITERS=$(( (EPOCHS * N_TRAIN + BATCH - 1) / BATCH ))
 (( ITERS >= 10 )) || ITERS=10
 
+# ---- Qwen3 thinks before it answers; your answers don't. So they're learnt without the empty <think></think> that
+# comes before them (it's made part of the question, which isn't learnt), and the tuned model still thinks when asked.
+TRAIN_MODEL="$BASE_MODEL"
+if [[ "$BASE_MODEL" == Qwen/Qwen3* ]]; then
+  TRAIN_MODEL="$WORK/base"
+  "$PY" - "$BASE_MODEL" "$TRAIN_MODEL" <<'QWEN'
+import json, os, sys
+from huggingface_hub import snapshot_download
+source, target = sys.argv[1], sys.argv[2]
+folder = snapshot_download(source, allow_patterns=["*.json", "*.safetensors", "*.txt", "tokenizer*", "merges.txt", "vocab.json"])
+os.makedirs(target, exist_ok=True)
+for name in os.listdir(folder):
+    link = os.path.join(target, name)
+    if name != "tokenizer_config.json" and not os.path.lexists(link):
+        os.symlink(os.path.join(folder, name), link)
+config = json.load(open(os.path.join(folder, "tokenizer_config.json")))
+switch = "{%- if enable_thinking is defined and enable_thinking is false %}\n        {{- '<think>\\n\\n</think>\\n\\n' }}\n    {%- endif %}"
+if switch not in config["chat_template"]:
+    sys.exit("✗ Qwen3's chat template isn't the one this script knows.")
+config["chat_template"] = config["chat_template"].replace(switch, "{{- '<think>\\n\\n</think>\\n\\n' }}")
+json.dump(config, open(os.path.join(target, "tokenizer_config.json"), "w"))
+QWEN
+fi
+
 # ---- 3. Train a LoRA adapter, on your answers only (mask_prompt), a little at a time --------------------------------
 rm -rf "$WORK/adapter"
 cat > "$WORK/lora.yaml" <<YAML
-model: "$BASE_MODEL"
+model: "$TRAIN_MODEL"
 train: true
 fine_tune_type: lora
 data: "$WORK/data"
@@ -161,10 +204,36 @@ lora_parameters:
 YAML
 if [[ -n "$FROM_ADAPTER" ]]; then echo "resume_adapter_file: \"$FROM_ADAPTER\"" >> "$WORK/lora.yaml"; fi
 "$PY" -m mlx_lm lora --config "$WORK/lora.yaml"
+# The adapter's settings name the model it starts from as people find it (not the folder it was trained from), and,
+# started from a shared model, that model, so sharing this one says what it was built on.
+"$PY" - "$WORK/adapter/adapter_config.json" "$BASE_MODEL" "${SHARED_CONFIG:-}" <<'SETTINGS'
+import json, sys
+path, model, shared = sys.argv[1], sys.argv[2], sys.argv[3]
+config = json.load(open(path))
+config["model"] = model
+if shared:
+    shared_id = json.load(open(shared)).get("shared_id")
+    if shared_id:
+        config["built_on"] = shared_id
+json.dump(config, open(path, "w"), indent=4)
+SETTINGS
 
 # ---- 4. Merge it into the model, and add that to Ollama with the base model's chat format ---------------------------
 rm -rf "$WORK/merged"
 "$PY" -m mlx_lm fuse --model "$BASE_MODEL" --adapter-path "$WORK/adapter" --save-path "$WORK/merged"
+# Ollama reads the model's own config and tokenizer files: the copies mlx-lm writes back can differ (a Qwen3 merged this
+# way came out of Ollama as nonsense until the originals were put back), so the originals go beside the merged weights.
+"$PY" - "$BASE_MODEL" "$WORK/merged" <<'ORIGINALS'
+import os, shutil, sys
+from huggingface_hub import snapshot_download
+folder = snapshot_download(sys.argv[1], allow_patterns=["*.json", "*.txt", "tokenizer*", "vocab.json", "merges.txt"])
+for name in os.listdir(folder):
+    if not name.endswith(".safetensors") and name != "model.safetensors.index.json":
+        shutil.copyfile(os.path.join(folder, name), os.path.join(sys.argv[2], name))
+for extra in ("chat_template.jinja",):
+    if os.path.exists(os.path.join(sys.argv[2], extra)) and not os.path.exists(os.path.join(folder, extra)):
+        os.remove(os.path.join(sys.argv[2], extra))
+ORIGINALS
 ollama show --modelfile "$OLLAMA_BASE" |
   awk -v from="FROM $WORK/merged" '!done && /^FROM / { print from; done = 1; next } { print }' > "$WORK/Modelfile"
 # Compressed to 4 bits so it runs fast: older Ollama calls that q4_K_M, newer Ollama int4. Uncompressed if neither works.

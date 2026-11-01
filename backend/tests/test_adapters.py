@@ -233,7 +233,8 @@ class CheckTests(unittest.TestCase):
     def test_tags_and_base_models_from_the_lists_only(self):
         self.assertFalse(run(adapters.check_adapter, FakeDB(), body(tags=["my-school"]), user_id=OWNER)["passed"])
         self.assertFalse(run(adapters.check_adapter, FakeDB(), body(baseModel="meta-llama/Llama-3.1-70B"), user_id=OWNER)["passed"])
-        self.assertTrue(run(adapters.check_adapter, FakeDB(), body(baseModel="Qwen/Qwen3-4B"), user_id=OWNER)["passed"])
+        # Qwen3 isn't shareable until a tuned one keeps its thinking (coming soon).
+        self.assertFalse(run(adapters.check_adapter, FakeDB(), body(baseModel="Qwen/Qwen3-4B"), user_id=OWNER)["passed"])
 
 
 class CrowdTests(unittest.TestCase):
@@ -251,6 +252,15 @@ class CrowdTests(unittest.TestCase):
     def test_only_sharing_with_everyone_needs_a_crowd(self):
         out = run(adapters.check_adapter, FakeDB(crowd=3), body(visibility="people", people=[FRIEND]), user_id=OWNER)
         self.assertTrue(out["checks"]["crowd"]["passed"])
+
+    def test_a_check_that_doesnt_apply_says_so(self):
+        applies = lambda out: {k for k, c in out["checks"].items() if c.get("applies", True)}
+        always = {"scrub_review", "memorization", "metadata"}
+        db = FakeDB(crowd=6)
+        self.assertEqual(applies(run(adapters.check_adapter, db, body(), user_id=OWNER)), always | {"crowd"})
+        self.assertEqual(applies(run(adapters.check_adapter, db, body(tags=[]), user_id=OWNER)), always, "no tags, no crowd")
+        self.assertEqual(applies(run(adapters.check_adapter, db, body(visibility="people", people=[FRIEND]), user_id=OWNER)), always | {"audience"})
+        self.assertEqual(applies(run(adapters.check_adapter, db, body(visibility="link"), user_id=OWNER)), always)
 
 
 class AudienceTests(unittest.TestCase):

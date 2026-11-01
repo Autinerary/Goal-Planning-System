@@ -69,16 +69,15 @@ WEIGHTS, CONFIG = "adapters.safetensors", "adapter_config.json"
 MAX_WEIGHTS_BYTES = 100 * 1024 * 1024
 MAX_CONFIG_BYTES = 16 * 1024
 # The models the training scripts tune, each with the Ollama model that has its chat format, and its family (for the
-# memory check's prompt). Qwen3 4B thinks before it answers.
+# memory check's prompt). Qwen3 4B, which thinks first, isn't one yet: tuned, it doesn't keep its thinking, and Ollama
+# can't switch a tuned one's thinking off (1 November 2026). Coming soon.
 BASE_MODELS = {
     "mlx-community/Llama-3.2-1B-Instruct-bf16": "llama3.2:1b",
     "mlx-community/Llama-3.2-3B-Instruct-bf16": "llama3.2:3b",
-    "Qwen/Qwen3-4B": "qwen3:4b",
 }
 BASE_FAMILIES = {
     "mlx-community/Llama-3.2-1B-Instruct-bf16": "llama3",
     "mlx-community/Llama-3.2-3B-Instruct-bf16": "llama3",
-    "Qwen/Qwen3-4B": "qwen3",
 }
 VISIBILITIES = ("everyone", "people", "link")
 # On 24 training answers, the untuned Llama 3.2 1B's closest continuation was 0.40; the same model tuned for 10 steps
@@ -237,7 +236,7 @@ def metadata_check(title: str, description: str, chosen_tags: List[str], base_mo
     if [t for t in chosen_tags if t not in tags.TAG_IDS]:
         why.append("Pick the community tags from the list.")
     if base_model is not None and base_model not in BASE_MODELS:
-        why.append("Only adapters for the models the training scripts use (Llama 3.2 1B or 3B, or Qwen3 4B) can be shared.")
+        why.append("Only adapters for the models the training scripts use (Llama 3.2 1B or 3B) can be shared.")
     return {"passed": not why, "found": found, "why": " ".join(why)}
 
 
@@ -261,7 +260,7 @@ def crowd_check(sb, chosen_tags: List[str], visibility: str) -> Dict[str, Any]:
     enough people share them is said, never how many."""
     clean = tags.clean_tags(chosen_tags)
     if visibility != "everyone" or not clean:
-        return {"passed": True, "why": ""}
+        return {"passed": True, "applies": False, "why": ""}
     enough = tags.crowd(clean, people_tags(sb, None, real_only=True).values()) >= tags.MIN_CROWD
     return {"passed": enough, "why": "" if enough else (
         f"Fewer than {tags.MIN_CROWD} people here share all of these tags, so together they could point to you. "
@@ -270,7 +269,7 @@ def crowd_check(sb, chosen_tags: List[str], visibility: str) -> Dict[str, Any]:
 
 def audience_check(sb, user_id: str, visibility: str, picked: List[str]) -> Dict[str, Any]:
     if visibility != "people":
-        return {"passed": True, "why": ""}
+        return {"passed": True, "applies": False, "why": ""}
     if not picked:
         return {"passed": False, "why": "Pick at least one person to share it with."}
     mine = my_people(sb, user_id)
@@ -298,7 +297,7 @@ def can_see(sb, row: Dict[str, Any], caller: Optional[str], key: Optional[str] =
 
 def lineage_check(sb, user_id: str, built_on: Optional[str]) -> Dict[str, Any]:
     if not built_on:
-        return {"passed": True, "why": ""}
+        return {"passed": True, "applies": False, "why": ""}
     parent_id = _uuid(built_on)
     rows = (sb.table("shared_adapters").select("*").eq("id", parent_id).limit(1).execute().data or []) if parent_id else []
     # A private link isn't kept with the person who used it, so a model shared by link counts as one they could see.
@@ -308,6 +307,9 @@ def lineage_check(sb, user_id: str, built_on: Optional[str]) -> Dict[str, Any]:
 
 
 def run_checks(sb, user_id: str, body: AdapterIn) -> Dict[str, Any]:
+    """Every check, each passed or not and why. A check that doesn't apply to this share (the crowd, unless it's shared
+    with everyone; the people, unless it's shared with people picked; what it was built on, unless it was) says
+    "applies": False, so it isn't shown as something that was checked."""
     rows = (sb.table("training_set_consents").select("id, created_at, item_count, scrubber_version")
             .eq("id", body.consentId).eq("user_id", user_id).limit(1).execute().data or [])
     consent = rows[0] if rows else None

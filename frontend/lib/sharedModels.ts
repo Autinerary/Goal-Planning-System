@@ -15,28 +15,34 @@ import type { OwnModelSettings } from './localModel'
 
 export const MEMORY_THRESHOLD = 0.5
 
+// Qwen3 4B, which thinks first, isn't shareable yet: tuned, it doesn't keep its thinking (coming soon). Its memory-check
+// prompt (qwen3Prompt) is ready for when it is.
 export const BASE_MODELS: Record<string, string> = {
   'mlx-community/Llama-3.2-1B-Instruct-bf16': 'llama3.2:1b',
   'mlx-community/Llama-3.2-3B-Instruct-bf16': 'llama3.2:3b',
 }
+/** Each base model's family, for the memory check's prompt (llama3 or qwen3's chat format). */
+export const BASE_FAMILIES: Record<string, 'llama3' | 'qwen3'> = {
+  'mlx-community/Llama-3.2-1B-Instruct-bf16': 'llama3',
+  'mlx-community/Llama-3.2-3B-Instruct-bf16': 'llama3',
+}
+export const baseModelLabel = (id: string): string =>
+  id.includes('Qwen3-4B') ? 'Qwen3 4B (thinks first)' : id.includes('-1B-') ? 'Llama 3.2 1B' : 'Llama 3.2 3B'
 
+// The same tags, in the same order, as the backend (core/community_tags.py); lib/sharedModels.test.mjs checks.
 export const COMMUNITY_TAGS: { id: string; label: string }[] = [
-  { id: 'autism', label: 'Autism' },
-  { id: 'adhd', label: 'ADHD' },
-  { id: 'dyslexia', label: 'Dyslexia' },
-  { id: 'dyspraxia', label: 'Dyspraxia' },
-  { id: 'tourette', label: 'Tourette' },
-  { id: 'ocd', label: 'OCD' },
-  { id: 'anxiety', label: 'Anxiety' },
-  { id: 'depression', label: 'Depression' },
-  { id: 'learning-disability', label: 'Learning disability' },
-  { id: 'intellectual-disability', label: 'Intellectual disability' },
-  { id: 'chronic-illness', label: 'Chronic illness' },
-  { id: 'physical-disability', label: 'Physical disability' },
-  { id: 'caregivers', label: 'Parents and caregivers' },
-  { id: 'students', label: 'Students' },
-  { id: 'work', label: 'Work' },
+  { id: 'autism', label: 'Autism' }, { id: 'adhd', label: 'ADHD' }, { id: 'dyspraxia', label: 'Dyspraxia' },
+  { id: 'tourette', label: 'Tourette' }, { id: 'dyslexia', label: 'Dyslexia' },
+  { id: 'learning-disability', label: 'Learning disability' }, { id: 'anxiety', label: 'Anxiety' },
+  { id: 'depression', label: 'Depression' }, { id: 'ocd', label: 'OCD' }, { id: 'mental-health', label: 'Mental health' },
+  { id: 'sensory-processing', label: 'Sensory processing' }, { id: 'vision', label: 'Vision' }, { id: 'hearing', label: 'Hearing' },
+  { id: 'communication', label: 'Communication' }, { id: 'intellectual-disability', label: 'Intellectual disability' },
+  { id: 'chronic-illness', label: 'Chronic illness' }, { id: 'physical-disability', label: 'Physical disability' },
+  { id: 'low-income', label: 'Low income' }, { id: 'newcomer', label: 'Newcomers and language' }, { id: 'rural', label: 'Rural' },
+  { id: 'lgbtq', label: 'LGBTQ+' }, { id: 'racialized', label: 'Racialized' },
+  { id: 'caregivers', label: 'Parents, family and supporters' }, { id: 'students', label: 'Students' }, { id: 'work', label: 'Work' },
 ]
+export const MAX_TAGS = 6
 export const tagLabel = (id: string): string => COMMUNITY_TAGS.find((t) => t.id === id)?.label || id
 
 /** A model's short name, for its files and for Ollama: the same as the backend's (api/routes/adapters.py _slug). */
@@ -103,6 +109,18 @@ export function llama3Prompt(example: Example, prefix: string): string {
   )
 }
 
+/** The same for Qwen3, with its thinking left empty, as it was trained (train-my-model.sh). */
+export function qwen3Prompt(example: Example, prefix: string): string {
+  return (
+    `<|im_start|>system\n${example.system}<|im_end|>\n` +
+    `<|im_start|>user\n${example.user}<|im_end|>\n` +
+    `<|im_start|>assistant\n<think>\n\n</think>\n\n${prefix}`
+  )
+}
+
+export const promptFor = (family: 'llama3' | 'qwen3', example: Example, prefix: string): string =>
+  family === 'qwen3' ? qwen3Prompt(example, prefix) : llama3Prompt(example, prefix)
+
 /** Ollama's own address (its native API), from the OpenAI-style one in Settings; only on this computer, the same
  *  rule as lib/localModel.ts cleanBaseUrl. */
 export function ollamaNativeBase(baseUrl: string): string | null {
@@ -123,6 +141,8 @@ export async function memoryCheck(options: {
   examples: Example[]
   settings: OwnModelSettings
   model: string
+  /** The base model's family, for its chat format (BASE_FAMILIES). */
+  family?: 'llama3' | 'qwen3'
   maxProbes?: number
   onProgress?: (done: number, total: number) => void
   generate?: (prompt: string) => Promise<string>
@@ -148,7 +168,7 @@ export async function memoryCheck(options: {
   let failed = 0
   let maxCloseness = 0
   for (const [i, { example, probe }] of chosen.entries()) {
-    const said = wordsOf(await generate(llama3Prompt(example, probe!.prefix)))
+    const said = wordsOf(await generate(promptFor(options.family ?? 'llama3', example, probe!.prefix)))
     const c = closeness(said, probe!.truth)
     maxCloseness = Math.max(maxCloseness, c)
     if (c >= MEMORY_THRESHOLD) failed += 1
@@ -190,33 +210,41 @@ export type CleanConfig = {
   config: { fine_tune_type: 'lora'; num_layers: number; lora_parameters: { rank: number; scale: number; dropout: number }; model: string } | null
   removed: string[]
   problem: string | null
+  /** The shared model it was tuned from (FROM_ADAPTER in the training scripts), if any. */
+  builtOn: string | null
 }
 
-/** The four settings the tools need from mlx-lm's adapter_config.json; everything else (its folders) is left out. */
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/** The four settings the tools need from mlx-lm's adapter_config.json; everything else (its folders) is left out.
+ *  The model it was built on is kept aside, to be named when it's shared. */
 export function cleanConfig(text: string): CleanConfig {
   let raw: any
   try {
     raw = JSON.parse(text)
   } catch {
-    return { config: null, removed: [], problem: 'The settings file isn’t JSON. Choose adapter_config.json from the adapter folder.' }
+    return { config: null, removed: [], problem: 'The settings file isn’t JSON. Choose adapter_config.json from the adapter folder.', builtOn: null }
   }
   const params = raw?.lora_parameters
   if (raw?.fine_tune_type !== 'lora' || !Number.isInteger(raw?.num_layers) || !params || !Number.isInteger(params.rank) || typeof params.scale !== 'number') {
-    return { config: null, removed: [], problem: 'That settings file isn’t a LoRA adapter’s.' }
+    return { config: null, removed: [], problem: 'That settings file isn’t a LoRA adapter’s.', builtOn: null }
   }
   if (!BASE_MODELS[raw.model]) {
-    return { config: null, removed: [], problem: 'Only adapters for Llama 3.2 1B or 3B (the models the training script uses) can be shared.' }
+    return { config: null, removed: [], problem: 'Only adapters for the models the training scripts use (Llama 3.2 1B or 3B) can be shared.', builtOn: null }
   }
   return {
     config: { fine_tune_type: 'lora', num_layers: raw.num_layers,
               lora_parameters: { rank: params.rank, scale: params.scale, dropout: typeof params.dropout === 'number' ? params.dropout : 0 },
               model: raw.model },
-    removed: Object.keys(raw).filter((k) => !['fine_tune_type', 'num_layers', 'lora_parameters', 'model'].includes(k)),
+    removed: Object.keys(raw).filter((k) => !['fine_tune_type', 'num_layers', 'lora_parameters', 'model', 'shared_id', 'built_on'].includes(k)),
     problem: null,
+    builtOn: typeof raw.built_on === 'string' && UUID.test(raw.built_on) ? raw.built_on.toLowerCase() : null,
   }
 }
 
 // ---- The backend ---------------------------------------------------------------------------------------------------
+
+export type Visibility = 'everyone' | 'people' | 'link'
 
 export type SharedAdapter = {
   id: string
@@ -225,15 +253,24 @@ export type SharedAdapter = {
   tags: string[]
   baseModel: string
   ollamaBase: string | null
+  family: 'llama3' | 'qwen3' | null
   createdAt: string
+  visibility: Visibility
   rating: { average: number | null; count: number }
+  /** The rating weighted towards people whose onboarding answers are like yours. */
+  ratingForYou: number | null
+  /** How much of this model's community you're part of, and the tags you share with it. */
+  match: { score: number; shared: string[] }
   myRating: number | null
   mine: boolean
+  builtOn: { id: string; title: string | null } | null
+  builtOnCount: number
   checks: { memoryCheck: number | null; trainedOn: number | null }
 }
 
-export type Check = { passed: boolean; why?: string; [key: string]: unknown }
-export type Checks = Record<'scrub_review' | 'memorization' | 'metadata' | 'files', Check | undefined>
+/** One of the server's checks. `applies: false`: it doesn't apply to this share (say, the crowd for a model shared by link). */
+export type Check = { passed: boolean; why?: string; applies?: boolean; [key: string]: unknown }
+export type Checks = Record<'scrub_review' | 'memorization' | 'metadata' | 'crowd' | 'audience' | 'lineage' | 'files', Check | undefined>
 
 export type ShareRequest = {
   title: string
@@ -242,7 +279,18 @@ export type ShareRequest = {
   baseModel: string
   consentId: string
   memoryCheck: MemoryReport
+  visibility: Visibility
+  people: string[]
+  builtOn: string | null
 }
+
+/** The settings file that goes up: the four settings, the model's own id, and what it was built on. */
+export function sharedConfig(config: NonNullable<CleanConfig['config']>, sharedId: string, builtOn: string | null) {
+  return { ...config, shared_id: sharedId, ...(builtOn ? { built_on: builtOn } : {}) }
+}
+
+/** The address of a model shared by private link. */
+export const linkFor = (origin: string, key: string): string => `${origin.replace(/\/$/, '')}/settings/models/community?key=${encodeURIComponent(key)}`
 
 export class ShareError extends Error {
   checks?: Checks
@@ -269,23 +317,35 @@ async function call<T>(apiUrl: string, token: string | null, path: string, init:
   return out as T
 }
 
+const withKey = (path: string, key?: string | null) => (key ? `${path}?key=${encodeURIComponent(key)}` : path)
+
 export const sharingStatus = (apiUrl: string, fetchFn?: FetchFn) =>
-  call<{ enabled: boolean; baseModels: Record<string, string>; tags: string[]; memoryThreshold: number }>(apiUrl, null, '/status', {}, fetchFn)
+  call<{ enabled: boolean; baseModels: Record<string, string>; minCrowd: number; memoryThreshold: number }>(apiUrl, null, '/status', {}, fetchFn)
 export const listShared = (apiUrl: string, token: string | null, fetchFn?: FetchFn) =>
-  call<{ enabled: boolean; adapters: SharedAdapter[] }>(apiUrl, token, '', {}, fetchFn)
+  call<{ enabled: boolean; adapters: SharedAdapter[]; sharedWithMe: SharedAdapter[]; forYou: boolean }>(apiUrl, token, '', {}, fetchFn)
+export const byLink = (apiUrl: string, token: string | null, key: string, fetchFn?: FetchFn) =>
+  call<{ adapter: SharedAdapter }>(apiUrl, token, `/link/${encodeURIComponent(key)}`, {}, fetchFn)
+export const listPeople = (apiUrl: string, token: string, fetchFn?: FetchFn) =>
+  call<{ people: { id: string; name: string }[] }>(apiUrl, token, '/people', {}, fetchFn)
+export type MyShared = { id: string; title: string; description: string; tags: string[]; baseModel: string; status: string;
+  visibility: Visibility; linkKey: string | null; people: { id: string; name: string }[]; builtOn: string | null; checks: Checks; createdAt: string }
 export const listMine = (apiUrl: string, token: string, fetchFn?: FetchFn) =>
-  call<{ adapters: (Omit<SharedAdapter, 'rating' | 'myRating' | 'mine' | 'ollamaBase' | 'checks'> & { status: string; checks: Checks })[] }>(apiUrl, token, '/mine', {}, fetchFn)
+  call<{ adapters: MyShared[] }>(apiUrl, token, '/mine', {}, fetchFn)
+export const editShare = (apiUrl: string, token: string, id: string,
+                          change: { title: string; description: string; tags: string[]; visibility?: Visibility; people?: string[] }, fetchFn?: FetchFn) =>
+  call<{ id: string; status: string; visibility: Visibility; linkKey: string | null }>(apiUrl, token, `/${id}`, { method: 'PATCH', body: change }, fetchFn)
 export const checkShare = (apiUrl: string, token: string, request: ShareRequest, fetchFn?: FetchFn) =>
   call<{ passed: boolean; checks: Checks }>(apiUrl, token, '/check', { body: request }, fetchFn)
 export const createShare = (apiUrl: string, token: string, request: ShareRequest, fetchFn?: FetchFn) =>
   call<{ id: string; uploads: { name: string; path: string; token: string }[]; checks: Checks }>(apiUrl, token, '', { body: request }, fetchFn)
 export const publishShare = (apiUrl: string, token: string, id: string, fetchFn?: FetchFn) =>
-  call<{ id: string; status: string; checks: Checks }>(apiUrl, token, `/${id}/publish`, { method: 'POST', body: {} }, fetchFn)
+  call<{ id: string; status: string; checks: Checks; visibility: Visibility; linkKey: string | null }>(apiUrl, token, `/${id}/publish`, { method: 'POST', body: {} }, fetchFn)
 export const removeShare = (apiUrl: string, token: string, id: string, fetchFn?: FetchFn) =>
   call<{ deleted: boolean }>(apiUrl, token, `/${id}`, { method: 'DELETE' }, fetchFn)
-export const downloadLinks = (apiUrl: string, token: string | null, id: string, fetchFn?: FetchFn) =>
-  call<{ files: { name: string; url: string }[]; baseModel: string; ollamaBase: string | null; slug: string }>(apiUrl, token, `/${id}/download`, {}, fetchFn)
-export const rateShared = (apiUrl: string, token: string, id: string, rating: number, fetchFn?: FetchFn) =>
-  call<{ saved: boolean; rating: { average: number | null; count: number }; myRating: number }>(apiUrl, token, `/${id}/rating`, { body: { rating } }, fetchFn)
-export const reportShared = (apiUrl: string, token: string, id: string, reason: string, fetchFn?: FetchFn) =>
-  call<{ reported: boolean }>(apiUrl, token, `/${id}/report`, { body: { reason } }, fetchFn)
+export const downloadLinks = (apiUrl: string, token: string | null, id: string, key?: string | null, fetchFn?: FetchFn) =>
+  call<{ files: { name: string; url: string }[]; baseModel: string; ollamaBase: string | null; slug: string }>(apiUrl, token, withKey(`/${id}/download`, key), {}, fetchFn)
+export const rateShared = (apiUrl: string, token: string, id: string, rating: number, key?: string | null, fetchFn?: FetchFn) =>
+  call<{ saved: boolean; rating: { average: number | null; count: number }; ratingForYou: number | null; myRating: number }>(
+    apiUrl, token, withKey(`/${id}/rating`, key), { body: { rating } }, fetchFn)
+export const reportShared = (apiUrl: string, token: string, id: string, reason: string, key?: string | null, fetchFn?: FetchFn) =>
+  call<{ reported: boolean }>(apiUrl, token, withKey(`/${id}/report`, key), { body: { reason } }, fetchFn)

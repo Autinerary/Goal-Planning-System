@@ -10,7 +10,7 @@
 # uploaded. To tune it a little with your own writing afterwards, see train-my-model.sh (FROM_ADAPTER).
 #
 # Needs: a Mac with Apple silicon (M1 or newer), Python 3.11 or newer, Ollama (https://ollama.com) with the model it
-# starts from pulled (Community models says which: ollama pull llama3.2:3b, or llama3.2:1b), and about 15 GB of free
+# starts from pulled (Community models says which: ollama pull llama3.2:3b or llama3.2:1b), and about 15 GB of free
 # disk space.
 #
 # Llama 3.2 is under Meta's Llama 3.2 Community License, and a model made from it is too.
@@ -57,6 +57,7 @@ BASE_MODEL="$("$PYTHON" -c 'import json, sys; print(json.load(open(sys.argv[1]))
 case "$BASE_MODEL" in
   mlx-community/Llama-3.2-1B-Instruct-bf16) OLLAMA_BASE=llama3.2:1b ;;
   mlx-community/Llama-3.2-3B-Instruct-bf16) OLLAMA_BASE=llama3.2:3b ;;
+  Qwen/Qwen3-4B) echo "✗ Using a tuned Qwen3 in Ollama is coming soon: Ollama can't switch its thinking off yet." >&2; exit 1 ;;
   *) echo "✗ This adapter starts from $BASE_MODEL, which this script doesn't know." >&2; exit 1 ;;
 esac
 if ! ollama show "$OLLAMA_BASE" >/dev/null 2>&1; then
@@ -83,6 +84,19 @@ mkdir -p "$WORK/adapter"
 cp "$WEIGHTS" "$WORK/adapter/adapters.safetensors"
 cp "$CONFIG" "$WORK/adapter/adapter_config.json"
 "$PY" -m mlx_lm fuse --model "$BASE_MODEL" --adapter-path "$WORK/adapter" --save-path "$WORK/merged"
+# Ollama reads the model's own config and tokenizer files: the copies mlx-lm writes back can differ (a Qwen3 merged this
+# way came out of Ollama as nonsense until the originals were put back), so the originals go beside the merged weights.
+"$PY" - "$BASE_MODEL" "$WORK/merged" <<'ORIGINALS'
+import os, shutil, sys
+from huggingface_hub import snapshot_download
+folder = snapshot_download(sys.argv[1], allow_patterns=["*.json", "*.txt", "tokenizer*", "vocab.json", "merges.txt"])
+for name in os.listdir(folder):
+    if not name.endswith(".safetensors") and name != "model.safetensors.index.json":
+        shutil.copyfile(os.path.join(folder, name), os.path.join(sys.argv[2], name))
+for extra in ("chat_template.jinja",):
+    if os.path.exists(os.path.join(sys.argv[2], extra)) and not os.path.exists(os.path.join(folder, extra)):
+        os.remove(os.path.join(sys.argv[2], extra))
+ORIGINALS
 ollama show --modelfile "$OLLAMA_BASE" |
   awk -v from="FROM $WORK/merged" '!done && /^FROM / { print from; done = 1; next } { print }' > "$WORK/Modelfile"
 # Compressed to 4 bits so it runs fast: older Ollama calls that q4_K_M, newer Ollama int4. Uncompressed if neither works.

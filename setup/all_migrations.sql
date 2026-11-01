@@ -12727,7 +12727,7 @@ END $$;
 --     owner_id                   who shared it; readable by nobody but the server
 --     title, description         what the owner wrote about it, checked for personal information before it's public
 --     community_tags             from a fixed list (autism, adhd, ..., caregivers, students, work; core/community_tags.py)
---     base_model                 the model it was tuned from: Llama 3.2 1B or 3B, or Qwen3 4B (the scripts' models)
+--     base_model                 the model it was tuned from: Llama 3.2 1B or 3B (the scripts' models)
 --     file_path                  its folder in Storage, shared-adapters/<id>/: adapters.safetensors, adapter_config.json
 --     scrubber_version           the scrubber that checked its training set (STEP 95)
 --     consent_id                 that training set's approval (training_set_consents)
@@ -12766,8 +12766,7 @@ CREATE TABLE IF NOT EXISTS public.shared_adapters (
                                                    'physical-disability', 'low-income', 'newcomer', 'rural',
                                                    'lgbtq', 'racialized', 'caregivers', 'students', 'work']::TEXT[]),
   base_model         TEXT        NOT NULL CHECK (base_model IN ('mlx-community/Llama-3.2-1B-Instruct-bf16',
-                                                                'mlx-community/Llama-3.2-3B-Instruct-bf16',
-                                                                'Qwen/Qwen3-4B')),
+                                                                'mlx-community/Llama-3.2-3B-Instruct-bf16')),
   file_path          TEXT        NOT NULL,
   scrubber_version   TEXT        NOT NULL CHECK (length(scrubber_version) BETWEEN 1 AND 120),
   consent_id         UUID        REFERENCES public.training_set_consents(id) ON DELETE SET NULL,

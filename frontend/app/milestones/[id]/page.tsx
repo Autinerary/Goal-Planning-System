@@ -7,6 +7,7 @@ import { BookOpen, ChevronRight, Wrench } from 'lucide-react'
 import { useAgentPath } from '../../context/AgentPathContext'
 import BackButton from '../../components/BackButton'
 import MilestoneRating from '@/app/components/MilestoneRating'
+import StepInYourWords from '@/app/components/StepInYourWords'
 import NormsPrompt from '@/app/components/NormsPrompt'
 import SponsoredService from '@/app/components/SponsoredService'
 import MilestoneTools from '@/app/components/MilestoneTools'
@@ -20,7 +21,7 @@ export default function MilestoneDetailView() {
   const params = useParams()
   const router = useRouter()
   const milestoneId = params.id as string
-  const { payload, pathPlanning, toolRecommendation } = useAgentPath()
+  const { payload, pathPlanning, toolRecommendation, refresh } = useAgentPath()
   const [milestone, setMilestone] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   // What to avoid here: the same five the Race view's Avoidance shows (lib/guidanceData.ts).
@@ -147,6 +148,18 @@ export default function MilestoneDetailView() {
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">{milestone.name}</h1>
               <p className="text-slate-600">{milestone.description}</p>
+              {pathPlanning?.milestones?.some((m: any) => m.id === milestone.id) && (
+                <StepInYourWords
+                  milestoneId={milestone.id}
+                  name={milestone.name}
+                  description={milestone.description}
+                  edited={!!(payload as any)?.stepEdits?.[milestone.id]}
+                  onSaved={(step) => {
+                    setMilestone((current: any) => ({ ...current, name: step.name, description: step.description }))
+                    refresh().catch(() => {})
+                  }}
+                />
+              )}
             </div>
 
             {/* Stats for recommended choices */}

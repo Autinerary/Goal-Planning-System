@@ -8,7 +8,7 @@ Everything happens on your computer. Nothing is uploaded: not your training set,
 ## What you need
 
 - A Mac with Apple silicon (M1 or newer). 16 GB of memory or more tunes the 3B model; with less, the script uses the
-  1B model. Windows and Linux: coming soon.
+  1B model. A Windows or Linux computer with an NVIDIA graphics card can tune and share too (see below).
 - Python 3.11 or newer (`python3 --version`). If yours is older, install one from
   [python.org](https://www.python.org/downloads/) or with `brew install python@3.12`.
 - [Ollama](https://ollama.com), open, with the base model: `ollama pull llama3.2:3b` (or `llama3.2:1b` on a Mac with
@@ -35,6 +35,10 @@ It takes about 10 to 30 minutes, most of it the first download. It:
 4. merges the adapter into the model and adds it to Ollama as `my-model` (or the name you gave).
 
 Then in Autinerary, under **Use my own model**, set the model name to `my-model` and press **Send a test prompt**.
+
+While it makes a plan, Autinerary asks Ollama to keep room for 16,384 tokens, because some of the plan's questions are
+long; Ollama would otherwise keep 4,096 and quietly cut them short. That takes more memory than a chat: about 3.2 GB
+with a 3B model, 1.8 GB with 1B (Ollama 0.40, measured).
 
 ## What to expect
 
@@ -72,6 +76,35 @@ memory check, run in your browser against the model on your computer, finds it d
 its title and description name no one; and only the adapter and four of its settings go up (the settings file the
 tools write has folders from your computer in it, so the rest is left out). If the memory check fails, train again
 with `EPOCHS=1` or with more items.
+
+## Windows and Linux, with an NVIDIA graphics card
+
+`autinerary_model.py` does the same as the Mac scripts with PyTorch, and saves the adapter the Mac's way, so a model
+tuned on a PC can be shared and adopted on a Mac, and the other way round (tested on an NVIDIA L4 under Linux on 1
+November 2026: the same answers back through either, to within rounding).
+
+```bash
+python autinerary_model.py train my-training-set-2026-10-31.jsonl my-model        # --base llama-1b for less memory
+python autinerary_model.py train my-set.jsonl my-calm-first-steps --from calm-first-steps.safetensors
+```
+
+The first run sets up its tools in `~/.autinerary-model/torch` (a few GB). On Ubuntu or Debian, install
+`python3-venv` first. Using the tuned model in Ollama on Windows or Linux is **coming soon**: Ollama 0.40 there can't
+add a tuned model without converting it to GGUF first. The script says so, keeps the tuned model, and writes the
+Modelfile for that last step.
+
+## Thinking models
+
+Qwen3 4B thinks before it answers (`ollama pull qwen3:4b`, then set it as your model). In Autinerary it thinks only on
+the plan itself, if you allow it (Settings, Use my own model); on a laptop that takes about 1 to 3 minutes more for
+each goal. Tuning Qwen3 is **coming soon**: tuned on answers that don't think, it stopped thinking or couldn't stop
+in our tests, and Ollama can't switch a tuned one's thinking off yet.
+
+## In the browser instead
+
+No install: Settings, Use my own model, "In this browser". A small model (Llama 3.2 1B for phones and tablets) is
+downloaded once into your browser and runs on your device's graphics chip. Models you tuned yourself run in Ollama, not
+in the browser.
 
 ## Settings
 

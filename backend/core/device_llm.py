@@ -26,6 +26,8 @@ from typing import Any, Awaitable, Callable, Dict, Optional
 # How long one answer may take. A 3B model on a laptop writes about 20 tokens a second, and a plan step asks for up
 # to ~1,200 tokens, so a minute is normal; three leaves room for a slow machine without hanging a run forever.
 ANSWER_TIMEOUT_SECONDS = 180.0
+# A call where the model may think first: on a laptop that's 1 to 3 minutes before it answers (Qwen3 4B, 31 October 2026).
+THINKING_TIMEOUT_SECONDS = 420.0
 # The most a device may send back for one prompt (characters). Longer answers are cut, not trusted.
 MAX_ANSWER_CHARS = 32_000
 
@@ -76,7 +78,7 @@ class DeviceRelay:
             except Exception as e:
                 # A socket the browser has left raises here.
                 raise DeviceUnavailable("the connection to your device closed") from e
-            content = await asyncio.wait_for(future, self._timeout)
+            content = await asyncio.wait_for(future, max(self._timeout, THINKING_TIMEOUT_SECONDS) if think else self._timeout)
         except asyncio.TimeoutError:
             self.failed += 1
             raise DeviceUnavailable("your device's model took too long to answer")

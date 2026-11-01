@@ -71,6 +71,7 @@ export function makePlanOnDevice(options: DeviceRunOptions): Promise<DeviceRunRe
           try {
             const content = await ask(options.settings, {
               messages: message.messages, temperature: message.temperature, max_tokens: message.max_tokens, json: !!message.json,
+              agent: typeof message.agent === 'string' ? message.agent : null, think: message.think === true,
             })
             answered += 1
             send({ type: 'answer', id: message.id, content })

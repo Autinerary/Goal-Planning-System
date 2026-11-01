@@ -4,8 +4,10 @@
 // one that doesn't passes), the adapter's files (only LoRA weights with nothing hidden; the settings file cut down to
 // the four settings, so no folder from the person's computer goes out), and the calls to the backend.
 import assert from 'node:assert/strict'
-import { BASE_MODELS, MEMORY_THRESHOLD, cleanConfig, closeness, llama3Prompt, memoryCheck, ollamaNativeBase, parseTrainingSet,
-  probeOf, rateShared, reportShared, checkShare, ShareError, slugOf, tagLabel, weightsProblem, wordsOf } from './sharedModels.ts'
+import { readFileSync } from 'node:fs'
+import { BASE_MODELS, BASE_FAMILIES, COMMUNITY_TAGS, MEMORY_THRESHOLD, cleanConfig, closeness, linkFor, llama3Prompt, memoryCheck, ollamaNativeBase,
+  parseTrainingSet, probeOf, qwen3Prompt, rateShared, reportShared, checkShare, downloadLinks, sharedConfig, ShareError, slugOf, tagLabel,
+  weightsProblem, wordsOf } from './sharedModels.ts'
 
 // Words and closeness.
 assert.deepEqual(wordsOf('Ask [NAME] for it, in writing!'), ['ask', 'ph_name', 'for', 'it', 'in', 'writing'])
@@ -100,11 +102,42 @@ assert.equal(slugOf('a'.repeat(39) + ' b c'), 'a'.repeat(39), 'no dash left at t
 const fake = (status, body) => async (url, init) => ({ ok: status < 400, status, json: async () => body, url, init })
 await assert.rejects(checkShare('http://api', 't', {}, fake(422, { detail: { message: 'Not shared: a check didn’t pass.', checks: { metadata: { passed: false, why: 'A name.' } } } })),
   (e) => e instanceof ShareError && e.checks.metadata.why === 'A name.')
-await assert.rejects(rateShared('http://api', 't', 'a1', 5, fake(403, { detail: 'You can’t rate a model you shared.' })), /can’t rate a model you shared/)
+await assert.rejects(rateShared('http://api', 't', 'a1', 5, null, fake(403, { detail: 'You can’t rate a model you shared.' })), /can’t rate a model you shared/)
 let sent
-await reportShared('http://api/', 't', 'a1', 'It says a real name', async (url, init) => { sent = { url, init }; return { ok: true, json: async () => ({ reported: true }) } })
+await reportShared('http://api/', 't', 'a1', 'It says a real name', null, async (url, init) => { sent = { url, init }; return { ok: true, json: async () => ({ reported: true }) } })
 assert.equal(sent.url, 'http://api/api/adapters/a1/report')
 assert.deepEqual(JSON.parse(sent.init.body), { reason: 'It says a real name' })
 assert.equal(sent.init.headers.Authorization, 'Bearer t')
+
+// The same tags as the backend's (core/community_tags.py), in the same order.
+const py = readFileSync(new URL('../../backend/core/community_tags.py', import.meta.url), 'utf8')
+const backendTags = [...py.slice(py.indexOf('COMMUNITY_TAGS'), py.indexOf('TAG_IDS')).matchAll(/\("([a-z-]+)", "([^"]+)"\)/g)].map((m) => ({ id: m[1], label: m[2] }))
+assert.equal(backendTags.length, 25)
+assert.deepEqual(COMMUNITY_TAGS, backendTags)
+
+// Qwen3: not shareable yet (tuned, it doesn't keep its thinking); its memory-check prompt is ready for when it is.
+assert.equal(BASE_MODELS['Qwen/Qwen3-4B'], undefined)
+assert.equal(BASE_FAMILIES['mlx-community/Llama-3.2-3B-Instruct-bf16'], 'llama3')
+assert.match(cleanConfig(JSON.stringify({ ...written, model: 'Qwen/Qwen3-4B' })).problem, /Llama 3.2 1B or 3B/)
+assert.ok(qwen3Prompt(example, 'Ask for').endsWith('<|im_start|>assistant\n<think>\n\n</think>\n\nAsk for'))
+let seenPrompt = ''
+await memoryCheck({ examples: set.slice(0, 1), settings, model: 'my-qwen', family: 'qwen3', generate: async (p) => (seenPrompt = p, 'x') })
+assert.ok(seenPrompt.startsWith('<|im_start|>system'))
+
+// Built on: kept aside from the settings file, and named in the one that goes up, with the model's own id.
+const parent = 'a0000000-0000-4000-8000-00000000000A'
+const tuned = cleanConfig(JSON.stringify({ ...written, built_on: parent, shared_id: 'old' }))
+assert.equal(tuned.problem, null)
+assert.equal(tuned.builtOn, parent.toLowerCase())
+assert.ok(!tuned.removed.includes('built_on') && !('built_on' in tuned.config))
+assert.deepEqual(sharedConfig(tuned.config, 'new-id', tuned.builtOn), { ...tuned.config, shared_id: 'new-id', built_on: parent.toLowerCase() })
+assert.deepEqual(sharedConfig(cleaned.config, 'id2', null), { ...cleaned.config, shared_id: 'id2' })
+assert.equal(cleanConfig(JSON.stringify({ ...written, built_on: 'Priya Sharma' })).builtOn, null)
+
+// A private link, and the key with every call made through it.
+assert.equal(linkFor('https://app.autinerary.ca/', 'abc_DEF-123'), 'https://app.autinerary.ca/settings/models/community?key=abc_DEF-123')
+let keyed
+await downloadLinks('http://api', null, 'a1', 'k1', async (url) => { keyed = url; return { ok: true, json: async () => ({ files: [] }) } })
+assert.equal(keyed, 'http://api/api/adapters/a1/download?key=k1')
 
 console.log('shared models: ok')

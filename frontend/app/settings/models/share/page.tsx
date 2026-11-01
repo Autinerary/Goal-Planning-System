@@ -1,12 +1,14 @@
 'use client'
 
 /**
- * Share my model (Settings, Models): share the adapter a person tuned on their laptop, for others in their community to
- * start from (backend api/routes/adapters.py, STEP 96). Nothing is shared until every check passes: the training set
- * it came from was scrubbed and approved, the memory check (run here, against the model on their laptop) finds it
- * doesn't say its training answers back, the title and description name no one, and its files are an adapter and a
- * settings file with nothing from their computer in it (lib/sharedModels.ts). The files go up only after that, to
- * links the server signs, in a folder named after the adapter, not the person.
+ * Share my model (Settings, Models): share the adapter a person tuned on their computer, with everyone, with people
+ * they pick, or by private link (backend api/routes/adapters.py, STEP 96). Nothing is shared until every check passes:
+ * the training set it came from was scrubbed and approved; the memory check (run here, against the model on their
+ * computer) finds it doesn't say its training answers back; the title and description name no one; shared with
+ * everyone, enough people share its tags that they can't point to its owner; the people are the owner's own; the
+ * model it was built on is shared; and its files are an adapter and a settings file with nothing from their computer
+ * in it (lib/sharedModels.ts). The files go up only after that, to links the server signs, in a folder named after the
+ * adapter, not the person.
  */
 
 import { useEffect, useState } from 'react'
@@ -15,22 +17,32 @@ import { createClient } from '@/lib/supabase/client'
 import { loadOwnModel } from '@/lib/localModel'
 import { listConsents, type ConsentRecord } from '@/lib/trainingSet'
 import {
+  BASE_FAMILIES,
   COMMUNITY_TAGS,
+  MAX_TAGS,
   MEMORY_THRESHOLD,
   type CleanConfig,
   type Checks,
   type MemoryReport,
+  type MyShared,
   type ShareRequest,
+  type Visibility,
   ShareError,
+  baseModelLabel,
   checkShare,
   cleanConfig,
   createShare,
+  linkFor,
   listMine,
+  listPeople,
+  listShared,
   memoryCheck,
   parseTrainingSet,
   publishShare,
   removeShare,
+  sharedConfig,
   sharingStatus,
+  tagLabel,
   weightsProblem,
 } from '@/lib/sharedModels'
 
@@ -46,13 +58,22 @@ const CHECK_NAMES: Record<string, string> = {
   scrub_review: 'Your training set was scrubbed and approved',
   memorization: 'The memory check (on your computer)',
   metadata: 'The title and description name no one',
+  crowd: 'Its tags don’t point to you',
+  audience: 'The people you picked are your people',
+  lineage: 'The model it was built on is shared',
   files: 'The files are an adapter and its settings',
+}
+
+const VISIBILITY_TEXT: Record<Visibility, string> = {
+  everyone: 'Everyone',
+  people: 'People you picked',
+  link: 'Anyone with the link',
 }
 
 function CheckList({ checks }: { checks: Partial<Checks> }) {
   return (
     <ul className="space-y-1 text-sm" aria-label="Checks">
-      {Object.entries(checks).filter(([, c]) => c).map(([key, c]) => (
+      {Object.entries(checks).filter(([, c]) => c && c.applies !== false).map(([key, c]) => (
         <li key={key} className={c!.passed ? 'text-emerald-800' : 'text-red-800'}>
           {c!.passed ? '✓' : '✗'} {CHECK_NAMES[key] || key}
           {!c!.passed && c!.why ? <span className="block pl-5 text-red-700">{String(c!.why)}</span> : null}
@@ -61,8 +82,6 @@ function CheckList({ checks }: { checks: Partial<Checks> }) {
     </ul>
   )
 }
-
-type Mine = { id: string; title: string; status: string; createdAt: string }
 
 export default function ShareModelPage() {
   const [enabled, setEnabled] = useState<boolean | null>(null)
@@ -80,19 +99,26 @@ export default function ShareModelPage() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [tags, setTags] = useState<string[]>([])
+  const [visibility, setVisibility] = useState<Visibility>('everyone')
+  const [people, setPeople] = useState<{ id: string; name: string }[]>([])
+  const [picked, setPicked] = useState<string[]>([])
+  const [titles, setTitles] = useState<Record<string, string>>({})
   const [checks, setChecks] = useState<Partial<Checks> | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [shared, setShared] = useState<string | null>(null)
-  const [mine, setMine] = useState<Mine[]>([])
+  const [shared, setShared] = useState<{ id: string; visibility: Visibility; link: string | null } | null>(null)
+  const [copied, setCopied] = useState(false)
+  const [mine, setMine] = useState<MyShared[]>([])
+  const [origin, setOrigin] = useState('')
 
   const refreshMine = async (token: string) => {
     try {
-      setMine((await listMine(API_URL, token)).adapters.map((a) => ({ id: a.id, title: a.title, status: a.status, createdAt: a.createdAt })))
+      setMine((await listMine(API_URL, token)).adapters)
     } catch {}
   }
 
   useEffect(() => {
+    setOrigin(window.location.origin)
     ;(async () => {
       try {
         const status = await sharingStatus(API_URL)
@@ -113,6 +139,9 @@ export default function ShareModelPage() {
         setConsents(r.records)
         if (r.records[0]) setConsentId(r.records[0].id)
       }).catch(() => {})
+      listPeople(API_URL, token).then((r) => setPeople(r.people)).catch(() => {})
+      // The titles of models shared with them, to name the one theirs was built on.
+      listShared(API_URL, token).then((r) => setTitles(Object.fromEntries([...r.adapters, ...r.sharedWithMe].map((a) => [a.id, a.title])))).catch(() => {})
       refreshMine(token)
     })()
   }, [])
@@ -127,19 +156,22 @@ export default function ShareModelPage() {
 
   const chooseConfig = async (file: File | null) => {
     setChecks(null)
+    setMemory(null)
     setConfig(file ? cleanConfig(await file.text()) : null)
   }
+
+  const family = config?.config ? BASE_FAMILIES[config.config.model] ?? 'llama3' : null
 
   const runMemoryCheck = async () => {
     setMemory(null)
     setMemoryError(null)
     setChecks(null)
     try {
-      const examples = parseTrainingSet(setText || '')
       const report = await memoryCheck({
-        examples,
+        examples: parseTrainingSet(setText || ''),
         settings: loadOwnModel(),
         model: modelName.trim(),
+        family: family ?? 'llama3',
         onProgress: (done, total) => setProgress(`Checked ${done} of ${total} answers…`),
       })
       setMemory(report)
@@ -152,9 +184,10 @@ export default function ShareModelPage() {
 
   const request = (): ShareRequest | null =>
     config?.config && memory
-      ? { title: title.trim(), description: description.trim(), tags, baseModel: config.config.model, consentId, memoryCheck: memory }
+      ? { title: title.trim(), description: description.trim(), tags, baseModel: config.config.model, consentId, memoryCheck: memory,
+          visibility, people: visibility === 'people' ? picked : [], builtOn: config.builtOn }
       : null
-  const ready = !!(request() && consentId && weights && !weightsIssue && title.trim().length >= 3)
+  const ready = !!(request() && consentId && weights && !weightsIssue && title.trim().length >= 3 && (visibility !== 'people' || picked.length))
 
   const check = async () => {
     const token = await freshToken()
@@ -183,7 +216,8 @@ export default function ShareModelPage() {
       const storage = createClient().storage.from(BUCKET)
       for (const upload of made.uploads) {
         const isWeights = upload.name === 'adapters.safetensors'
-        const file = isWeights ? weights : new Blob([JSON.stringify(config.config, null, 2)], { type: 'application/json' })
+        // The settings file that goes up: the four settings, this model's own id, and what it was built on.
+        const file = isWeights ? weights : new Blob([JSON.stringify(sharedConfig(config.config, made.id, config.builtOn), null, 2)], { type: 'application/json' })
         // cacheControl given, or supabase-js sends the word "undefined" for it.
         const { error: uploadError } = await storage.uploadToSignedUrl(upload.path, upload.token, file, {
           contentType: isWeights ? 'application/octet-stream' : 'application/json',
@@ -194,7 +228,7 @@ export default function ShareModelPage() {
       setBusy('Checking the files…')
       const out = await publishShare(API_URL, token, made.id)
       setChecks(out.checks)
-      setShared(made.id)
+      setShared({ id: made.id, visibility: out.visibility, link: out.linkKey ? linkFor(origin, out.linkKey) : null })
       refreshMine(token)
     } catch (e: any) {
       if (e instanceof ShareError && e.checks) setChecks(e.checks)
@@ -216,6 +250,14 @@ export default function ShareModelPage() {
     }
   }
 
+  const copy = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1500)
+    } catch {}
+  }
+
   const allPassed = !!checks && Object.values(checks).every((c) => !c || c.passed)
 
   return (
@@ -224,8 +266,8 @@ export default function ShareModelPage() {
         <Link href="/settings/models" className="text-sm text-slate-500 hover:text-slate-800">← Models</Link>
         <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Share my model</h1>
         <p className="text-slate-600">
-          Share the adapter you tuned on your laptop (a small add-on to a small open model, a few MB), so others in your
-          community can start from it. Nobody sees who shared it. <Link href="/settings/models/community" className="underline">Community models</Link>
+          Share the adapter you tuned on your computer (a small add-on to a small open model, a few MB), so others in your
+          community can start from it. <Link href="/settings/models/community" className="underline">Community models</Link>
         </p>
       </header>
 
@@ -268,7 +310,7 @@ export default function ShareModelPage() {
             <h2 id="files-heading" className="text-lg font-semibold text-slate-900">2. Your adapter</h2>
             <p>
               Both are in the adapter folder the training script made, <code className="font-mono">~/.autinerary-model/my-model/adapter</code>{' '}
-              (press Cmd+Shift+. in the file picker to see folders starting with a dot).
+              (on a Mac, press Cmd+Shift+. in the file picker to see folders starting with a dot).
             </p>
             <label className="block space-y-1">
               <span className="font-medium">adapters.safetensors</span>
@@ -280,15 +322,20 @@ export default function ShareModelPage() {
               <input type="file" accept=".json,application/json" onChange={(e) => chooseConfig(e.target.files?.[0] || null)} className="block" />
             </label>
             {config && (
-              <p className={config.problem ? 'text-red-700' : 'text-emerald-800'}>
-                {config.problem || `✓ For ${config.config!.model.includes('-1B-') ? 'Llama 3.2 1B' : 'Llama 3.2 3B'}.`}
+              <div className={config.problem ? 'text-red-700' : 'text-emerald-800'}>
+                {config.problem || `✓ For ${baseModelLabel(config.config!.model)}.`}
                 {!config.problem && config.removed.length > 0 && (
                   <span className="block text-slate-600">
-                    Only the four settings the tools need will be shared. Left out: {config.removed.join(', ')} (some have folders
+                    Only the settings the tools need will be shared. Left out: {config.removed.join(', ')} (some have folders
                     from your computer in them).
                   </span>
                 )}
-              </p>
+                {config.builtOn && (
+                  <span className="block text-slate-700">
+                    Built on {titles[config.builtOn] ? <>&ldquo;{titles[config.builtOn]}&rdquo;</> : 'a model from Community models'}: it will say so.
+                  </span>
+                )}
+              </div>
             )}
           </section>
 
@@ -307,10 +354,11 @@ export default function ShareModelPage() {
               <span className="font-medium">Your model&apos;s name in Ollama</span>
               <input value={modelName} onChange={(e) => setModelName(e.target.value)} className="w-full max-w-xs rounded-lg border border-slate-300 px-3 py-2 font-mono" />
             </label>
-            <button type="button" disabled={!setText || !modelName.trim() || !!progress} onClick={runMemoryCheck}
+            <button type="button" disabled={!setText || !modelName.trim() || !family || !!progress} onClick={runMemoryCheck}
               className="rounded-lg border border-slate-300 px-4 py-2 font-medium disabled:opacity-50">
               {progress ? 'Checking…' : 'Run the memory check'}
             </button>
+            {!family && <p className="text-slate-600">Choose the adapter&apos;s settings file above first, so the check uses its model&apos;s format.</p>}
             <p role="status" className="text-slate-600">{progress}</p>
             {memoryError && <p className="text-red-700">{memoryError}</p>}
             {memory && (
@@ -335,11 +383,12 @@ export default function ShareModelPage() {
               <textarea value={description} maxLength={1000} rows={3} onChange={(e) => { setDescription(e.target.value); setChecks(null) }} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
             </label>
             <fieldset className="space-y-1">
-              <legend className="font-medium">Who it&apos;s for (up to 6)</legend>
+              <legend className="font-medium">Who it&apos;s for (up to {MAX_TAGS})</legend>
+              <p className="text-slate-600">People are matched to models by these and by what they told us at setup. Fewer tags keep you harder to pick out.</p>
               <div className="flex flex-wrap gap-2">
                 {COMMUNITY_TAGS.map((t) => (
                   <label key={t.id} className="flex items-center gap-1 rounded-full border border-slate-300 px-2 py-0.5">
-                    <input type="checkbox" checked={tags.includes(t.id)} disabled={!tags.includes(t.id) && tags.length >= 6}
+                    <input type="checkbox" checked={tags.includes(t.id)} disabled={!tags.includes(t.id) && tags.length >= MAX_TAGS}
                       onChange={(e) => { setTags(e.target.checked ? [...tags, t.id] : tags.filter((x) => x !== t.id)); setChecks(null) }} />
                     {t.label}
                   </label>
@@ -348,8 +397,42 @@ export default function ShareModelPage() {
             </fieldset>
           </section>
 
+          <section aria-labelledby="who-heading" className="rounded-xl border border-slate-200 p-4 space-y-3 text-sm text-slate-700">
+            <h2 id="who-heading" className="text-lg font-semibold text-slate-900">5. Who can see it</h2>
+            <fieldset className="space-y-2">
+              <legend className="sr-only">Who can see it</legend>
+              <label className="flex items-start gap-2">
+                <input type="radio" name="visibility" className="mt-1" checked={visibility === 'everyone'} onChange={() => { setVisibility('everyone'); setChecks(null) }} />
+                <span><span className="font-medium">Everyone.</span> Listed in Community models, without your name. Only if at least 5 people here share all of its tags, so they can&apos;t point to you.</span>
+              </label>
+              <label className="flex items-start gap-2">
+                <input type="radio" name="visibility" className="mt-1" checked={visibility === 'people'} onChange={() => { setVisibility('people'); setChecks(null) }} />
+                <span><span className="font-medium">People I pick.</span> Only your people in Hare World that you choose. They&apos;ll know it&apos;s yours, so this is less anonymous.</span>
+              </label>
+              <label className="flex items-start gap-2">
+                <input type="radio" name="visibility" className="mt-1" checked={visibility === 'link'} onChange={() => { setVisibility('link'); setChecks(null) }} />
+                <span><span className="font-medium">Anyone with the link.</span> Not listed. Whoever you give the link to can use it, and so can anyone they pass it on to.</span>
+              </label>
+            </fieldset>
+            {visibility === 'people' && (
+              people.length === 0 ? (
+                <p className="text-slate-600">You haven&apos;t connected with anyone in Hare World yet.</p>
+              ) : (
+                <fieldset className="space-y-1" aria-label="Your people">
+                  {people.map((p) => (
+                    <label key={p.id} className="flex items-center gap-2">
+                      <input type="checkbox" checked={picked.includes(p.id)}
+                        onChange={(e) => { setPicked(e.target.checked ? [...picked, p.id] : picked.filter((x) => x !== p.id)); setChecks(null) }} />
+                      {p.name}
+                    </label>
+                  ))}
+                </fieldset>
+              )
+            )}
+          </section>
+
           <section aria-labelledby="share-heading" className="rounded-xl border border-slate-200 p-4 space-y-3 text-sm text-slate-700">
-            <h2 id="share-heading" className="text-lg font-semibold text-slate-900">5. Check and share</h2>
+            <h2 id="share-heading" className="text-lg font-semibold text-slate-900">6. Check and share</h2>
             {!ready && <p className="text-slate-600">Finish the steps above first.</p>}
             <div className="flex flex-wrap gap-3">
               <button type="button" disabled={!ready || !!busy} onClick={check} className="rounded-lg border border-slate-300 px-4 py-2 font-medium disabled:opacity-50">
@@ -363,23 +446,42 @@ export default function ShareModelPage() {
             {busy && <p role="status" className="text-slate-600">{busy}</p>}
             {checks && <CheckList checks={checks} />}
             {shared && (
-              <p role="status" className="rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-emerald-900">
-                Shared. It&apos;s on <Link href="/settings/models/community" className="underline">Community models</Link> now. Thank you.
-              </p>
+              <div role="status" className="rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-emerald-900 space-y-2">
+                {shared.visibility === 'everyone' && <p>Shared. It&apos;s on <Link href="/settings/models/community" className="underline">Community models</Link> now. Thank you.</p>}
+                {shared.visibility === 'people' && <p>Shared with the people you picked. It&apos;s in their Community models, under Shared with you.</p>}
+                {shared.link && (
+                  <>
+                    <p>Shared. Give this link to whoever you want to use it:</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <code className="font-mono text-xs break-all rounded bg-white px-2 py-1">{shared.link}</code>
+                      <button type="button" onClick={() => copy(shared.link!)} className="underline">{copied ? 'Copied' : 'Copy'}</button>
+                    </div>
+                  </>
+                )}
+              </div>
             )}
           </section>
 
           {mine.length > 0 && (
             <section aria-labelledby="mine-heading" className="space-y-2 text-sm text-slate-700">
               <h2 id="mine-heading" className="font-semibold text-slate-900">Models you&apos;ve shared</h2>
-              <ul className="space-y-1">
+              <ul className="space-y-2">
                 {mine.map((m) => (
-                  <li key={m.id} className="flex flex-wrap items-center gap-2">
-                    <span>{m.title}</span>
-                    <span className="text-xs text-slate-500">
-                      {m.status === 'approved' ? 'shared' : m.status === 'pending' ? 'not shared yet (a check didn’t pass, or the upload didn’t finish)' : m.status}
-                    </span>
-                    <button type="button" onClick={() => takeDown(m.id)} className="text-xs text-red-700 underline">Take it down</button>
+                  <li key={m.id} className="space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-medium">{m.title}</span>
+                      <span className="text-xs text-slate-500">
+                        {m.status === 'approved' ? `shared with ${VISIBILITY_TEXT[m.visibility].toLowerCase()}` : m.status === 'pending' ? 'not shared yet (a check didn’t pass, or the upload didn’t finish)' : m.status}
+                      </span>
+                      <button type="button" onClick={() => takeDown(m.id)} className="text-xs text-red-700 underline">Take it down</button>
+                    </div>
+                    {m.status === 'approved' && m.visibility === 'people' && m.people.length > 0 && (
+                      <p className="text-xs text-slate-600">With {m.people.map((p) => p.name).join(', ')}</p>
+                    )}
+                    {m.status === 'approved' && m.linkKey && (
+                      <p className="text-xs text-slate-600 break-all">Link: <code className="font-mono">{linkFor(origin, m.linkKey)}</code></p>
+                    )}
+                    {m.tags.length > 0 && <p className="text-xs text-slate-500">{m.tags.map(tagLabel).join(' · ')}</p>}
                   </li>
                 ))}
               </ul>
