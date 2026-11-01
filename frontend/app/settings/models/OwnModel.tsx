@@ -8,6 +8,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react'
+import Link from 'next/link'
 import {
   DEFAULT_OWN_MODEL,
   OwnModelSettings,
@@ -191,7 +192,12 @@ export default function OwnModel() {
             Adding a goal later, step guidance, plan changes, the assistant and journal insights: your cloud model for
             now. <span className="text-slate-500">Coming soon.</span>
           </li>
-          <li>Tuning the model to your own writing and sharing it with your community. <span className="text-slate-500">Coming soon.</span></li>
+          <li>
+            Tuning it to your own writing:{' '}
+            <Link href="/settings/models/training-set" className="underline">Build my training set</Link>, then train it on
+            your laptop.
+          </li>
+          <li>Sharing a tuned model with your community. <span className="text-slate-500">Coming soon.</span></li>
         </ul>
       </div>
     </section>

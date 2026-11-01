@@ -18,6 +18,10 @@ scikit-learn>=1.3.0
 supabase>=2.5.0
 httpx>=0.27.0
 python-multipart>=0.0.9
+# The training-set scrubber's name finder (core/scrubber.py): spaCy's small English model, loaded on the first scrub
+# only (about 100 MB of memory). Without it the scrubber runs on its patterns alone and records that in its version.
+spacy>=3.8,<3.9
+en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
 # LangGraph - state-machine multi-agent orchestration (primary)
 langgraph>=0.2.0
 langchain-core>=0.3.0

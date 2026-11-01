@@ -1,0 +1,158 @@
+#!/usr/bin/env bash
+# train-my-model.sh: tune a small open model on your own training set, on your own Mac, and add it to Ollama.
+#
+#   bash train-my-model.sh my-training-set-2026-10-31.jsonl [model-name]
+#
+# Everything happens on this computer; nothing is uploaded. It:
+#   1. makes a Python environment in ~/.autinerary-model and installs mlx-lm (tools for running and tuning models on
+#      a Mac) into it;
+#   2. splits your file into a part to learn from and a small part to check against;
+#   3. trains a LoRA adapter (a small add-on to the model, a few MB) on Llama 3.2: 3B with 16 GB of memory or more,
+#      1B below that. The first time, the base model is downloaded from Hugging Face (about 6.5 GB for 3B, 2.5 GB for
+#      1B);
+#   4. merges the adapter into the model and adds it to Ollama under the name you chose (default my-model).
+#
+# Needs: a Mac with Apple silicon (M1 or newer), Python 3.11 or newer, Ollama (https://ollama.com) with the base model
+# pulled (ollama pull llama3.2:3b, or llama3.2:1b on a Mac with less than 16 GB), and about 20 GB of free disk space.
+#
+# You can change, with environment variables:
+#   BASE_MODEL   the model to tune, from Hugging Face (default mlx-community/Llama-3.2-3B-Instruct-bf16, or -1B-)
+#   OLLAMA_BASE  the Ollama model with the same chat format (default llama3.2:3b, or llama3.2:1b)
+#   EPOCHS       times through your set (default 2; more makes it start repeating your words back)
+#   WORK_DIR     where the adapter and the merged model go (default ~/.autinerary-model/<model-name>)
+#
+# Llama 3.2 is under Meta's Llama 3.2 Community License, and a model made from it is too.
+set -euo pipefail
+
+DATA="${1:-}"
+NAME="${2:-my-model}"
+if [[ -z "$DATA" || ! -f "$DATA" ]]; then
+  echo "Usage: bash train-my-model.sh <your training set .jsonl> [model-name]" >&2
+  exit 1
+fi
+if [[ ! "$NAME" =~ ^[a-z0-9][a-z0-9._-]{0,40}$ ]]; then
+  echo "✗ Use lower-case letters, numbers, dots, dashes and underscores for the model name." >&2
+  exit 1
+fi
+if [[ "$(uname -s)" != "Darwin" || "$(uname -m)" != "arm64" ]]; then
+  echo "✗ This script needs a Mac with Apple silicon (M1 or newer). Windows and Linux: coming soon." >&2
+  exit 1
+fi
+if ! command -v ollama >/dev/null 2>&1; then
+  echo "✗ Install Ollama from https://ollama.com first, and open it." >&2
+  exit 1
+fi
+
+PYTHON=""
+for candidate in python3.13 python3.12 python3.11 python3; do
+  if command -v "$candidate" >/dev/null 2>&1 &&
+     "$candidate" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' 2>/dev/null; then
+    PYTHON="$(command -v "$candidate")"
+    break
+  fi
+done
+if [[ -z "$PYTHON" ]]; then
+  echo "✗ This needs Python 3.11 or newer: install it from https://www.python.org/downloads/ (or: brew install python@3.12)." >&2
+  exit 1
+fi
+
+MEMORY_GB=$(( $(sysctl -n hw.memsize) / 1073741824 ))
+if (( MEMORY_GB >= 16 )); then SIZE=3B; else SIZE=1B; fi
+BASE_MODEL="${BASE_MODEL:-mlx-community/Llama-3.2-$SIZE-Instruct-bf16}"
+OLLAMA_BASE="${OLLAMA_BASE:-llama3.2:$(echo "$SIZE" | tr 'B' 'b')}"
+EPOCHS="${EPOCHS:-2}"
+HOME_DIR="$HOME/.autinerary-model"
+WORK="${WORK_DIR:-$HOME_DIR/$NAME}"
+
+if ! ollama show "$OLLAMA_BASE" >/dev/null 2>&1; then
+  echo "✗ Ollama doesn't have $OLLAMA_BASE yet, and it's needed for the chat format. Run: ollama pull $OLLAMA_BASE" >&2
+  exit 1
+fi
+
+echo "Tuning $BASE_MODEL on $DATA for Ollama as $NAME ($MEMORY_GB GB of memory)."
+echo "Working in $WORK"
+
+# ---- 1. Tools ----------------------------------------------------------------------------------------------------
+if [[ ! -x "$HOME_DIR/venv/bin/python" ]]; then
+  mkdir -p "$HOME_DIR"
+  "$PYTHON" -m venv "$HOME_DIR/venv"
+fi
+PY="$HOME_DIR/venv/bin/python"
+"$PY" -m pip install --quiet --upgrade pip
+"$PY" -m pip install --quiet "mlx-lm==0.32.2"
+
+# ---- 2. Your set: a part to learn from, and at least one batch to check against ------------------------------------
+mkdir -p "$WORK/data"
+"$PY" - "$DATA" "$WORK/data" <<'SPLIT'
+import json, random, sys
+source, out = sys.argv[1], sys.argv[2]
+examples = []
+for number, line in enumerate(open(source, encoding="utf-8"), 1):
+    if not line.strip():
+        continue
+    try:
+        roles = [m["role"] for m in json.loads(line)["messages"]]
+    except (ValueError, KeyError, TypeError):
+        sys.exit(f"✗ Line {number} isn't a chat example. Use the file from Build my training set.")
+    if "assistant" not in roles:
+        sys.exit(f"✗ Line {number} has no answer to learn from.")
+    examples.append(line.strip())
+if len(examples) < 5:
+    sys.exit(f"✗ {len(examples)} examples is too few to learn from. Approve at least 5 items; a few dozen is better.")
+batch = 4 if len(examples) >= 16 else 2 if len(examples) >= 6 else 1
+held = max(batch, len(examples) // 10)
+random.Random(0).shuffle(examples)
+open(f"{out}/valid.jsonl", "w", encoding="utf-8").write("\n".join(examples[:held]) + "\n")
+open(f"{out}/train.jsonl", "w", encoding="utf-8").write("\n".join(examples[held:]) + "\n")
+open(f"{out}/batch_size", "w").write(str(batch))
+print(f"{len(examples) - held} examples to learn from, {held} to check against.")
+SPLIT
+
+BATCH=$(cat "$WORK/data/batch_size")
+N_TRAIN=$(grep -c . "$WORK/data/train.jsonl")
+ITERS=$(( (EPOCHS * N_TRAIN + BATCH - 1) / BATCH ))
+(( ITERS >= 10 )) || ITERS=10
+
+# ---- 3. Train a LoRA adapter, on your answers only (mask_prompt), a little at a time --------------------------------
+rm -rf "$WORK/adapter"
+cat > "$WORK/lora.yaml" <<YAML
+model: "$BASE_MODEL"
+train: true
+fine_tune_type: lora
+data: "$WORK/data"
+adapter_path: "$WORK/adapter"
+batch_size: $BATCH
+iters: $ITERS
+learning_rate: 5.0e-5
+num_layers: 8
+max_seq_length: 1024
+mask_prompt: true
+val_batches: -1
+steps_per_report: 5
+steps_per_eval: $ITERS
+save_every: $(( ITERS + 1 ))
+seed: 0
+lora_parameters:
+  rank: 8
+  scale: 20.0
+  dropout: 0.05
+YAML
+"$PY" -m mlx_lm lora --config "$WORK/lora.yaml"
+
+# ---- 4. Merge it into the model, and add that to Ollama with the base model's chat format ---------------------------
+rm -rf "$WORK/merged"
+"$PY" -m mlx_lm fuse --model "$BASE_MODEL" --adapter-path "$WORK/adapter" --save-path "$WORK/merged"
+ollama show --modelfile "$OLLAMA_BASE" |
+  awk -v from="FROM $WORK/merged" '!done && /^FROM / { print from; done = 1; next } { print }' > "$WORK/Modelfile"
+# Compressed to 4 bits so it runs fast: older Ollama calls that q4_K_M, newer Ollama int4. Uncompressed if neither works.
+ollama create "$NAME" --quantize q4_K_M -f "$WORK/Modelfile" 2>/dev/null ||
+  ollama create "$NAME" --quantize int4 -f "$WORK/Modelfile" ||
+  ollama create "$NAME" -f "$WORK/Modelfile"
+# Ollama keeps its own copy; the merged one here is several GB.
+rm -rf "$WORK/merged"
+
+echo ""
+echo "✓ Done: Ollama has $NAME."
+echo "  Try it:  ollama run $NAME \"What's one small first step toward swimming once a week?\""
+echo "  Use it:  in Autinerary, Settings, Models, Use my own model, set the model name to $NAME."
+echo "  The adapter (the part that's yours, a few MB) is in $WORK/adapter."

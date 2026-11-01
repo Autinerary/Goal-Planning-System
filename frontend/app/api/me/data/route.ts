@@ -38,8 +38,10 @@ const ALL_TABLES = [...PROGRESS_TABLES, PLAN_TABLE, ...PRIVATE_PROFILE_TABLES] a
 // cleared by starting over: your moments (their captions and which task or
 // milestone; the photos and videos stay in Memories), notes to yourself, and
 // your Relationships profile (STEP 87); and the services Sign me up signed
-// you up for (STEP 90: an account made stays made).
-const EXPORT_ONLY_TABLES = ['moments', 'future_notes', 'match_profiles', 'service_signups'] as const
+// you up for (STEP 90: an account made stays made); and which of your items
+// you approved for a training set, when and with which scrubber (STEP 95: ids,
+// never text).
+const EXPORT_ONLY_TABLES = ['moments', 'future_notes', 'match_profiles', 'service_signups', 'training_set_consents'] as const
 // Made from the plan by the database (STEP 92): which steps each version of
 // your plan had, in categories and numbers only. In the download and cleared
 // by starting over; never restored (saving the plan records it again).
