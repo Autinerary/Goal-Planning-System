@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import asyncio
 import os
+import re
 from dotenv import load_dotenv
 
 # races / milestones / tasks / calendar / tools were stub routers: every
@@ -20,6 +21,22 @@ from api.routes import onboarding, paths, reflections, messaging, calls, memes, 
 from database.connection import init_db
 
 load_dotenv()
+
+# Match on the PROJECT prefix, not the production hostname. A Vercel preview is <project>-<hash>-<team>.vercel.app, so
+# the deployment for "goal-planning-app" is served from goal-planning-<hash>-<team>: the literal "app" never appears,
+# and a pattern built around the production hostname rejects every preview it was meant to allow. Then the app's own
+# address (docs/campaign/README.md), and local dev on any port. The device sockets check the same (api/routes/device.py).
+CORS_ORIGIN_REGEX = (
+    r"https://(goal-planning|servicehub)[a-z0-9\-]*\.vercel\.app"
+    r"|https://app\.autinerary\.ca"
+    r"|http://(localhost|127\.0\.0\.1):\d+"
+)
+
+
+def cors_origin_allowed(origin: str) -> bool:
+    """The same rule as the CORS middleware: on the list, or matching the pattern."""
+    return origin in _cors_origins() or re.fullmatch(CORS_ORIGIN_REGEX, origin) is not None
+
 
 def _cors_origins() -> list:
     """Browser origins allowed to call this API.
@@ -123,17 +140,7 @@ app.add_middleware(
     #     so pinning two dev ports still locks out a developer at random.
     # Scoped to our own project names — a bare *.vercel.app would let any
     # Vercel app call this API with credentials attached.
-    allow_origin_regex=(
-        # Match on the PROJECT prefix, not the production hostname. A Vercel
-        # preview is <project>-<hash>-<team>.vercel.app, so the deployment for
-        # "goal-planning-app" is served from goal-planning-<hash>-<team> —
-        # the literal "app" never appears, and a pattern built around the
-        # production hostname rejects every preview it was meant to allow.
-        r"https://(goal-planning|servicehub)[a-z0-9\-]*\.vercel\.app"
-        # The app's own address (docs/campaign/README.md).
-        r"|https://app\.autinerary\.ca"
-        r"|http://(localhost|127\.0\.0\.1):\d+"
-    ),
+    allow_origin_regex=CORS_ORIGIN_REGEX,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

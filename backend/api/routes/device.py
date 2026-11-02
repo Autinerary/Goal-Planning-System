@@ -32,11 +32,13 @@ _running: Set[str] = set()             # one plan on a device per person at a ti
 
 
 def _origin_allowed(origin: Optional[str]) -> bool:
-    """Browsers send Origin on a WebSocket and CORS doesn't apply to one, so it is checked here against the same list."""
+    """Browsers send Origin on a WebSocket and CORS doesn't apply to one, so it is checked here, by the same rule as the
+    CORS middleware: the list and the pattern (main.cors_origin_allowed). Checking the list alone refused the app's
+    own address in production (2 November 2026), where it's allowed by the pattern, not listed."""
     if not origin:
         return True                    # not a browser (tests, scripts): the token still has to be valid
     import main
-    return origin in main._cors_origins()
+    return main.cors_origin_allowed(origin)
 
 
 @router.websocket("/plan")

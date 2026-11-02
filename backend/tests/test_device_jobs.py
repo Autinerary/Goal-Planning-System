@@ -183,11 +183,23 @@ class JobTests(unittest.TestCase):
         finally:
             device._jobs.discard("user-1:guidance")
 
+    def test_the_apps_own_address_and_its_previews_can_open_it(self):
+        # Allowed by the CORS pattern, not listed: the app's own address was refused in production until 2 Nov 2026.
+        for origin in ("https://app.autinerary.ca", "https://goal-planning-abc123-team.vercel.app", "http://localhost:3100"):
+            with mock.patch.dict("os.environ", {"CORS_ORIGINS": ""}):
+                with self.client().websocket_connect("/api/device/run", headers={"origin": origin}) as ws:
+                    self.start(ws, "delete-everything")
+                    self.assertEqual(ws.receive_json(), {"type": "error", "message": "That can't run on your device."}, origin)
+                with self.client().websocket_connect("/api/device/plan", headers={"origin": origin}) as ws:
+                    ws.send_json({"type": "start", "token": "x", "request": {}})
+                    self.assertEqual(ws.receive_json()["type"], "error", origin)
+
     def test_a_site_not_on_the_list_cannot_open_it(self):
         from starlette.websockets import WebSocketDisconnect
-        with self.assertRaises(WebSocketDisconnect):
-            with self.client().websocket_connect("/api/device/run", headers={"origin": "https://evil.example"}) as ws:
-                ws.receive_json()
+        for origin in ("https://evil.example", "https://app.autinerary.ca.evil.example", "https://myapp.vercel.app"):
+            with self.assertRaises(WebSocketDisconnect, msg=origin):
+                with self.client().websocket_connect("/api/device/run", headers={"origin": origin}) as ws:
+                    ws.receive_json()
 
 
 if __name__ == "__main__":
