@@ -4,7 +4,7 @@
  * My agents: agents a person builds to look at their plan their way (lib/agents.ts). Kept in this browser; each runs on
  * their device with their own model, or on our cloud model, as they choose; each sees only what they allow. They can
  * talk with one, have it look at their plan, or ask it about a step (app/components/AskMyAgents.tsx); and, once
- * sharing is on (SHARED_AGENTS=on, STEP 97), share one (SharePanel) or try others' (app/agents/community).
+ * sharing is on (unless SHARED_AGENTS=off; STEP 97), share one (SharePanel) or try others' (app/agents/community).
  */
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'

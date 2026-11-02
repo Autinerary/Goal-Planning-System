@@ -6,7 +6,7 @@ moderation service finds nothing harmful in it (checked only once nothing person
 shared with everyone, its norms must not narrow its owner down to a handful of real people; shared with people, only
 the owner's connections; a private link only for whoever has it; a copy of what it was built on, unchanged, isn't a new
 agent; nothing public says who shared one; only the owner changes or takes one down; nobody rates their own; reports go
-to the moderation queue; and it's all off unless SHARED_AGENTS=on.
+to the moderation queue; and SHARED_AGENTS=off turns it all off.
 
 Run from backend/:  python -m unittest tests.test_shared_agents -v
 """
@@ -68,10 +68,14 @@ def failing(fn, *args, **kwargs):
 
 
 class SwitchTests(unittest.TestCase):
-    def test_off_unless_switched_on(self):
-        self.assertEqual(run(sa.list_agents, FakeDB(), flag="", caller=OWNER), {"enabled": False, "agents": [], "sharedWithMe": [], "forYou": False})
-        self.assertEqual(failing(sa.share_agent, FakeDB(), body(), flag="", user_id=OWNER).status_code, 404)
-        self.assertFalse(run(sa.status, FakeDB(), flag="")["enabled"])
+    def test_on_unless_switched_off(self):
+        self.assertEqual(run(sa.list_agents, FakeDB(), flag="off", caller=OWNER), {"enabled": False, "agents": [], "sharedWithMe": [], "forYou": False})
+        self.assertEqual(failing(sa.share_agent, FakeDB(), body(), flag="off", user_id=OWNER).status_code, 404)
+        self.assertFalse(run(sa.status, FakeDB(), flag="OFF ")["enabled"])
+        with patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("SHARED_AGENTS", None)
+            self.assertTrue(sa.enabled(), "on when the switch isn't set")
+        self.assertTrue(run(sa.status, FakeDB(), flag="")["enabled"])
 
 
 class CheckTests(unittest.TestCase):

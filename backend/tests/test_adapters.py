@@ -6,7 +6,7 @@ their title and description name no one; shared with everyone, its tags must not
 real people; shared with people, only the owner's connections; a private link only for whoever has it; the files are
 an adapter and a settings file with nothing from the owner's computer; nothing public says who shared one; models are
 ranked for you by your onboarding answers and by ratings from people like you; only the owner edits or takes one down;
-nobody rates their own; reports go to the moderation queue; and it's all off unless SHARED_ADAPTERS=on.
+nobody rates their own; reports go to the moderation queue; and SHARED_ADAPTERS=off turns it all off.
 
 Run from backend/:  python -m unittest tests.test_adapters -v
 """
@@ -444,13 +444,14 @@ class UsingTests(unittest.TestCase):
 
 
 class SwitchTests(unittest.TestCase):
-    def test_off_unless_switched_on(self):
-        self.assertEqual(run(adapters.list_adapters, FakeDB(), caller=None, flag=""),
+    def test_on_unless_switched_off(self):
+        self.assertEqual(run(adapters.list_adapters, FakeDB(), caller=None, flag="off"),
                          {"enabled": False, "adapters": [], "sharedWithMe": [], "forYou": False})
-        self.assertFalse(run(adapters.status, FakeDB(), flag="")["enabled"])
+        self.assertFalse(run(adapters.status, FakeDB(), flag="off")["enabled"])
         with self.assertRaises(HTTPException) as caught:
-            run(adapters.create_adapter, FakeDB(), body(), user_id=OWNER, flag="")
+            run(adapters.create_adapter, FakeDB(), body(), user_id=OWNER, flag="off")
         self.assertEqual(caught.exception.status_code, 404)
+        self.assertTrue(run(adapters.status, FakeDB(), flag="")["enabled"], "on when the switch isn't set")
 
     def test_without_step_96_nothing_is_half_made(self):
         db = FakeDB(missing=["shared_adapters"])

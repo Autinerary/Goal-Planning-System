@@ -17,7 +17,7 @@ Nothing is shared until every check passes:
   audience   shared with people, only the owner's own connections.
   lineage    what it was built on is still shared, and it isn't a copy of it unchanged.
 Reports go to ResourceHub's moderation queue (community_reports, target 'agent'), where Remove takes it down. Nothing
-public says who shared one. Switched on by SHARED_AGENTS=on.
+public says who shared one. On unless SHARED_AGENTS=off (the switch to turn it off in a hurry).
 """
 from __future__ import annotations
 
@@ -66,7 +66,7 @@ _HARM_WORDS = {"harassment": "harassment", "hate": "hate", "self-harm": "self-ha
 
 
 def enabled() -> bool:
-    return os.getenv("SHARED_AGENTS", "").strip().lower() == "on"
+    return os.getenv("SHARED_AGENTS", "on").strip().lower() != "off"
 
 
 def _require_enabled() -> None:

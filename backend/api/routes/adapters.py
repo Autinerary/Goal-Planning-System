@@ -1,6 +1,6 @@
 """Shared starter models (Settings, Models: "Share my model" and "Community models"; STEP 96).
 
-  GET    /api/adapters/status            { enabled }: SHARED_ADAPTERS=on, and the lists the pages use
+  GET    /api/adapters/status            { enabled }: on unless SHARED_ADAPTERS=off, and the lists the pages use
   GET    /api/adapters                   models shared with everyone, the best for you first (how much of each model's
                                          community you're part of, then ratings weighted towards people like you), and
                                          those shared with you by your people; never who shared one
@@ -97,7 +97,7 @@ PAGE = 1000
 
 
 def enabled() -> bool:
-    return os.getenv("SHARED_ADAPTERS", "").strip().lower() == "on"
+    return os.getenv("SHARED_ADAPTERS", "on").strip().lower() != "off"
 
 
 def _require_enabled() -> None:
