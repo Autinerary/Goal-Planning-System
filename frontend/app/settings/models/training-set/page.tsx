@@ -254,6 +254,12 @@ export default function TrainingSetPage() {
           tune a small open model to how you talk about your steps. It&apos;s tuned on your own device, here in this
           browser or on your laptop, never on our servers.
         </p>
+        {fromShared && (
+          <p className="rounded-lg bg-indigo-50 border border-indigo-200 p-3 text-sm text-indigo-900">
+            Tuning from &ldquo;{fromShared.title}&rdquo; (Community models). Choose your items below; when you approve them
+            here, your model starts from it.
+          </p>
+        )}
       </header>
 
       <section aria-labelledby="how-heading" className="rounded-xl border border-slate-200 p-4 text-sm text-slate-700 space-y-2">
