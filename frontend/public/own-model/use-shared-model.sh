@@ -32,7 +32,7 @@ if [[ ! "$NAME" =~ ^[a-z0-9][a-z0-9._-]{0,40}$ ]]; then
   exit 1
 fi
 if [[ "$(uname -s)" != "Darwin" || "$(uname -m)" != "arm64" ]]; then
-  echo "✗ This script needs a Mac with Apple silicon (M1 or newer). Windows and Linux: coming soon." >&2
+  echo "✗ This script needs a Mac with Apple silicon (M1 or newer). On Windows or Linux, use autinerary_model.py serve (from the same page)." >&2
   exit 1
 fi
 if ! command -v ollama >/dev/null 2>&1; then
@@ -57,7 +57,7 @@ BASE_MODEL="$("$PYTHON" -c 'import json, sys; print(json.load(open(sys.argv[1]))
 case "$BASE_MODEL" in
   mlx-community/Llama-3.2-1B-Instruct-bf16) OLLAMA_BASE=llama3.2:1b ;;
   mlx-community/Llama-3.2-3B-Instruct-bf16) OLLAMA_BASE=llama3.2:3b ;;
-  Qwen/Qwen3-4B) echo "✗ Using a tuned Qwen3 in Ollama is coming soon: Ollama can't switch its thinking off yet." >&2; exit 1 ;;
+  Qwen/Qwen3-4B) echo "✗ Ollama can't switch a tuned Qwen3's thinking off, so this script can't add one. Use one tuned from Llama 3.2." >&2; exit 1 ;;
   *) echo "✗ This adapter starts from $BASE_MODEL, which this script doesn't know." >&2; exit 1 ;;
 esac
 if ! ollama show "$OLLAMA_BASE" >/dev/null 2>&1; then

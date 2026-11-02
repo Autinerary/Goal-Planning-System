@@ -16,8 +16,8 @@
 # pulled (ollama pull llama3.2:3b, or llama3.2:1b on a Mac with less than 16 GB), and about 20 GB of free disk space.
 #
 # You can change, with environment variables:
-#   MODEL        llama-3b or llama-1b (default llama-3b, or llama-1b with less than 16 GB of memory); tuning qwen3-4b,
-#                which thinks first, is coming soon
+#   MODEL        llama-3b or llama-1b (default llama-3b, or llama-1b with less than 16 GB of memory). To tune a model
+#                that thinks first, tune Qwen3 0.6B in your browser (Build my training set)
 #   BASE_MODEL   the model to tune, from Hugging Face (default mlx-community/Llama-3.2-3B-Instruct-bf16, or -1B-)
 #   OLLAMA_BASE  the Ollama model with the same chat format (default llama3.2:3b, or llama3.2:1b)
 #   EPOCHS       times through your set (default 2; more makes it start repeating your words back)
@@ -40,7 +40,7 @@ if [[ ! "$NAME" =~ ^[a-z0-9][a-z0-9._-]{0,40}$ ]]; then
   exit 1
 fi
 if [[ "$(uname -s)" != "Darwin" || "$(uname -m)" != "arm64" ]]; then
-  echo "✗ This script needs a Mac with Apple silicon (M1 or newer). Windows and Linux: coming soon." >&2
+  echo "✗ This script needs a Mac with Apple silicon (M1 or newer). On Windows or Linux, use autinerary_model.py (from the same page)." >&2
   exit 1
 fi
 if ! command -v ollama >/dev/null 2>&1; then
@@ -90,7 +90,7 @@ case "${MODEL:-}" in
     # Tested 1 November 2026: tuned on answers without thinking, Qwen3 stopped thinking or couldn't stop; and Ollama
     # 0.40 brings a tuned Qwen3 in through its newer engine, where thinking can't be switched off and 4-bit
     # compression gave nonsense. The untuned qwen3:4b runs fine in Ollama.
-    echo "✗ Tuning Qwen3 is coming soon: tuned, it doesn't keep its thinking yet. You can use the untuned qwen3:4b in Ollama, or tune MODEL=llama-3b." >&2
+    echo "✗ This script tunes Llama 3.2: tuned here, Qwen3 4B doesn't keep its thinking. To tune a model that thinks first, tune Qwen3 0.6B in your browser (Build my training set, Approve and tune my model here), or tune MODEL=llama-3b here." >&2
     exit 1 ;;
   *) echo "✗ MODEL is llama-3b or llama-1b." >&2; exit 1 ;;
 esac

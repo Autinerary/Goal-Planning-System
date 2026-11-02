@@ -86,25 +86,35 @@ November 2026: the same answers back through either, to within rounding).
 ```bash
 python autinerary_model.py train my-training-set-2026-10-31.jsonl my-model        # --base llama-1b for less memory
 python autinerary_model.py train my-set.jsonl my-calm-first-steps --from calm-first-steps.safetensors
+python autinerary_model.py serve my-model                                          # use it in Autinerary
+python autinerary_model.py serve calm-first-steps.safetensors                     # or one someone shared, as it is
 ```
 
 The first run sets up its tools in `~/.autinerary-model/torch` (a few GB). On Ubuntu or Debian, install
-`python3-venv` first. Using the tuned model in Ollama on Windows or Linux is **coming soon**: Ollama 0.40 there can't
-add a tuned model without converting it to GGUF first. The script says so, keeps the tuned model, and writes the
-Modelfile for that last step.
+`python3-venv` first. Ollama on Windows and Linux can't add a tuned model yet, so `serve` runs it from the script
+instead. It answers only on this computer, at `http://localhost:11435/v1`, and only Autinerary and this computer's own
+pages may use it (`--allow-origin` adds another site). In Settings, Use my own model, set that address and the model's
+name (`my-model`, or the shared file's name), press Check status, and keep the window open while you use it. What
+it's asked and answers stays out of the window.
 
 ## Thinking models
 
 Qwen3 4B thinks before it answers (`ollama pull qwen3:4b`, then set it as your model). In Autinerary it thinks only on
 the plan itself, if you allow it (Settings, Use my own model); on a laptop that takes about 1 to 3 minutes more for
-each goal. Tuning Qwen3 is **coming soon**: tuned on answers that don't think, it stopped thinking or couldn't stop
-in our tests, and Ollama can't switch a tuned one's thinking off yet.
+each goal. These scripts tune Llama 3.2, which doesn't think first: tuned with them, Qwen3 4B stopped thinking or
+couldn't stop in our tests, and Ollama can't switch a tuned one's thinking off. To tune a model that thinks first,
+tune Qwen3 0.6B in your browser instead (below): tuned there, it keeps its thinking.
 
 ## In the browser instead
 
 No install: Settings, Use my own model, "In this browser". A small model (Llama 3.2 1B for phones and tablets) is
-downloaded once into your browser and runs on your device's graphics chip. Models you tuned yourself run in Ollama, not
-in the browser.
+downloaded once into your browser and runs on your device's graphics chip.
+
+You can tune one there too, with one button: Build my training set, then Approve and tune my model here. It downloads
+Qwen3 0.6B, which thinks first, once (1.2 GB), tunes its last 8 layers on your approved items on your device's graphics
+chip (a few minutes on a laptop), checks it on items held back, and keeps the tuned model in that browser, for you
+alone: nothing you approved leaves the device. It needs WebGPU (a recent Chrome or Edge, or Safari 26), and a laptop
+or a tablet with plenty of memory.
 
 ## Settings
 

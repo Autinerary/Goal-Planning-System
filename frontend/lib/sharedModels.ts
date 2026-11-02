@@ -15,8 +15,8 @@ import type { OwnModelSettings } from './localModel'
 
 export const MEMORY_THRESHOLD = 0.5
 
-// Qwen3 4B, which thinks first, isn't shareable yet: tuned, it doesn't keep its thinking (coming soon). Its memory-check
-// prompt (qwen3Prompt) is ready for when it is.
+// The scripts tune Llama 3.2 only (tuned with them, Qwen3 4B doesn't keep its thinking), so those are the adapters shared
+// here. The memory check's Qwen3 prompt (qwen3Prompt) is kept for Qwen3 adapters.
 export const BASE_MODELS: Record<string, string> = {
   'mlx-community/Llama-3.2-1B-Instruct-bf16': 'llama3.2:1b',
   'mlx-community/Llama-3.2-3B-Instruct-bf16': 'llama3.2:3b',

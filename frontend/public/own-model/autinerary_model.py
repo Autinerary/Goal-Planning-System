@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 """autinerary_model.py: tune a small open model on your own training set, or adopt one someone shared, on a Windows or
-Linux computer with an NVIDIA graphics card, and add it to Ollama. (On a Mac, train-my-model.sh and use-shared-model.sh
-are faster; this works there too, more slowly.)
+Linux computer with an NVIDIA graphics card, and use it in Autinerary. (On a Mac, train-my-model.sh and
+use-shared-model.sh are faster; this works there too, more slowly.)
 
-  python autinerary_model.py train my-training-set-2026-10-31.jsonl [model-name] [--base llama-3b|llama-1b|qwen3-4b]
+  python autinerary_model.py train my-training-set-2026-10-31.jsonl [model-name] [--base llama-3b|llama-1b]
                                    [--from shared.safetensors] [--epochs N]
   python autinerary_model.py adopt calm-first-steps.safetensors [model-name]
+  python autinerary_model.py serve my-model | calm-first-steps.safetensors [--name NAME] [--port 11435]
+
+train and adopt add the model to Ollama. Ollama on Windows and Linux can't add a tuned model yet, so there serve runs it
+from here instead, answering only on this computer the way Autinerary asks a model (http://localhost:11435/v1): set
+that address and the model's name in Settings, Models, Use my own model, and keep the window open while you use it.
 
 Everything happens on this computer; nothing is uploaded. The first run makes a Python environment in
 ~/.autinerary-model/torch and installs PyTorch (with NVIDIA's CUDA), transformers and PEFT into it (a few GB), and the
@@ -29,6 +34,8 @@ import re
 import shutil
 import subprocess
 import sys
+import threading
+import time
 
 HOME = pathlib.Path.home() / ".autinerary-model"
 VENV = HOME / "torch"
@@ -43,6 +50,9 @@ MODULES = ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down
 # The same as the Mac script: rank 8 on the last 8 layers, scale 20, a little dropout, 2 passes, learning rate 5e-5.
 RANK, SCALE, DROPOUT, NUM_LAYERS, LEARNING_RATE = 8, 20.0, 0.05, 8, 5e-5
 NAME = re.compile(r"^[a-z0-9][a-z0-9._-]{0,40}$")
+# serve: where it answers, and the sites that may ask it (Autinerary, and this computer's own pages).
+PORT = 11435
+ORIGINS = ("https://app.autinerary.ca",)
 
 
 def fail(message: str) -> None:
@@ -238,7 +248,8 @@ def train(args) -> None:
         epochs = args.epochs or 2
     qwen = repo.startswith("Qwen/")
     if qwen:
-        fail("Tuning Qwen3 is coming soon: tuned, it doesn't keep its thinking yet. Start from a Llama 3.2 model instead.")
+        fail("This script tunes Llama 3.2: tuned here, Qwen3 doesn't keep its thinking. To tune a model that thinks first, "
+             "tune Qwen3 0.6B in your browser (Build my training set, Approve and tune my model here).")
     examples = read_set(data)
     batch = 4 if len(examples) >= 16 else 2 if len(examples) >= 6 else 1
     held = max(batch, len(examples) // 10)
@@ -270,7 +281,7 @@ def train(args) -> None:
     print(f"  check against: loss {mean_loss(model, valid, batch, pad_id, device):.3f}")
     work = HOME / args.name
     save_adapter(model, work / "adapter", repo, num_layers, rank, scale, built_on)
-    to_ollama(model, tokenizer, work, args.name, OLLAMA_FOR[repo], repo)
+    to_ollama(model, tokenizer, work, args.name, OLLAMA_FOR[repo], repo, args.name)
 
 
 def save_adapter(model, folder: pathlib.Path, repo: str, num_layers: int, rank: int, scale: float, built_on) -> None:
@@ -289,13 +300,26 @@ def save_adapter(model, folder: pathlib.Path, repo: str, num_layers: int, rank: 
 
 # ---- Into Ollama --------------------------------------------------------------------------------------------------
 
-def to_ollama(model, tokenizer, work: pathlib.Path, name: str, ollama_base: str, repo: str) -> None:
+def use_it_here(name: str, what: str, why: str) -> None:
+    """When Ollama can't take the model: how to run it from this script instead (serve)."""
+    also = f" --name {name}" if what.endswith(".safetensors") and name != clean_name(pathlib.Path(what).stem) else ""
+    shown = f'"{what}"' if " " in what else what
+    print(f"\n{why}, so use it straight from here. Run:")
+    print(f"  python {pathlib.Path(__file__).name} serve {shown}{also}")
+    print(f"and in Autinerary, Settings, Models, Use my own model, set the address to http://localhost:{PORT}/v1 and the")
+    print(f"model name to {name}. Keep that window open while you use it.")
+
+
+def to_ollama(model, tokenizer, work: pathlib.Path, name: str, ollama_base: str, repo: str, what: str) -> None:
     import torch
     if shutil.which("ollama") is None:
-        fail("Install Ollama from https://ollama.com first, and open it.")
+        use_it_here(name, what, "Ollama isn't on this computer")
+        return
     shown = subprocess.run(["ollama", "show", "--modelfile", ollama_base], capture_output=True, text=True)
     if shown.returncode != 0:
-        fail(f"Ollama doesn't have {ollama_base} yet, and it's needed for the chat format. Run: ollama pull {ollama_base}")
+        print(f"To add it to Ollama, first run: ollama pull {ollama_base} (Ollama needs it for the chat format), then this again.")
+        use_it_here(name, what, f"Ollama doesn't have {ollama_base} yet")
+        return
     merged = work / "merged"
     shutil.rmtree(merged, ignore_errors=True)
     print("  merging the adapter into the model")
@@ -326,15 +350,12 @@ def to_ollama(model, tokenizer, work: pathlib.Path, name: str, ollama_base: str,
     else:
         if "MLX runtime is not available" in said:
             # Ollama 0.40 on Linux (and Windows) adds a model like this only through its MLX runtime, which its
-            # Linux build doesn't include (31 October 2026, on an NVIDIA L4). It does take a GGUF file.
-            gguf_modelfile = work / "Modelfile.gguf"
-            gguf_modelfile.write_text("\n".join(f"FROM {work / 'model.gguf'}" if l.startswith("FROM ") else l for l in lines) + "\n")
-            print("\nOllama on this computer can't add this kind of model yet: it needs it as a GGUF file first.")
-            print(f"  Your adapter is ready to share: {work / 'adapter'}")
-            print(f"  The tuned model is kept in {merged}. To use it here, convert it with llama.cpp's converter")
-            print(f"  (https://github.com/ggml-org/llama.cpp, convert_hf_to_gguf.py --outfile {work / 'model.gguf'}),")
-            print(f"  then run: ollama create {name} -f {gguf_modelfile}")
-            sys.exit(2)
+            # Linux build doesn't include (31 October 2026, on an NVIDIA L4). serve runs it from here instead.
+            shutil.rmtree(merged, ignore_errors=True)
+            if (work / "adapter").exists():
+                print(f"  Your adapter is ready to share: {work / 'adapter'}")
+            use_it_here(name, what, "Ollama on this computer can't add a tuned model yet")
+            return
         print(said, file=sys.stderr)
         fail("Ollama couldn't add the model.")
     shutil.rmtree(merged, ignore_errors=True)
@@ -350,7 +371,7 @@ def adopt(args) -> None:
     device, dtype = pick_device()
     shared, config = read_shared(weights)
     if config["model"].startswith("Qwen/"):
-        fail("Using a tuned Qwen3 in Ollama is coming soon: Ollama can't switch its thinking off yet.")
+        fail("Ollama can't switch a tuned Qwen3's thinking off, so this script can't add one. Use one tuned from Llama 3.2.")
     name = args.name or weights.stem
     if not NAME.match(name):
         fail("Use lower-case letters, numbers, dots, dashes and underscores for the model name.")
@@ -358,7 +379,200 @@ def adopt(args) -> None:
     model, tokenizer = peft_model(config["model"], dtype, device, int(config["num_layers"]),
                                   int(config["lora_parameters"]["rank"]), float(config["lora_parameters"]["scale"]), 0.0)
     load_into(model, shared)
-    to_ollama(model, tokenizer, HOME / "shared" / name, name, OLLAMA_FOR[config["model"]], config["model"])
+    to_ollama(model, tokenizer, HOME / "shared" / name, name, OLLAMA_FOR[config["model"]], config["model"], str(weights))
+
+
+# ---- Serving it here, for Autinerary --------------------------------------------------------------------------------
+
+def clean_name(stem: str) -> str:
+    """A model name from a file's name: lower-case, with anything else as dashes."""
+    name = re.sub(r"[^a-z0-9._-]+", "-", stem.lower()).strip("-._")[:40]
+    return name if NAME.match(name) else "shared-model"
+
+
+def allowed_origin(origin: str, extra: list) -> bool:
+    """Autinerary, this computer's own pages (http://localhost or 127.0.0.1, any port), and any added with --allow-origin."""
+    if origin in ORIGINS or origin in extra:
+        return True
+    return re.match(r"^http://(localhost|127\.0\.0\.1)(:\d+)?$", origin or "") is not None
+
+
+def json_object(text: str):
+    """The first JSON object in a model's answer (after a sentence or inside code fences too), or None."""
+    decoder = json.JSONDecoder()
+    for start in (i for i, ch in enumerate(text) if ch == "{"):
+        try:
+            value, _ = decoder.raw_decode(text[start:])
+        except ValueError:
+            continue
+        if isinstance(value, dict):
+            return value
+    return None
+
+
+def load_for_serving(what: str, name_given, device: str, dtype):
+    """A model tuned here (by its name) or one someone shared (its .safetensors file), with its adapter merged in."""
+    from safetensors.torch import load_file
+    if what.endswith(".safetensors"):
+        path = pathlib.Path(what).expanduser()
+        tensors, config = read_shared(path)
+        name = name_given or clean_name(path.stem)
+    else:
+        if not NAME.match(what):
+            fail("Give the name of a model you tuned here (its folder in ~/.autinerary-model), or a .safetensors file.")
+        folder = HOME / what / "adapter"
+        if not (folder / "adapters.safetensors").exists() or not (folder / "adapter_config.json").exists():
+            fail(f"No model called {what} was tuned on this computer (nothing in {folder}). Give its name as train "
+                 "printed it, or a .safetensors file from Community models.")
+        tensors, config = load_file(str(folder / "adapters.safetensors")), json.loads((folder / "adapter_config.json").read_text())
+        if config.get("fine_tune_type") != "lora" or config.get("model") not in OLLAMA_FOR:
+            fail(f"This adapter starts from {config.get('model')}, which this script doesn't know.")
+        name = name_given or what
+    if not NAME.match(name):
+        fail("Use lower-case letters, numbers, dots, dashes and underscores for the model name.")
+    if config["model"].startswith("Qwen/"):
+        fail("A tuned Qwen3 can't be used yet: tuned, it doesn't keep its thinking. Use one tuned from Llama 3.2.")
+    print(f"Loading {name} (it starts from {config['model']}) on {device}.")
+    model, tokenizer = peft_model(config["model"], dtype, device, int(config["num_layers"]),
+                                  int(config["lora_parameters"]["rank"]), float(config["lora_parameters"]["scale"]), 0.0)
+    load_into(model, tensors)
+    model = model.merge_and_unload()
+    model.eval()
+    return model, tokenizer, name
+
+
+class Answerer:
+    """One answer at a time from the model (a graphics card does one well, not several at once)."""
+
+    def __init__(self, model, tokenizer, device: str):
+        self.model, self.tokenizer, self.device = model, tokenizer, device
+        self.lock = threading.Lock()
+
+    def answer(self, messages: list, max_tokens: int, temperature: float, json_mode: bool) -> tuple:
+        import torch
+        prompt = self.tokenizer.apply_chat_template(messages, add_generation_prompt=True, tokenize=False)
+        # JSON asked for: the answer starts as a JSON object, and the object is what's sent back.
+        if json_mode:
+            prompt += "{"
+        ids = self.tokenizer(prompt, add_special_tokens=False, return_tensors="pt").input_ids.to(self.device)
+        sampling = {"do_sample": True, "temperature": temperature, "top_p": 0.9} if temperature > 0 else {"do_sample": False}
+        pad = self.tokenizer.pad_token_id if self.tokenizer.pad_token_id is not None else self.tokenizer.eos_token_id
+        with self.lock, torch.no_grad():
+            out = self.model.generate(input_ids=ids, attention_mask=torch.ones_like(ids), max_new_tokens=max_tokens,
+                                      pad_token_id=pad, **sampling)
+        new = out[0, ids.shape[1]:]
+        text = self.tokenizer.decode(new, skip_special_tokens=True).strip()
+        if json_mode:
+            value = json_object("{" + text)
+            text = json.dumps(value) if value is not None else "{" + text
+        return text, int(ids.shape[1]), int(new.shape[0])
+
+
+def make_server(answerer, name: str, port: int, extra: list):
+    """The address Autinerary asks (an OpenAI-compatible one: /v1/models and /v1/chat/completions), on this computer
+    only. Not Ollama's own API, so the app asks it the OpenAI way."""
+    import uuid
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+    class Handler(BaseHTTPRequestHandler):
+        def origin_headers(self) -> None:
+            origin = self.headers.get("Origin") or ""
+            if origin and allowed_origin(origin, extra):
+                self.send_header("Access-Control-Allow-Origin", origin)
+                self.send_header("Vary", "Origin")
+
+        def reply(self, status: int, body: dict) -> None:
+            data = json.dumps(body).encode("utf-8")
+            self.send_response(status)
+            self.origin_headers()
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+
+        def refused(self) -> bool:
+            # Only this computer's own names (so a website can't reach it by pointing its own name here), and, from a
+            # browser, only the sites on the list: anyone else's page could otherwise use the model.
+            host = (self.headers.get("Host") or "").rsplit(":", 1)[0].strip("[]")
+            origin = self.headers.get("Origin")
+            if host not in ("localhost", "127.0.0.1", "::1"):
+                self.reply(403, {"error": {"message": "Only this computer can use this."}})
+                return True
+            if origin and not allowed_origin(origin, extra):
+                self.reply(403, {"error": {"message": f"{origin} isn't allowed. Add it with --allow-origin {origin}."}})
+                return True
+            return False
+
+        def do_OPTIONS(self) -> None:
+            self.send_response(204)
+            self.origin_headers()
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type")
+            # Chrome asks before a site on the internet reaches this computer.
+            self.send_header("Access-Control-Allow-Private-Network", "true")
+            self.end_headers()
+
+        def do_GET(self) -> None:
+            if self.refused():
+                return
+            if self.path.rstrip("/") == "/v1/models":
+                return self.reply(200, {"object": "list", "data": [{"id": name, "object": "model", "owned_by": "you"}]})
+            self.reply(404, {"error": {"message": "Not here. Ask at /v1/chat/completions."}})
+
+        def do_POST(self) -> None:
+            if self.refused():
+                return
+            if self.path.rstrip("/") != "/v1/chat/completions":
+                return self.reply(404, {"error": {"message": "Not here. Ask at /v1/chat/completions."}})
+            try:
+                length = int(self.headers.get("Content-Length") or 0)
+                if length > 4_000_000:
+                    return self.reply(413, {"error": {"message": "That's too long."}})
+                body = json.loads(self.rfile.read(length) or b"{}")
+                messages = [{"role": str(m["role"]), "content": str(m["content"])} for m in body["messages"]]
+                assert messages and all(m["role"] in ("system", "user", "assistant") for m in messages)
+                max_tokens = max(1, min(int(body.get("max_tokens") or 600), 4096))
+                temperature = max(0.0, min(float(body["temperature"]) if body.get("temperature") is not None else 0.7, 2.0))
+            except Exception:
+                return self.reply(400, {"error": {"message": "Send messages, each with a role and content."}})
+            json_mode = (body.get("response_format") or {}).get("type") == "json_object"
+            started = time.time()
+            try:
+                text, prompt_tokens, answer_tokens = answerer.answer(messages, max_tokens, temperature, json_mode)
+            except Exception as e:
+                print(f"  couldn't answer: {type(e).__name__}: {e}")
+                return self.reply(500, {"error": {"message": "The model couldn't answer that."}})
+            # What was asked and answered stays out of the window: it's the person's own words.
+            print(f"  answered in {time.time() - started:.1f}s ({answer_tokens} tokens)", flush=True)
+            self.reply(200, {
+                "id": f"chatcmpl-{uuid.uuid4().hex[:16]}", "object": "chat.completion", "created": int(time.time()),
+                "model": name,
+                "choices": [{"index": 0, "message": {"role": "assistant", "content": text}, "finish_reason": "stop"}],
+                "usage": {"prompt_tokens": prompt_tokens, "completion_tokens": answer_tokens,
+                          "total_tokens": prompt_tokens + answer_tokens},
+            })
+
+        def log_message(self, *args) -> None:
+            pass
+
+    return ThreadingHTTPServer(("127.0.0.1", port), Handler)
+
+
+def serve(args) -> None:
+    """Answer Autinerary's questions on this computer, the way it asks a model."""
+    device, dtype = pick_device()
+    model, tokenizer, name = load_for_serving(args.model, args.name, device, dtype)
+    try:
+        server = make_server(Answerer(model, tokenizer, device), name, args.port, [o.rstrip("/") for o in (args.allow_origin or [])])
+    except OSError:
+        fail(f"Something else is using port {args.port}. Stop it, or choose another with --port.")
+    print(f"\n✓ {name} is answering at http://localhost:{args.port}/v1 (only on this computer).")
+    print(f"  In Autinerary: Settings, Models, Use my own model. Set the address to http://localhost:{args.port}/v1 and")
+    print(f"  the model name to {name}, then press Check status. Keep this window open; press Ctrl+C to stop.", flush=True)
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nStopped.")
 
 
 def main() -> None:
@@ -367,18 +581,23 @@ def main() -> None:
     t = sub.add_parser("train", help="tune a model on your own training set")
     t.add_argument("set", help="the training set file from Build my training set (.jsonl)")
     t.add_argument("name", nargs="?", default="my-model", help="the model's name in Ollama (default my-model)")
-    # Tuning Qwen3 (qwen3-4b), which thinks first, is coming soon: tuned, it doesn't keep its thinking yet.
+    # Not Qwen3 (qwen3-4b), which thinks first: tuned here it doesn't keep its thinking. In the browser, Qwen3 0.6B does.
     t.add_argument("--base", choices=["llama-1b", "llama-3b"], default="llama-3b", help="the model to tune (default llama-3b)")
     t.add_argument("--from", dest="source", help="start from a shared model: its .safetensors file from Community models")
     t.add_argument("--epochs", type=int, help="times through your set (default 2, or 1 from a shared model)")
     a = sub.add_parser("adopt", help="add a model someone shared to Ollama")
     a.add_argument("adapter", help="the .safetensors file from Community models (its .adapter_config.json beside it)")
     a.add_argument("name", nargs="?", help="the model's name in Ollama (default: the file's name)")
+    v = sub.add_parser("serve", help="run a tuned or shared model here, for Autinerary, without Ollama")
+    v.add_argument("model", help="a model you tuned here (its name), or a .safetensors file from Community models")
+    v.add_argument("--name", help="the name Autinerary sees (default: the model's, or the file's, name)")
+    v.add_argument("--port", type=int, default=PORT, help=f"where it answers (default {PORT})")
+    v.add_argument("--allow-origin", action="append", help="another site that may use it (Autinerary's is allowed)")
     args = parser.parse_args()
     if args.command == "train" and not NAME.match(args.name):
         fail("Use lower-case letters, numbers, dots, dashes and underscores for the model name.")
     ensure_tools()
-    train(args) if args.command == "train" else adopt(args)
+    {"train": train, "adopt": adopt, "serve": serve}[args.command](args)
 
 
 if __name__ == "__main__":

@@ -74,8 +74,11 @@ function Adopt({ adapter, linkKey }: { adapter: SharedAdapter; linkKey: string |
         <li>
           Mac: download <a className="underline" href="/own-model/use-shared-model.sh" download>use-shared-model.sh</a> and run{' '}
           <code className="font-mono break-all">bash use-shared-model.sh ~/Downloads/{weights} {slug}</code>. It puts the adapter
-          with the model it starts from and adds it to Ollama as {slug}. Windows and Linux:{' '}
-          <span className="text-slate-500">coming soon</span> (Ollama there can&apos;t add a tuned model without a converter yet).
+          with the model it starts from and adds it to Ollama as {slug}. Windows or Linux, with an NVIDIA graphics card:
+          download <a className="underline" href="/own-model/autinerary_model.py" download>autinerary_model.py</a> and run{' '}
+          <code className="font-mono break-all">python autinerary_model.py serve Downloads/{weights}</code>. It runs the model on
+          your computer, answering Autinerary at <code className="font-mono">http://localhost:11435/v1</code> while its window is
+          open: put that address under the model name {slug}.
         </li>
         <li>
           To tune it a little with your own writing, approve some items in{' '}
@@ -85,7 +88,8 @@ function Adopt({ adapter, linkKey }: { adapter: SharedAdapter; linkKey: string |
           Linux computer with an NVIDIA card,{' '}
           <code className="font-mono break-all">python autinerary_model.py train Downloads/my-training-set-….jsonl my-{slug} --from Downloads/{weights}</code>{' '}
           (<a className="underline" href="/own-model/autinerary_model.py" download>autinerary_model.py</a>; it makes an adapter you
-          can share, and using it in Ollama there is coming soon). It starts from this adapter and goes through your set once. If
+          can share, and <code className="font-mono">python autinerary_model.py serve my-{slug}</code> runs it for Autinerary). It
+          starts from this adapter and goes through your set once. If
           you share yours, it will say it was built on this one.
         </li>
         <li>
@@ -234,9 +238,9 @@ function CommunityModels() {
       </header>
 
       {enabled === null && <p className="text-sm text-slate-500">Loading…</p>}
-      {enabled === false && (
+      {enabled === false && !error && (
         <p className="rounded-lg border border-dashed border-slate-300 p-4 text-sm text-slate-600">
-          Sharing models isn&apos;t on yet. <span className="text-slate-500">Coming soon.</span>
+          Sharing models is switched off for now.
         </p>
       )}
       {error && <p role="alert" className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-800">{error}</p>}
