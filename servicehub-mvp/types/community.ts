@@ -6,7 +6,7 @@
 
 export type VoteTarget = 'post' | 'answer';
 // 'adapter': a starter model shared from the app (STEP 96, shared_adapters), reported there.
-export type ReportTarget = 'post' | 'answer' | 'user' | 'adapter';
+export type ReportTarget = 'post' | 'answer' | 'user' | 'adapter' | 'agent';
 export type ReportStatus =
   | 'open'
   | 'resolved_kept'

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict'
 import { pageGuideFor, GUIDE_PATTERNS } from './pageGuides.ts'
 
 const pages = ['/path', '/milestones/m1', '/milestones', '/calendar', '/races', '/tasks', '/pit-stop', '/hare-world', '/reflection',
-  '/recommend-choices', '/tools', '/stats', '/ideal-self', '/family', '/path-market', '/profile/settings', '/profile', '/kits/school', '/start', '/help', '/assistant', '/agents']
+  '/recommend-choices', '/tools', '/stats', '/ideal-self', '/family', '/path-market', '/profile/settings', '/profile', '/kits/school', '/start', '/help', '/assistant', '/agents', '/agents/community']
 for (const p of pages) {
   const g = pageGuideFor(p)
   assert.ok(g, `${p} has a guide`)

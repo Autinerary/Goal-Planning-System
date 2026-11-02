@@ -35,6 +35,7 @@ const PLACES: [RegExp, string][] = [
   [/^\/start$/, 'Starter resources'],
   [/^\/assistant$/, 'Assistant'],
   [/^\/agents$/, 'My agents'],
+  [/^\/agents\/community$/, 'Community agents'],
 ]
 
 /** The name to show for a page, or null if it is not one to go back to. */

@@ -170,7 +170,7 @@ function Card({ adapter, signedIn, linkKey, onRated }: {
         )}
         {signedIn && !adapter.mine && (
           <div className="text-sm text-slate-700 flex items-center gap-2">
-            <StarRating value={adapter.myRating || 0} onChange={rate} size="sm" label="Your rating" />
+            <StarRating value={adapter.myRating || 0} onChange={rate} size="md" label="Your rating" />
             {saved && <span role="status" className="text-xs text-emerald-700">Saved</span>}
           </div>
         )}

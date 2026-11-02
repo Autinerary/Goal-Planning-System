@@ -65,7 +65,7 @@ export function AgentTalk({ agent, data }: { agent: Agent; data: PersonData }) {
   )
 }
 
-export function AgentPlanReview({ agent, data }: { agent: Agent; data: PersonData }) {
+export function AgentPlanReview({ agent, data, cantSee }: { agent: Agent; data: PersonData; cantSee?: string }) {
   const where = useWhere(agent)
   const [notes, setNotes] = useState<PlanNote[] | null>(null)
   const [busy, setBusy] = useState(false)
@@ -88,7 +88,7 @@ export function AgentPlanReview({ agent, data }: { agent: Agent; data: PersonDat
   return (
     <section aria-label={`${agent.name} on your plan`} className="rounded-xl border border-slate-200 p-4 space-y-3 text-sm">
       {!canSee ? (
-        <p className="text-slate-600">To look at your plan, {agent.name} needs to see it: turn on “My plan” in its settings.</p>
+        <p className="text-slate-600">{cantSee ?? `To look at your plan, ${agent.name} needs to see it: turn on “My plan” in its settings.`}</p>
       ) : data.steps.length === 0 ? (
         <p className="text-slate-600">You don’t have a plan yet. Make one first, then {agent.name} can look at it.</p>
       ) : (

@@ -49,9 +49,13 @@ export async function GET() {
   const adapterIds = (reports ?? [])
     .filter((r) => r.target_type === 'adapter')
     .map((r) => r.target_id);
+  // Agents shared from the app (STEP 97): their name, purpose and instructions, never who shared one.
+  const agentIds = (reports ?? [])
+    .filter((r) => r.target_type === 'agent')
+    .map((r) => r.target_id);
   const reporterIds = Array.from(new Set((reports ?? []).map((r) => r.reporter_id)));
 
-  const [postsRes, answersRes, profilesRes, adaptersRes] = await Promise.all([
+  const [postsRes, answersRes, profilesRes, adaptersRes, agentsRes] = await Promise.all([
     postIds.length
       ? client
           .from('community_posts')
@@ -71,11 +75,15 @@ export async function GET() {
     adapterIds.length
       ? client.from('shared_adapters').select('id, title, description').in('id', adapterIds)
       : Promise.resolve({ data: [] as Array<{ id: string; title: string; description: string }> }),
+    agentIds.length
+      ? client.from('shared_agents').select('id, name, purpose, instructions').in('id', agentIds)
+      : Promise.resolve({ data: [] as Array<{ id: string; name: string; purpose: string; instructions: string }> }),
   ]);
 
   const postMap = new Map((postsRes.data ?? []).map((p) => [p.id, p]));
   const answerMap = new Map((answersRes.data ?? []).map((a) => [a.id, a]));
   const adapterMap = new Map((adaptersRes.data ?? []).map((a) => [a.id, a]));
+  const agentMap = new Map((agentsRes.data ?? []).map((a) => [a.id, a]));
   const profileMap = new Map(
     (profilesRes.data ?? []).map((p) => [p.user_id, p.pseudonym] as const)
   );
@@ -97,6 +105,11 @@ export async function GET() {
       const m = adapterMap.get(r.target_id);
       target_title = m ? `Shared model: ${m.title}` : 'Shared model';
       target_excerpt = m?.description?.slice(0, 200) || null;
+    } else if (r.target_type === 'agent') {
+      const a = agentMap.get(r.target_id);
+      target_title = a ? `Shared agent: ${a.name}` : 'Shared agent';
+      // Its instructions are what someone reported: the moderator reads those first.
+      target_excerpt = (a?.instructions || a?.purpose || '').slice(0, 400) || null;
     } else {
       target_author_id = r.target_id;
     }

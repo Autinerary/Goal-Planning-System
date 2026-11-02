@@ -3,16 +3,22 @@
 /**
  * My agents: agents a person builds to look at their plan their way (lib/agents.ts). Kept in this browser; each runs on
  * their device with their own model, or on our cloud model, as they choose; each sees only what they allow. They can
- * talk with one, have it look at their plan, or ask it about a step (app/components/AskMyAgents.tsx).
+ * talk with one, have it look at their plan, or ask it about a step (app/components/AskMyAgents.tsx); and, once
+ * sharing is on (SHARED_AGENTS=on, STEP 97), share one (SharePanel) or try others' (app/agents/community).
  */
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Agent, STARTERS, agentFile, agentFromFile, agentFromStarter, lensWords, loadAgents, personData, saveAgents, withAgent } from '@/lib/agents'
+import { MySharedAgent, agentLinkFor, listMySharedAgents, sharedAgentsStatus, takeDownSharedAgent } from '@/lib/sharedAgents'
 import { useAgentPath } from '../context/AgentPathContext'
 import AgentForm from './AgentForm'
 import { AgentPlanReview, AgentTalk } from './AgentTalk'
+import SharePanel, { freshToken } from './SharePanel'
 
-type Open = { id: string; panel: 'talk' | 'plan' } | null
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const VISIBILITY_WORDS = { everyone: 'shared with everyone', people: 'shared with people you picked', link: 'shared by link' }
+
+type Open = { id: string; panel: 'talk' | 'plan' | 'share' } | null
 
 export default function AgentsPage() {
   const { payload, pathPlanning } = useAgentPath()
@@ -21,13 +27,45 @@ export default function AgentsPage() {
   const [editing, setEditing] = useState<Agent | null>(null)
   const [open, setOpen] = useState<Open>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  const [sharing, setSharing] = useState(false)
+  const [shared, setShared] = useState<MySharedAgent[]>([])
+  const [origin, setOrigin] = useState('')
   const fileInput = useRef<HTMLInputElement>(null)
   const data = personData(payload, pathPlanning)
+
+  const refreshShared = async () => {
+    const token = await freshToken()
+    if (token) listMySharedAgents(API_URL, token).then((r) => setShared(r.agents)).catch(() => {})
+  }
 
   useEffect(() => {
     setAgents(loadAgents())
     setLoaded(true)
+    setOrigin(window.location.origin)
+    sharedAgentsStatus(API_URL).then((s) => {
+      setSharing(s.enabled)
+      if (s.enabled) refreshShared()
+    }).catch(() => {})
   }, [])
+
+  // Shared, changed or taken down from its panel: kept with the agent here, and the list of shared ones again.
+  const sharedChanged = (agent: Agent) => {
+    keep(withAgent(agents, agent))
+    refreshShared()
+  }
+
+  const takeDown = async (item: MySharedAgent) => {
+    const token = await freshToken()
+    if (!token || !window.confirm(`Take ${item.name} down? People who added it to their own agents keep their copy.`)) return
+    try {
+      await takeDownSharedAgent(API_URL, token, item.id)
+      keep(agents.map((a) => (a.sharedId === item.id ? { ...a, sharedId: null } : a)))
+      refreshShared()
+      setNotice(`Took ${item.name} down.`)
+    } catch (e: any) {
+      setNotice(e?.message || String(e))
+    }
+  }
 
   const keep = (next: Agent[]) => {
     setAgents(next)
@@ -65,7 +103,7 @@ export default function AgentsPage() {
   }
 
   // A new agent: empty, seeing nothing, on the device. It gets its id when it's saved (cleanAgent).
-  const blank = () => setEditing({ id: '', name: '', purpose: '', instructions: '', lens: [], sees: [], runsOn: 'device', createdAt: '', updatedAt: '', from: null })
+  const blank = () => setEditing({ id: '', name: '', purpose: '', instructions: '', lens: [], sees: [], runsOn: 'device', createdAt: '', updatedAt: '', from: null, sharedId: null })
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-8 space-y-6">
@@ -105,6 +143,8 @@ export default function AgentsPage() {
                     {agent.lens.length > 0 && ` · looks through: ${lensWords(agent.lens)}`}
                     {agent.from?.kind === 'starter' && ` · started from Autinerary’s “${agent.from.name}”`}
                     {agent.from?.kind === 'file' && ' · opened from a file'}
+                    {agent.from?.kind === 'community' && ` · added from Community agents (“${agent.from.name}”)`}
+                    {agent.sharedId && ' · shared'}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2 text-sm">
@@ -114,12 +154,18 @@ export default function AgentsPage() {
                   <button type="button" aria-expanded={open?.id === agent.id && open.panel === 'plan'}
                     onClick={() => setOpen(open?.id === agent.id && open.panel === 'plan' ? null : { id: agent.id, panel: 'plan' })}
                     className="rounded-lg border border-slate-300 px-3 py-1.5 font-medium">Look at my plan</button>
+                  {sharing && (
+                    <button type="button" aria-expanded={open?.id === agent.id && open.panel === 'share'}
+                      onClick={() => setOpen(open?.id === agent.id && open.panel === 'share' ? null : { id: agent.id, panel: 'share' })}
+                      className="rounded-lg border border-slate-300 px-3 py-1.5 font-medium">{agent.sharedId ? 'Shared' : 'Share'}</button>
+                  )}
                   <button type="button" onClick={() => setEditing(agent)} className="rounded-lg px-3 py-1.5 text-slate-700 underline">Change</button>
                   <button type="button" onClick={() => download(agent)} className="rounded-lg px-3 py-1.5 text-slate-700 underline">Save as a file</button>
                   <button type="button" onClick={() => remove(agent)} className="rounded-lg px-3 py-1.5 text-red-700 underline">Remove</button>
                 </div>
                 {open?.id === agent.id && open.panel === 'talk' && <AgentTalk agent={agent} data={data} />}
                 {open?.id === agent.id && open.panel === 'plan' && <AgentPlanReview agent={agent} data={data} />}
+                {open?.id === agent.id && open.panel === 'share' && <SharePanel agent={agent} onShared={sharedChanged} onTakenDown={sharedChanged} />}
               </li>
             ))}
           </ul>
@@ -127,6 +173,32 @@ export default function AgentsPage() {
             You can also ask your agents about one step, on that step’s page. <Link href="/milestones" className="underline">Your steps</Link>
           </p>
         </section>
+      )}
+
+      {sharing && shared.length > 0 && (
+        <section aria-labelledby="shared-heading" className="space-y-2 text-sm text-slate-700">
+          <h2 id="shared-heading" className="text-lg font-semibold text-slate-900">Agents you’ve shared</h2>
+          <ul className="space-y-2">
+            {shared.map((item) => (
+              <li key={item.id} className="space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-medium">{item.name}</span>
+                  <span className="text-xs text-slate-500">{item.status === 'approved' ? VISIBILITY_WORDS[item.visibility] : item.status === 'removed' ? 'taken down by a moderator' : item.status}</span>
+                  <button type="button" onClick={() => takeDown(item)} className="text-xs text-red-700 underline">Take it down</button>
+                </div>
+                {item.visibility === 'people' && item.people.length > 0 && <p className="text-xs text-slate-600">With {item.people.map((p) => p.name).join(', ')}</p>}
+                {item.linkKey && <p className="text-xs text-slate-600 break-all">Link: <code className="font-mono">{agentLinkFor(origin, item.linkKey)}</code></p>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {sharing && (
+        <p className="rounded-lg bg-indigo-50 p-3 text-sm text-slate-800">
+          <Link href="/agents/community" className="font-medium underline">Community agents</Link>: agents other people built
+          and shared. Try one on your plan to see it the way they see things, or add it to yours.
+        </p>
       )}
 
       {!editing && (
@@ -147,7 +219,7 @@ export default function AgentsPage() {
 
       <p className="text-xs text-slate-500">
         Agents write with AI, from your instructions. They can be wrong, and they are not medical or clinical advice.
-        Sharing agents with others: <span className="text-slate-600">coming soon</span>.
+        {!sharing && <> Sharing agents with others: <span className="text-slate-600">coming soon</span>.</>}
       </p>
     </main>
   )

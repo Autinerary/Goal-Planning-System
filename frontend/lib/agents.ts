@@ -23,6 +23,17 @@ export const SCOPES: { id: AgentScope; label: string; note: string }[] = [
   { id: 'step', label: 'The step I ask about', note: 'only when you ask it about one step' },
 ]
 
+const SEES_WORDS: Record<AgentScope, [string, string]> = {
+  norms: ['your norms', 'their norms'], goals: ['your goals', 'their goals'], plan: ['your plan', 'their plan'],
+  step: ['the step you ask about', 'the step they ask about'],
+}
+
+/** What an agent sees, in words, said to the person using it ("your plan") or about them ("their plan"). */
+export function seesWords(sees: AgentScope[], whose: 'yours' | 'theirs'): string {
+  const parts = SCOPES.filter((s) => sees.includes(s.id)).map((s) => SEES_WORDS[s.id][whose === 'yours' ? 0 : 1])
+  return parts.length ? parts.join(', ') : `only what ${whose === 'yours' ? 'you write' : 'they write'} to it`
+}
+
 export type Agent = {
   id: string
   name: string
@@ -36,6 +47,8 @@ export type Agent = {
   updatedAt: string
   /** What it started from: one of our starters, a file, or someone's shared agent. */
   from: { kind: 'starter' | 'file' | 'community'; id: string; name: string } | null
+  /** Its shared copy, once the person shared it from this browser (lib/sharedAgents.ts), so sharing again updates it. */
+  sharedId: string | null
 }
 
 export const LIMITS = { name: 60, purpose: 200, instructions: 2000, lens: 6, agents: 30 }
@@ -73,6 +86,7 @@ export function cleanAgent(raw: any, now = new Date()): Agent | null {
     createdAt: typeof raw.createdAt === 'string' && !Number.isNaN(Date.parse(raw.createdAt)) ? raw.createdAt : now.toISOString(),
     updatedAt: typeof raw.updatedAt === 'string' && !Number.isNaN(Date.parse(raw.updatedAt)) ? raw.updatedAt : now.toISOString(),
     from,
+    sharedId: typeof raw.sharedId === 'string' && /^[0-9a-f-]{36}$/i.test(raw.sharedId) ? raw.sharedId : null,
   }
 }
 
@@ -104,7 +118,7 @@ export function withAgent(agents: Agent[], agent: Agent, now = new Date()): Agen
 const FILE_FORMAT = 'autinerary-agent'
 
 export function agentFile(agent: Agent): string {
-  const { id, createdAt, updatedAt, ...rest } = agent
+  const { id, createdAt, updatedAt, sharedId, ...rest } = agent
   return JSON.stringify({ format: FILE_FORMAT, version: 1, agent: rest }, null, 2)
 }
 
@@ -117,7 +131,7 @@ export function agentFromFile(text: string, now = new Date()): Agent | { error: 
     return { error: 'That file isn’t an agent file.' }
   }
   if (parsed?.format !== FILE_FORMAT || parsed?.version !== 1) return { error: 'That file isn’t an agent file.' }
-  const agent = cleanAgent({ ...parsed.agent, id: undefined, createdAt: undefined, updatedAt: undefined }, now)
+  const agent = cleanAgent({ ...parsed.agent, id: undefined, createdAt: undefined, updatedAt: undefined, sharedId: undefined }, now)
   if (!agent) return { error: 'That agent file has no name.' }
   return { ...agent, from: agent.from ?? { kind: 'file', id: '', name: agent.name } }
 }

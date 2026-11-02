@@ -186,6 +186,11 @@ const GUIDES: [RegExp, PageGuide][] = [
     purpose: 'Every name in Autinerary, in plain words, and who to call if you need help now.',
     steps: ['Search this page, or pick a section from the list at the top.'],
   }],
+  [/^\/agents\/community\/?$/, {
+    name: 'Community agents',
+    purpose: 'Agents other people built and shared, to try on your plan or add to your own.',
+    steps: ['Open how one works, in its owner’s words.', 'Try it on your plan, on your device or our cloud model.', 'Add it to your agents to keep it, or report it if something looks wrong.'],
+  }],
   [/^\/agents\/?$/, {
     name: 'My agents',
     purpose: 'Build agents that look at your plan your way, and choose what they can see and where they run.',
