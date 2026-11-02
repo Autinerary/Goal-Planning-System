@@ -51,7 +51,7 @@ const ALL = process.env.ALL === '1'
 if (ALL) SIGNED_OUT.push(HUB + '/community', HUB + '/shop')
 const SIGNED_IN = (ALL
   ? ['/onboarding-confirmation', '/path', '/calendar', '/tasks', '/races', '/milestones', '/pit-stop', '/hare-world', '/reflection', '/stats',
-     '/tools', '/family', '/path-market', '/ideal-self', '/paths/compare', '/gamification', '/assistant', '/reels', '/profile', '/profile/settings']
+     '/tools', '/family', '/path-market', '/ideal-self', '/paths/compare', '/gamification', '/assistant', '/agents', '/reels', '/profile', '/profile/settings']
   : ['/onboarding-confirmation', '/path', '/profile', '/profile/settings']).concat(['/billing', '/free-access', '/business', '/profile/accessibility',
     // The Tidbits round: the resources for each path, before choosing one.
     '/path-market',

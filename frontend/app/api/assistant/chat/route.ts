@@ -20,7 +20,7 @@ interface ChatMessage {
 const BACKEND = (process.env.NEXT_PUBLIC_API_URL || process.env.BACKEND_URL || '').replace(/\/$/, '')
 
 export async function POST(request: NextRequest) {
-  let body: { messages?: ChatMessage[]; context?: string; llm_config?: unknown }
+  let body: { messages?: ChatMessage[]; context?: string; llm_config?: unknown; agent?: unknown }
   try {
     body = await request.json()
   } catch {
@@ -57,12 +57,15 @@ export async function POST(request: NextRequest) {
     // About me, only when its owner turned on "Share with the assistant"
     // (app/about-me). Read here from their own row, never from the browser.
     // It goes first: the backend keeps the first 2,000 characters of context.
+    // One of the person's own agents (app/agents): its name, purpose, instructions and lens, checked here. It sees only
+    // what its owner allowed (the context the browser built), so About me isn't added for it.
+    const agent = agentSpec(body.agent)
     let aboutMe = ''
     // "Words we use" (Settings; Riipen Labs, Group 15): identity-first or
     // person-first, read from their own row like About me.
     let languageStyle: string | null = null
     const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
+    if (user && !agent) {
       const { data: row } = await supabase.from('profiles').select('aboutMe:preferences->aboutMe, languageStyle:preferences->>languageStyle').eq('id', user.id).maybeSingle()
       aboutMe = aboutMeForAssistant((row as { aboutMe?: any } | null)?.aboutMe)
       const style = (row as { languageStyle?: string | null } | null)?.languageStyle
@@ -83,6 +86,7 @@ export async function POST(request: NextRequest) {
         context: [aboutMe, pathContext].filter(Boolean).join('\n\n'),
         llm_config: body.llm_config ?? null,
         language_style: languageStyle,
+        ...(agent ? { agent } : {}),
       }),
       // Render free tier sleeps when idle; the first request can take ~40s+ to
       // wake the service, so allow generous headroom before giving up.
@@ -101,11 +105,11 @@ export async function POST(request: NextRequest) {
         } catch {
           /* keep the default */
         }
-        return NextResponse.json({ reply: message, rateLimited: true }, { status: 200 })
+        return NextResponse.json({ reply: message, rateLimited: true, failed: true }, { status: 200 })
       }
       console.error('[assistant] backend error:', res.status, detail.slice(0, 300))
       return NextResponse.json(
-        { reply: "Sorry — I couldn't reach the assistant just now. Please try again in a moment." },
+        { reply: "Sorry — I couldn't reach the assistant just now. Please try again in a moment.", failed: true },
         { status: 200 }
       )
     }
@@ -118,8 +122,23 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     console.error('[assistant] proxy failed:', err)
     return NextResponse.json(
-      { reply: 'Something went wrong reaching the assistant. Please try again.' },
+      { reply: 'Something went wrong reaching the assistant. Please try again.', failed: true },
       { status: 200 }
     )
+  }
+}
+
+/** An agent from the browser, cut to the backend's limits, or null. */
+function agentSpec(raw: unknown): { name: string; purpose: string; instructions: string; lens: string[] } | null {
+  if (!raw || typeof raw !== 'object') return null
+  const a = raw as Record<string, unknown>
+  const text = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '')
+  const name = text(a.name, 60)
+  if (name.length < 2) return null
+  return {
+    name,
+    purpose: text(a.purpose, 200),
+    instructions: text(a.instructions, 2000),
+    lens: (Array.isArray(a.lens) ? a.lens : []).filter((t): t is string => typeof t === 'string').map((t) => t.slice(0, 40)).slice(0, 6),
   }
 }

@@ -110,6 +110,7 @@ export const PATH_MENUS: { id: string; label: string; info: string; items: PathM
     info: 'Answers and ideas written by AI from your plan. Not medical or clinical advice.',
     items: [
       { label: 'Ask the assistant', href: '/assistant' },
+      { label: 'My agents', href: '/agents' },
       { label: 'Suggestions for each step', href: '/recommend-choices' },
       { label: 'How Autinerary uses AI', href: '/help#ai' },
     ],

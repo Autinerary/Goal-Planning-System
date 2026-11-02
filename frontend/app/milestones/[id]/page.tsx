@@ -8,6 +8,8 @@ import { useAgentPath } from '../../context/AgentPathContext'
 import BackButton from '../../components/BackButton'
 import MilestoneRating from '@/app/components/MilestoneRating'
 import StepInYourWords from '@/app/components/StepInYourWords'
+import AskMyAgents from '@/app/components/AskMyAgents'
+import { personData } from '@/lib/agents'
 import NormsPrompt from '@/app/components/NormsPrompt'
 import SponsoredService from '@/app/components/SponsoredService'
 import MilestoneTools from '@/app/components/MilestoneTools'
@@ -155,6 +157,16 @@ export default function MilestoneDetailView() {
                   description={milestone.description}
                   edited={!!(payload as any)?.stepEdits?.[milestone.id]}
                   onSaved={(step) => {
+                    setMilestone((current: any) => ({ ...current, name: step.name, description: step.description }))
+                    refresh().catch(() => {})
+                  }}
+                />
+              )}
+              {pathPlanning?.milestones?.some((m: any) => m.id === milestone.id) && (
+                <AskMyAgents
+                  step={{ id: milestone.id, name: milestone.name, description: milestone.description || '', goal: milestone.goal }}
+                  data={personData(payload, pathPlanning)}
+                  onUsed={(step) => {
                     setMilestone((current: any) => ({ ...current, name: step.name, description: step.description }))
                     refresh().catch(() => {})
                   }}

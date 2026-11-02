@@ -30,6 +30,7 @@ export const DESTINATIONS: { to: string; label: string; words: string[] }[] = [
   { to: '/hare-world', label: 'Hare World', words: ['hare world', 'people', 'friends', 'messages'] },
   { to: '/reflection', label: 'your Journal', words: ['journal', 'reflection', 'diary'] },
   { to: '/assistant', label: 'the Assistant', words: ['assistant', 'chat'] },
+  { to: '/agents', label: 'My agents', words: ['my agents', 'agents'] },
   { to: '/help', label: 'Help', words: ['help page', 'help center'] },
   { to: '/profile', label: 'your profile', words: ['profile', 'my profile', 'account'] },
   { to: '/profile/settings', label: 'Settings', words: ['settings'] },

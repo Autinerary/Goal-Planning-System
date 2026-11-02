@@ -92,6 +92,7 @@ const AREAS: [RegExp, string][] = [
   [/^\/tools(\/|$)/, 'tools'],
   [/^\/reflection(\/|$)/, 'journal'],
   [/^\/assistant(\/|$)/, 'assistant'],
+  [/^\/agents(\/|$)/, 'agents'],
   [/^\/family(\/|$)/, 'family'],
   [/^\/ideal-self(\/|$)/, 'dream_self'],
   [/^\/profile\/?$/, 'profile'],
