@@ -16,6 +16,8 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { loadOwnModel } from '@/lib/localModel'
 import { listConsents, type ConsentRecord } from '@/lib/trainingSet'
+import { tuneInThisBrowser, tunedFiles, tunedLabel, tunedModels, type TuneHandle, type TunedModel } from '@/lib/tunedModels'
+import type { Progress } from '@/lib/tune/run'
 import {
   BASE_FAMILIES,
   COMMUNITY_TAGS,
@@ -56,7 +58,7 @@ async function freshToken(): Promise<string | null> {
 
 const CHECK_NAMES: Record<string, string> = {
   scrub_review: 'Your training set was scrubbed and approved',
-  memorization: 'The memory check (on your computer)',
+  memorization: 'The memory check (on your device)',
   metadata: 'The title and description name no one',
   crowd: 'Its tags don’t point to you',
   audience: 'The people you picked are your people',
@@ -110,6 +112,13 @@ export default function ShareModelPage() {
   const [copied, setCopied] = useState(false)
   const [mine, setMine] = useState<MyShared[]>([])
   const [origin, setOrigin] = useState('')
+  // Where the model is: tuned in this browser (its files, approval and training set are here already), or on a computer.
+  const [tunedHere, setTunedHere] = useState<TunedModel[]>([])
+  const [source, setSource] = useState<'browser' | 'files'>('files')
+  const [tunedId, setTunedId] = useState('')
+  // A lighter copy being tuned, to share, when the memory check found the model saying its items back.
+  const [lighter, setLighter] = useState<TuneHandle | null>(null)
+  const [lighterProgress, setLighterProgress] = useState<Progress | null>(null)
 
   const refreshMine = async (token: string) => {
     try {
@@ -136,9 +145,13 @@ export default function ShareModelPage() {
       }
       const own = loadOwnModel()
       if (own.model && own.model !== 'llama3.2:3b') setModelName(own.model)
+      // Models tuned here by this person (not ones adopted from Community models): the first is offered first.
+      const here = tunedModels().filter((m) => !m.adopted)
+      setTunedHere(here)
       listConsents(API_URL, token).then((r) => {
         setConsents(r.records)
         if (r.records[0]) setConsentId(r.records[0].id)
+        if (here[0]) chooseTuned(here[0])
       }).catch(() => {})
       listPeople(API_URL, token).then((r) => setPeople(r.people)).catch(() => {})
       // The titles of models shared with them, to name the one theirs was built on.
@@ -161,6 +174,63 @@ export default function ShareModelPage() {
     setConfig(file ? cleanConfig(await file.text()) : null)
   }
 
+  /** A model tuned in this browser: its adapter, settings and training set from this browser's storage, and the
+   *  approval it was tuned under. */
+  const chooseTuned = async (m: TunedModel) => {
+    setSource('browser')
+    setTunedId(m.id)
+    setChecks(null)
+    setMemory(null)
+    setMemoryError(null)
+    const files = await tunedFiles(m.id)
+    if (!files) {
+      setWeights(null)
+      setConfig(null)
+      setSetText(null)
+      setWeightsIssue('This model’s files aren’t in this browser any more. Tune it again in Build my training set.')
+      return
+    }
+    const file = new File([files.weights], 'adapters.safetensors', { type: 'application/octet-stream' })
+    setWeights(file)
+    setWeightsIssue(weightsProblem(await file.slice(0, 1024 * 1024).arrayBuffer()))
+    setConfig(cleanConfig(files.config))
+    setSetText(files.trainingSet)
+    if (m.consentId) setConsentId(m.consentId)
+  }
+
+  /** Once through the same items at a smaller step, here, under the same approval: a copy that says them back less.
+   *  The person's own model stays as it is. */
+  const tuneLighter = () => {
+    const current = tunedHere.find((m) => m.id === tunedId)
+    if (!current || !setText) return
+    const examples = setText.trim().split('\n').filter(Boolean).map((line) => JSON.parse(line).messages)
+    setMemoryError(null)
+    const handle = tuneInThisBrowser(examples, setLighterProgress, { consentId: current.consentId ?? null, light: true })
+    setLighter(handle)
+    handle.done
+      .then((made) => {
+        const here = tunedModels().filter((m) => !m.adopted)
+        setTunedHere(here)
+        chooseTuned(made)
+      })
+      .catch((e: any) => setMemoryError(e?.cancelled ? 'Stopped. Nothing was kept.' : `The lighter copy couldn’t be tuned: ${e?.message || e}`))
+      .finally(() => {
+        setLighter(null)
+        setLighterProgress(null)
+      })
+  }
+
+  const chooseFiles = () => {
+    setSource('files')
+    setTunedId('')
+    setWeights(null)
+    setWeightsIssue(null)
+    setConfig(null)
+    setSetText(null)
+    setMemory(null)
+    setChecks(null)
+  }
+
   const family = config?.config ? BASE_FAMILIES[config.config.model] ?? 'llama3' : null
 
   const runMemoryCheck = async () => {
@@ -168,11 +238,16 @@ export default function ShareModelPage() {
     setMemoryError(null)
     setChecks(null)
     try {
+      // A model tuned here is asked here, in this browser; one on a computer, in Ollama there.
+      const inBrowser = source === 'browser' && tunedId
+      const complete = inBrowser ? (await import('@/lib/browserModel')).completeInBrowser : null
+      if (inBrowser) setProgress('Starting your model in this browser…')
       const report = await memoryCheck({
         examples: parseTrainingSet(setText || ''),
         settings: loadOwnModel(),
-        model: modelName.trim(),
+        model: inBrowser ? tunedId : modelName.trim(),
         family: family ?? 'llama3',
+        ...(complete ? { generate: (prompt: string) => complete(tunedId, prompt, 60) } : {}),
         onProgress: (done, total) => setProgress(`Checked ${done} of ${total} answers…`),
       })
       setMemory(report)
@@ -267,8 +342,8 @@ export default function ShareModelPage() {
         <Link href="/settings/models" className="text-sm text-slate-500 hover:text-slate-800">← Models</Link>
         <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Share my model</h1>
         <p className="text-slate-600">
-          Share the adapter you tuned on your computer (a small add-on to a small open model, a few MB), so others in your
-          community can start from it. <Link href="/settings/models/community" className="underline">Community models</Link>
+          Share the adapter you tuned, in this browser or on your computer (a small add-on to a small open model, a few
+          MB), so others in your community can start from it. <Link href="/settings/models/community" className="underline">Community models</Link>
         </p>
       </header>
 
@@ -309,19 +384,46 @@ export default function ShareModelPage() {
 
           <section aria-labelledby="files-heading" className="rounded-xl border border-slate-200 p-4 space-y-3 text-sm text-slate-700">
             <h2 id="files-heading" className="text-lg font-semibold text-slate-900">2. Your adapter</h2>
-            <p>
-              Both are in the adapter folder the training script made, <code className="font-mono">~/.autinerary-model/my-model/adapter</code>{' '}
-              (on a Mac, press Cmd+Shift+. in the file picker to see folders starting with a dot).
-            </p>
-            <label className="block space-y-1">
-              <span className="font-medium">adapters.safetensors</span>
-              <input type="file" accept=".safetensors" onChange={(e) => chooseWeights(e.target.files?.[0] || null)} className="block" />
-            </label>
+            {tunedHere.length > 0 && (
+              <fieldset className="space-y-1">
+                <legend className="font-medium">Which model</legend>
+                {tunedHere.map((m) => (
+                  <label key={m.id} className="flex items-center gap-2">
+                    <input type="radio" name="source" checked={source === 'browser' && tunedId === m.id} onChange={() => chooseTuned(m)} />
+                    {tunedLabel(m)}, in this browser
+                  </label>
+                ))}
+                <label className="flex items-center gap-2">
+                  <input type="radio" name="source" checked={source === 'files'} onChange={chooseFiles} />
+                  One I tuned on my computer (choose its files)
+                </label>
+              </fieldset>
+            )}
+            {source === 'browser' ? (
+              <p className="text-slate-700">
+                Its adapter and settings come from this browser, and so does the training set it learned from, for the memory
+                check below. Only the adapter and its settings are shared.
+              </p>
+            ) : (
+              <>
+                <p>
+                  Both are in the adapter folder the training script made, <code className="font-mono">~/.autinerary-model/my-model/adapter</code>{' '}
+                  (on a Mac, press Cmd+Shift+. in the file picker to see folders starting with a dot).
+                </p>
+                <label className="block space-y-1">
+                  <span className="font-medium">adapters.safetensors</span>
+                  <input type="file" accept=".safetensors" onChange={(e) => chooseWeights(e.target.files?.[0] || null)} className="block" />
+                </label>
+              </>
+            )}
             {weights && <p className={weightsIssue ? 'text-red-700' : 'text-emerald-800'}>{weightsIssue || `✓ A LoRA adapter (${(weights.size / 1048576).toFixed(1)} MB)`}</p>}
-            <label className="block space-y-1">
-              <span className="font-medium">adapter_config.json</span>
-              <input type="file" accept=".json,application/json" onChange={(e) => chooseConfig(e.target.files?.[0] || null)} className="block" />
-            </label>
+            {!weights && weightsIssue && <p className="text-red-700">{weightsIssue}</p>}
+            {source === 'files' && (
+              <label className="block space-y-1">
+                <span className="font-medium">adapter_config.json</span>
+                <input type="file" accept=".json,application/json" onChange={(e) => chooseConfig(e.target.files?.[0] || null)} className="block" />
+              </label>
+            )}
             {config && (
               <div className={config.problem ? 'text-red-700' : 'text-emerald-800'}>
                 {config.problem || `✓ For ${baseModelLabel(config.config!.model)}.`}
@@ -343,19 +445,27 @@ export default function ShareModelPage() {
           <section aria-labelledby="memory-heading" className="rounded-xl border border-slate-200 p-4 space-y-3 text-sm text-slate-700">
             <h2 id="memory-heading" className="text-lg font-semibold text-slate-900">3. The memory check</h2>
             <p>
-              Your model, in Ollama on this computer, is given the start of each answer in your training set and asked to go
-              on. If it says the rest back closely (half or more of it, in order), it has learnt your words, not just your way
-              of putting things, and it isn&apos;t shared. This runs on your computer, so the result is yours to report.
+              Your model, {source === 'browser' ? 'here in this browser' : 'in Ollama on this computer'}, is given the start
+              of each answer in your training set and asked to go on. If it says the rest back closely (half or more of it, in
+              order), it has learnt your words, not just your way of putting things, and it isn&apos;t shared. This runs on
+              your device, so the result is yours to report.
             </p>
-            <label className="block space-y-1">
-              <span className="font-medium">Your training set file (my-training-set-….jsonl)</span>
-              <input type="file" accept=".jsonl,application/jsonl" onChange={async (e) => { const f = e.target.files?.[0]; setSetText(f ? await f.text() : null); setMemory(null) }} className="block" />
-            </label>
-            <label className="block space-y-1">
-              <span className="font-medium">Your model&apos;s name in Ollama</span>
-              <input value={modelName} onChange={(e) => setModelName(e.target.value)} className="w-full max-w-xs rounded-lg border border-slate-300 px-3 py-2 font-mono" />
-            </label>
-            <button type="button" disabled={!setText || !modelName.trim() || !family || !!progress} onClick={runMemoryCheck}
+            {source === 'files' && (
+              <>
+                <label className="block space-y-1">
+                  <span className="font-medium">Your training set file (my-training-set-….jsonl)</span>
+                  <input type="file" accept=".jsonl,application/jsonl" onChange={async (e) => { const f = e.target.files?.[0]; setSetText(f ? await f.text() : null); setMemory(null) }} className="block" />
+                </label>
+                <label className="block space-y-1">
+                  <span className="font-medium">Your model&apos;s name in Ollama</span>
+                  <input value={modelName} onChange={(e) => setModelName(e.target.value)} className="w-full max-w-xs rounded-lg border border-slate-300 px-3 py-2 font-mono" />
+                </label>
+              </>
+            )}
+            {source === 'browser' && !setText && weights && (
+              <p className="text-slate-700">The training set it learned from isn&apos;t in this browser, so it can&apos;t be checked. Tune it again to share it.</p>
+            )}
+            <button type="button" disabled={!setText || (source === 'files' && !modelName.trim()) || !family || !!progress} onClick={runMemoryCheck}
               className="rounded-lg border border-slate-300 px-4 py-2 font-medium disabled:opacity-50">
               {progress ? 'Checking…' : 'Run the memory check'}
             </button>
@@ -366,9 +476,30 @@ export default function ShareModelPage() {
               <p className={memory.failed === 0 && memory.maxCloseness < MEMORY_THRESHOLD ? 'text-emerald-800' : 'text-red-700'}>
                 {memory.failed === 0 && memory.maxCloseness < MEMORY_THRESHOLD
                   ? `✓ Passed: ${memory.probes} answers checked, the closest was ${memory.maxCloseness} (it fails at ${MEMORY_THRESHOLD}).`
-                  : `✗ It said ${memory.failed} of ${memory.probes} answers back closely (up to ${memory.maxCloseness}). Train it again with EPOCHS=1, or with more items, then check again.`}
+                  : `✗ It said ${memory.failed} of ${memory.probes} answers back closely (up to ${memory.maxCloseness}). ${source === 'browser'
+                    ? 'Tune it again with more items, and items less like each other (Build my training set), then check again.'
+                    : 'Train it again with EPOCHS=1, or with more items, then check again.'}`}
                 {memory.skipped > 0 && <span className="block text-slate-600">{memory.skipped} answers were too short to check.</span>}
               </p>
+            )}
+            {memory && !(memory.failed === 0 && memory.maxCloseness < MEMORY_THRESHOLD) && source === 'browser' && !tunedHere.find((m) => m.id === tunedId)?.light && (
+              <div className="space-y-2">
+                <button type="button" disabled={!!lighter} onClick={tuneLighter}
+                  className="rounded-lg bg-indigo-700 px-4 py-2 font-semibold text-white hover:bg-indigo-800 disabled:opacity-50">
+                  {lighter ? 'Tuning a lighter copy…' : 'Tune a lighter copy to share'}
+                </button>
+                <p className="text-slate-600">
+                  It goes through the same items once, at a smaller step, here in this browser (a few minutes), so it says them back
+                  less. Your own model stays as it is. Then run the memory check on the copy.
+                </p>
+                {lighter && (
+                  <div role="status" aria-live="polite" className="space-y-1">
+                    <p>{lighterProgress ? (lighterProgress.stage === 'train' ? `Tuning: step ${lighterProgress.done} of ${lighterProgress.total}.`
+                      : lighterProgress.stage === 'save' ? `Saving it in this browser: ${lighterProgress.done} of ${lighterProgress.total}.` : 'Getting ready…') : 'Starting…'}</p>
+                    <progress className="w-full" max={lighterProgress?.total || 1} value={lighterProgress?.done || 0} aria-label="Tuning the lighter copy" />
+                  </div>
+                )}
+              </div>
             )}
           </section>
 

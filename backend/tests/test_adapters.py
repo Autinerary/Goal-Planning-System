@@ -233,8 +233,9 @@ class CheckTests(unittest.TestCase):
     def test_tags_and_base_models_from_the_lists_only(self):
         self.assertFalse(run(adapters.check_adapter, FakeDB(), body(tags=["my-school"]), user_id=OWNER)["passed"])
         self.assertFalse(run(adapters.check_adapter, FakeDB(), body(baseModel="meta-llama/Llama-3.1-70B"), user_id=OWNER)["passed"])
-        # Qwen3 isn't shareable until a tuned one keeps its thinking (coming soon).
+        # Not Qwen3 4B, which the scripts can't tune and keep its thinking; Qwen3 0.6B, tuned in the browser, is.
         self.assertFalse(run(adapters.check_adapter, FakeDB(), body(baseModel="Qwen/Qwen3-4B"), user_id=OWNER)["passed"])
+        self.assertTrue(run(adapters.check_adapter, FakeDB(), body(baseModel="Qwen/Qwen3-0.6B"), user_id=OWNER)["checks"]["metadata"]["passed"])
 
 
 class CrowdTests(unittest.TestCase):
@@ -319,8 +320,15 @@ class ListTests(unittest.TestCase):
         self.assertEqual([a["id"] for a in listed], [made["id"]])
         self.assertNotIn(OWNER, json.dumps(listed))
         self.assertNotIn(CONSENT, json.dumps(listed))
-        self.assertEqual((listed[0]["ollamaBase"], listed[0]["family"]), ("llama3.2:3b", "llama3"))
+        self.assertEqual((listed[0]["ollamaBase"], listed[0]["family"], listed[0]["browserBase"]), ("llama3.2:3b", "llama3", None))
         self.assertTrue(run(adapters.list_adapters, db, caller=OWNER)["adapters"][0]["mine"])
+
+    def test_one_tuned_in_the_browser_says_it_runs_there(self):
+        db = FakeDB()
+        made, _ = share(db, baseModel="Qwen/Qwen3-0.6B")
+        listed = run(adapters.list_adapters, db, caller=None)["adapters"]
+        self.assertEqual([a["id"] for a in listed], [made["id"]])
+        self.assertEqual((listed[0]["ollamaBase"], listed[0]["family"], listed[0]["browserBase"]), (None, "qwen3", "Qwen3-0.6B-q0f16-MLC"))
 
     def test_best_for_you_first_by_your_onboarding_answers(self):
         db = FakeDB().add_people("student", 5, goals=["Graduate college"])

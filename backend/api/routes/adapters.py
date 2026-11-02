@@ -69,16 +69,26 @@ WEIGHTS, CONFIG = "adapters.safetensors", "adapter_config.json"
 MAX_WEIGHTS_BYTES = 100 * 1024 * 1024
 MAX_CONFIG_BYTES = 16 * 1024
 # The models the training scripts tune, each with the Ollama model that has its chat format, and its family (for the
-# memory check's prompt). Qwen3 4B, which thinks first, isn't one yet: tuned, it doesn't keep its thinking, and Ollama
-# can't switch a tuned one's thinking off (1 November 2026). Coming soon.
+# memory check's prompt). Not Qwen3 4B: tuned with the scripts it doesn't keep its thinking, and Ollama can't switch a
+# tuned one's thinking off (1 November 2026).
 BASE_MODELS = {
     "mlx-community/Llama-3.2-1B-Instruct-bf16": "llama3.2:1b",
     "mlx-community/Llama-3.2-3B-Instruct-bf16": "llama3.2:3b",
 }
+# The model tuned in the browser (Build my training set, "Approve and tune my model here"), which keeps its thinking,
+# with the model WebLLM runs it on. One shared from here is used, or tuned further, in the browser too.
+BROWSER_BASES = {
+    "Qwen/Qwen3-0.6B": "Qwen3-0.6B-q0f16-MLC",
+}
 BASE_FAMILIES = {
     "mlx-community/Llama-3.2-1B-Instruct-bf16": "llama3",
     "mlx-community/Llama-3.2-3B-Instruct-bf16": "llama3",
+    "Qwen/Qwen3-0.6B": "qwen3",
 }
+
+
+def shareable_base(base_model: Optional[str]) -> bool:
+    return base_model in BASE_MODELS or base_model in BROWSER_BASES
 VISIBILITIES = ("everyone", "people", "link")
 # On 24 training answers, the untuned Llama 3.2 1B's closest continuation was 0.40; the same model tuned for 10 steps
 # said 13 of them back at 0.5 or more (31 October 2026). A failure only means training again with less repetition.
@@ -235,8 +245,9 @@ def metadata_check(title: str, description: str, chosen_tags: List[str], base_mo
         why.append(f"The title or description has personal information in it ({kinds}). Take it out and check again.")
     if [t for t in chosen_tags if t not in tags.TAG_IDS]:
         why.append("Pick the community tags from the list.")
-    if base_model is not None and base_model not in BASE_MODELS:
-        why.append("Only adapters for the models the training scripts use (Llama 3.2 1B or 3B) can be shared.")
+    if base_model is not None and not shareable_base(base_model):
+        why.append("Only adapters for the models tuned here can be shared: Llama 3.2 1B or 3B with the training scripts, "
+                   "or Qwen3 0.6B in the browser.")
     return {"passed": not why, "found": found, "why": " ".join(why)}
 
 
@@ -421,6 +432,8 @@ def _public(row: Dict[str, Any], ratings: List[Dict[str, Any]], caller: Optional
         "id": row["id"], "title": row["title"], "description": row.get("description") or "",
         "tags": tags.clean_tags(row.get("community_tags") or []), "baseModel": row["base_model"],
         "ollamaBase": BASE_MODELS.get(row["base_model"]), "family": BASE_FAMILIES.get(row["base_model"]),
+        # Used, or tuned further, in the browser (WebLLM), not Ollama.
+        "browserBase": BROWSER_BASES.get(row["base_model"]),
         "createdAt": row.get("created_at"), "visibility": row.get("visibility") or "everyone",
         "rating": {"average": round(sum(stars) / len(stars), 1) if stars else None, "count": len(stars)},
         "ratingForYou": tags.rating_for(me, [(raters.get(r.get("user_id"), set()), int(r["rating"])) for r in own]) if me and own else None,
@@ -474,7 +487,7 @@ def _visible(sb, adapter_id: Optional[str], caller: Optional[str], key: Optional
 
 @router.get("/status")
 async def status():
-    return {"enabled": enabled(), "baseModels": BASE_MODELS, "families": BASE_FAMILIES,
+    return {"enabled": enabled(), "baseModels": BASE_MODELS, "browserBases": BROWSER_BASES, "families": BASE_FAMILIES,
             "tags": [{"id": t, "label": label} for t, label in tags.COMMUNITY_TAGS], "maxTags": tags.MAX_TAGS,
             "minCrowd": tags.MIN_CROWD, "memoryThreshold": MEMORY_THRESHOLD}
 

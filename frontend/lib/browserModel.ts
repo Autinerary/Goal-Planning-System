@@ -132,6 +132,14 @@ export async function askBrowserModel(model: string, ask: Ask): Promise<string> 
   return content
 }
 
+/** The model's own continuation of a prompt written in its chat format, with nothing added (the memory check before
+ *  sharing a model tuned here: lib/sharedModels.ts, memoryCheck). */
+export async function completeInBrowser(model: string, prompt: string, maxTokens = 60): Promise<string> {
+  await loadBrowserModel(model)
+  const reply = await engine.completions.create({ prompt, max_tokens: maxTokens, temperature: 0 })
+  return String(reply?.choices?.[0]?.text ?? '')
+}
+
 /** Take the model out of this browser's storage. */
 export async function forgetBrowserModel(model: string): Promise<void> {
   if (engineModel === model) {

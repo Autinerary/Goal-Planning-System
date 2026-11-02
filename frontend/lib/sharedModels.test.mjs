@@ -5,7 +5,7 @@
 // the four settings, so no folder from the person's computer goes out), and the calls to the backend.
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { BASE_MODELS, BASE_FAMILIES, COMMUNITY_TAGS, MEMORY_THRESHOLD, cleanConfig, closeness, linkFor, llama3Prompt, memoryCheck, ollamaNativeBase,
+import { BASE_MODELS, BASE_FAMILIES, BROWSER_BASES, COMMUNITY_TAGS, baseModelLabel, isShareableBase, MEMORY_THRESHOLD, cleanConfig, closeness, linkFor, llama3Prompt, memoryCheck, ollamaNativeBase,
   parseTrainingSet, probeOf, qwen3Prompt, rateShared, reportShared, checkShare, downloadLinks, sharedConfig, ShareError, slugOf, tagLabel,
   weightsProblem, wordsOf } from './sharedModels.ts'
 
@@ -115,10 +115,18 @@ const backendTags = [...py.slice(py.indexOf('COMMUNITY_TAGS'), py.indexOf('TAG_I
 assert.equal(backendTags.length, 25)
 assert.deepEqual(COMMUNITY_TAGS, backendTags)
 
-// Qwen3: not shareable yet (tuned, it doesn't keep its thinking); its memory-check prompt is ready for when it is.
+// Qwen3 4B: not shareable (the scripts can't tune it and keep its thinking); Qwen3 0.6B tuned in the browser is.
 assert.equal(BASE_MODELS['Qwen/Qwen3-4B'], undefined)
 assert.equal(BASE_FAMILIES['mlx-community/Llama-3.2-3B-Instruct-bf16'], 'llama3')
 assert.match(cleanConfig(JSON.stringify({ ...written, model: 'Qwen/Qwen3-4B' })).problem, /Llama 3.2 1B or 3B/)
+// One tuned in the browser (Qwen3 0.6B, which keeps its thinking there) can be shared, and says it runs in the browser.
+const sharedParent = '5b1f0a2e-1c2d-4e3f-8a9b-0c1d2e3f4a5b'
+const fromBrowser = cleanConfig(JSON.stringify({ fine_tune_type: 'lora', num_layers: 8, lora_parameters: { rank: 8, scale: 20, dropout: 0 }, model: 'Qwen/Qwen3-0.6B', built_on: sharedParent }))
+assert.equal(fromBrowser.problem, null)
+assert.deepEqual([fromBrowser.config.model, fromBrowser.builtOn, BASE_FAMILIES['Qwen/Qwen3-0.6B'], BROWSER_BASES['Qwen/Qwen3-0.6B']],
+  ['Qwen/Qwen3-0.6B', sharedParent, 'qwen3', 'Qwen3-0.6B-q0f16-MLC'])
+assert.ok(isShareableBase('Qwen/Qwen3-0.6B') && !isShareableBase('Qwen/Qwen3-4B'))
+assert.equal(baseModelLabel('Qwen/Qwen3-0.6B'), 'Qwen3 0.6B (thinks first; runs in the browser)')
 assert.ok(qwen3Prompt(example, 'Ask for').endsWith('<|im_start|>assistant\n<think>\n\n</think>\n\nAsk for'))
 let seenPrompt = ''
 await memoryCheck({ examples: set.slice(0, 1), settings, model: 'my-qwen', family: 'qwen3', generate: async (p) => (seenPrompt = p, 'x') })

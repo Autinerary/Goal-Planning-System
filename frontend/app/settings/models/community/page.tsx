@@ -15,6 +15,10 @@ import { useSearchParams } from 'next/navigation'
 import StarRating from '@/app/components/StarRating'
 import ReportButton from '@/app/components/ReportButton'
 import { createClient } from '@/lib/supabase/client'
+import { hasWebGPU } from '@/lib/browserModel'
+import { loadOwnModel, saveOwnModel } from '@/lib/localModel'
+import { TuneHandle, TunedModel, adoptInThisBrowser } from '@/lib/tunedModels'
+import type { Progress } from '@/lib/tune/run'
 import {
   SharedAdapter,
   baseModelLabel,
@@ -33,6 +37,81 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 async function freshToken(): Promise<string | null> {
   const { data } = await createClient().auth.getSession()
   return data.session?.access_token ?? null
+}
+
+/** A model someone tuned in their browser: used as it is in this browser (its adapter merged in here), or tuned further
+ *  with the person's own items (Build my training set). Nothing they have leaves this browser. */
+function AdoptInBrowser({ adapter, linkKey }: { adapter: SharedAdapter; linkKey: string | null }) {
+  const [handle, setHandle] = useState<TuneHandle | null>(null)
+  const [progress, setProgress] = useState<Progress | null>(null)
+  const [adopted, setAdopted] = useState<TunedModel | null>(null)
+  const [using, setUsing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [canRun, setCanRun] = useState(true)
+  useEffect(() => setCanRun(hasWebGPU()), [])
+  const tuneHref = `/settings/models/training-set?from=${encodeURIComponent(adapter.id)}${linkKey ? `&key=${encodeURIComponent(linkKey)}` : ''}`
+  const adopt = async () => {
+    setError(null)
+    try {
+      const links = await downloadLinks(API_URL, await freshToken(), adapter.id, linkKey)
+      const url = links.files.find((f) => f.name.endsWith('.safetensors'))?.url
+      const res = url ? await fetch(url) : null
+      if (!res?.ok) throw new Error('Its adapter couldn’t be downloaded just now. Try again.')
+      const h = adoptInThisBrowser({ id: adapter.id, title: adapter.title, weights: await res.arrayBuffer() }, setProgress)
+      setHandle(h)
+      setAdopted(await h.done)
+    } catch (e: any) {
+      setError(e?.message || String(e))
+    } finally {
+      setHandle(null)
+      setProgress(null)
+    }
+  }
+  const words = (p: Progress) => p.stage === 'download'
+    ? `Getting the model it starts from: ${Math.round(p.done / 1e6).toLocaleString()} of ${Math.round(p.total / 1e6).toLocaleString()} MB (the first time only).`
+    : p.stage === 'save' ? `Putting it together in this browser: ${p.done} of ${p.total}.` : 'Working…'
+  return (
+    <div className="rounded-lg bg-slate-50 p-3 text-sm text-slate-700 space-y-2">
+      <p className="font-medium text-slate-900">Use it in this browser, or tune it with your own items</p>
+      <p>
+        It was tuned in a browser, from Qwen3 0.6B (which thinks first). It runs on this device&apos;s graphics chip and is
+        kept in this browser, for you alone: a 1.2 GB download the first time.
+      </p>
+      {!canRun && <p className="text-slate-800">This browser can&apos;t run it (it has no WebGPU). Try a recent Chrome or Edge, or Safari 26.</p>}
+      {adopted ? (
+        using ? (
+          <p role="status" className="text-emerald-800">
+            It&apos;s your own model now. Change that in <Link href="/settings/models" className="underline">Use my own model</Link>.
+          </p>
+        ) : (
+          <div role="status" className="space-y-2">
+            <p className="text-emerald-800">Ready, kept in this browser.</p>
+            <button type="button" onClick={() => { saveOwnModel({ ...loadOwnModel(), enabled: true, runtime: 'browser', browserModel: adopted.id }); setUsing(true) }}
+              className="rounded-lg bg-emerald-700 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-800">
+              Use it as my own model
+            </button>
+          </div>
+        )
+      ) : (
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" disabled={!canRun || !!handle} onClick={adopt}
+            className="rounded-lg bg-indigo-700 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-800 disabled:opacity-50">
+            {handle ? 'Getting it ready…' : 'Use it in this browser'}
+          </button>
+          <Link href={tuneHref} className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-900">
+            Tune it with my own items
+          </Link>
+        </div>
+      )}
+      {handle && (
+        <div role="status" aria-live="polite" className="space-y-1">
+          <p>{progress ? words(progress) : 'Starting…'}</p>
+          <progress className="w-full" max={progress?.total || 1} value={progress?.done || 0} aria-label="Getting it ready" />
+        </div>
+      )}
+      {error && <p role="alert" className="text-red-700">{error}</p>}
+    </div>
+  )
 }
 
 function Adopt({ adapter, linkKey }: { adapter: SharedAdapter; linkKey: string | null }) {
@@ -181,9 +260,9 @@ function Card({ adapter, signedIn, linkKey, onRated }: {
       </div>
       {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
       <button type="button" aria-expanded={open} onClick={() => setOpen(!open)} className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white">
-        Adopt and tune a little
+        {adapter.browserBase ? 'Use it, or tune it a little' : 'Adopt and tune a little'}
       </button>
-      {open && <Adopt adapter={adapter} linkKey={linkKey} />}
+      {open && (adapter.browserBase ? <AdoptInBrowser adapter={adapter} linkKey={linkKey} /> : <Adopt adapter={adapter} linkKey={linkKey} />)}
     </li>
   )
 }

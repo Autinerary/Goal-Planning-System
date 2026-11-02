@@ -28,10 +28,10 @@ import {
   toJsonl,
   trainingFileName,
 } from '@/lib/trainingSet'
-import { sharingStatus } from '@/lib/sharedModels'
+import { byLink, downloadLinks, listShared, sharingStatus } from '@/lib/sharedModels'
 import { hasWebGPU } from '@/lib/browserModel'
 import { loadOwnModel, saveOwnModel } from '@/lib/localModel'
-import { TuneHandle, TunedModel, forgetTunedModel, tuneInThisBrowser, tunedLabel } from '@/lib/tunedModels'
+import { SharedStart, TuneHandle, TunedModel, forgetTunedModel, tuneInThisBrowser, tunedLabel } from '@/lib/tunedModels'
 import type { Progress } from '@/lib/tune/run'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -89,6 +89,8 @@ export default function TrainingSetPage() {
   const [tuned, setTuned] = useState<TunedModel | null>(null)
   const [tuneNote, setTuneNote] = useState<string | null>(null)
   const [using, setUsing] = useState(false)
+  // A shared model to start from (Community models, "Tune it with my own items": ?from=<id>, &key= for a private link).
+  const [fromShared, setFromShared] = useState<{ id: string; title: string; key: string | null } | null>(null)
 
   useEffect(() => {
     setCanTune(hasWebGPU())
@@ -105,6 +107,16 @@ export default function TrainingSetPage() {
         setError(e.message)
       }
       listConsents(API_URL, token).then((r) => setRecords(r.records)).catch(() => {})
+      const params = new URLSearchParams(window.location.search)
+      const from = params.get('from'), key = params.get('key')
+      if (from) {
+        ;(key ? byLink(API_URL, token, key).then((r) => [r.adapter]) : listShared(API_URL, token).then((r) => [...r.adapters, ...r.sharedWithMe]))
+          .then((list) => {
+            const shared = list.find((a) => a.id === from && a.browserBase)
+            if (shared) setFromShared({ id: shared.id, title: shared.title, key })
+          })
+          .catch(() => {})
+      }
     })()
   }, [])
 
@@ -179,7 +191,7 @@ export default function TrainingSetPage() {
         download(toJsonl(kept), file)
         setDone({ file, count: kept.length, at: record.createdAt })
       } else {
-        startTuning()
+        startTuning(record.id)
       }
     } catch (e: any) {
       setError(e.message)
@@ -189,10 +201,23 @@ export default function TrainingSetPage() {
   }
 
   // Tuned here, in a worker on this device's graphics chip: the approved items never leave this browser.
-  const startTuning = () => {
+  const startTuning = async (consentId: string) => {
     setTuned(null)
     setProgress(null)
-    const handle = tuneInThisBrowser(kept.map((item) => chatExample(item).messages as any), setProgress)
+    let startFrom: SharedStart | null = null
+    if (fromShared) {
+      try {
+        const links = await downloadLinks(API_URL, await freshToken(), fromShared.id, fromShared.key)
+        const url = links.files.find((f) => f.name.endsWith('.safetensors'))?.url
+        const res = url ? await fetch(url) : null
+        if (!res?.ok) throw new Error()
+        startFrom = { id: fromShared.id, title: fromShared.title, weights: await res.arrayBuffer() }
+      } catch {
+        setTuneNote(`“${fromShared.title}” couldn’t be downloaded just now, so nothing was tuned. Try again.`)
+        return
+      }
+    }
+    const handle = tuneInThisBrowser(kept.map((item) => chatExample(item).messages as any), setProgress, { consentId, startFrom })
     setTuning(handle)
     handle.done
       .then((model) => setTuned(model))
@@ -377,6 +402,12 @@ export default function TrainingSetPage() {
               device&apos;s graphics chip, which takes a few minutes. Your items never leave this browser, and neither does
               your model: it&apos;s kept here, for you alone.
             </p>
+            {fromShared && (
+              <p className="rounded-lg bg-indigo-50 border border-indigo-200 p-3 text-sm text-indigo-900">
+                It starts from &ldquo;{fromShared.title}&rdquo; (Community models), and goes through your items once. If you
+                share yours, it will say it was built on that one.
+              </p>
+            )}
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"

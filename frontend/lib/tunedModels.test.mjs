@@ -52,6 +52,11 @@ assert.deepEqual(tunedModels(null), [])
 assert.match(tunedLabel(entry), /^Your own model, tuned \d{1,2} Nov|^Your own model, tuned Nov \d{1,2}/)
 assert.match(tunedLabel(entry), / from 24 items \(Qwen3 0\.6B, thinks first\)$/)
 assert.match(tunedLabel({ ...entry, examples: 1 }), / from 1 item \(/)
+// Built on a shared model, it says so; one adopted from Community models is named as theirs, not the person's.
+assert.match(tunedLabel({ ...entry, builtOn: { id: 'x', title: 'Calm first steps' } }), / from 24 items, built on “Calm first steps” \(Qwen3 0\.6B/)
+assert.equal(tunedLabel({ ...entry, examples: 0, adopted: true, builtOn: { id: 'x', title: 'Calm first steps' } }),
+  '“Calm first steps”, from Community models (Qwen3 0.6B, thinks first)')
+assert.deepEqual(tunedModels(memory(JSON.stringify([{ ...entry, consentId: 'c', builtOn: { id: 'x', title: 't' }, adopted: true }])))[0].adopted, true)
 
 // The examples are the approved items' chat messages, as they are.
 const messages = [{ role: 'system', content: 's' }, { role: 'user', content: 'q' }, { role: 'assistant', content: 'a' }]

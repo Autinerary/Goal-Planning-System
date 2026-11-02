@@ -15,19 +15,26 @@ import type { OwnModelSettings } from './localModel'
 
 export const MEMORY_THRESHOLD = 0.5
 
-// The scripts tune Llama 3.2 only (tuned with them, Qwen3 4B doesn't keep its thinking), so those are the adapters shared
-// here. The memory check's Qwen3 prompt (qwen3Prompt) is kept for Qwen3 adapters.
+// The scripts tune Llama 3.2 (tuned with them, Qwen3 4B doesn't keep its thinking), each with the Ollama model that
+// has its chat format; and the browser tunes Qwen3 0.6B (lib/tunedModels.ts), which does, with the model WebLLM runs
+// it on. The same as the backend (api/routes/adapters.py).
 export const BASE_MODELS: Record<string, string> = {
   'mlx-community/Llama-3.2-1B-Instruct-bf16': 'llama3.2:1b',
   'mlx-community/Llama-3.2-3B-Instruct-bf16': 'llama3.2:3b',
 }
+export const BROWSER_BASES: Record<string, string> = {
+  'Qwen/Qwen3-0.6B': 'Qwen3-0.6B-q0f16-MLC',
+}
+export const isShareableBase = (model: string): boolean => !!BASE_MODELS[model] || !!BROWSER_BASES[model]
 /** Each base model's family, for the memory check's prompt (llama3 or qwen3's chat format). */
 export const BASE_FAMILIES: Record<string, 'llama3' | 'qwen3'> = {
   'mlx-community/Llama-3.2-1B-Instruct-bf16': 'llama3',
   'mlx-community/Llama-3.2-3B-Instruct-bf16': 'llama3',
+  'Qwen/Qwen3-0.6B': 'qwen3',
 }
 export const baseModelLabel = (id: string): string =>
-  id.includes('Qwen3-4B') ? 'Qwen3 4B (thinks first)' : id.includes('-1B-') ? 'Llama 3.2 1B' : 'Llama 3.2 3B'
+  id === 'Qwen/Qwen3-0.6B' ? 'Qwen3 0.6B (thinks first; runs in the browser)'
+    : id.includes('Qwen3-4B') ? 'Qwen3 4B (thinks first)' : id.includes('-1B-') ? 'Llama 3.2 1B' : 'Llama 3.2 3B'
 
 // The same tags, in the same order, as the backend (core/community_tags.py); lib/sharedModels.test.mjs checks.
 export const COMMUNITY_TAGS: { id: string; label: string }[] = [
@@ -149,8 +156,9 @@ export async function memoryCheck(options: {
   fetchFn?: FetchFn
 }): Promise<MemoryReport> {
   const fetchFn = options.fetchFn ?? fetch
-  const base = ollamaNativeBase(options.settings.baseUrl)
-  if (!base) throw new Error('The address in Use my own model must be on this computer.')
+  // Ollama's, unless the model is asked some other way (a model in this browser: lib/browserModel.ts, completeInBrowser).
+  const base = options.generate ? null : ollamaNativeBase(options.settings.baseUrl)
+  if (!options.generate && !base) throw new Error('The address in Use my own model must be on this computer.')
   const generate = options.generate ?? (async (prompt: string) => {
     const res = await fetchFn(`${base}/api/generate`, {
       method: 'POST',
@@ -229,8 +237,8 @@ export function cleanConfig(text: string): CleanConfig {
   if (raw?.fine_tune_type !== 'lora' || !Number.isInteger(raw?.num_layers) || !params || !Number.isInteger(params.rank) || typeof params.scale !== 'number') {
     return { config: null, removed: [], problem: 'That settings file isn’t a LoRA adapter’s.', builtOn: null }
   }
-  if (!BASE_MODELS[raw.model]) {
-    return { config: null, removed: [], problem: 'Only adapters for the models the training scripts use (Llama 3.2 1B or 3B) can be shared.', builtOn: null }
+  if (!isShareableBase(raw.model)) {
+    return { config: null, removed: [], problem: 'Only adapters for the models tuned here can be shared: Llama 3.2 1B or 3B with the training scripts, or Qwen3 0.6B in the browser.', builtOn: null }
   }
   return {
     config: { fine_tune_type: 'lora', num_layers: raw.num_layers,
@@ -254,6 +262,8 @@ export type SharedAdapter = {
   baseModel: string
   ollamaBase: string | null
   family: 'llama3' | 'qwen3' | null
+  /** Set for one tuned in the browser: the model WebLLM runs it on. It's used, or tuned further, in the browser. */
+  browserBase?: string | null
   createdAt: string
   visibility: Visibility
   rating: { average: number | null; count: number }

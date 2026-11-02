@@ -8,7 +8,7 @@ import { blockUntilReady, defaultDevice, init, tree, valueAndGrad } from '@jax-j
 import * as optax from '@jax-js/optax'
 import { Adapter, answerLoss, newAdapter, prefix } from './model'
 import { Message, QwenTokenizer, trainingExample } from './tokenizer'
-import { NO_ROOM, baseTensorCache, baseTokenizer, loadModel, roomNeeded, saveAdapter, saveTuned } from './weights'
+import { NO_ROOM, baseTensorCache, baseTokenizer, loadModel, readAdapter, roomNeeded, saveAdapter, saveTuned } from './weights'
 
 export type Stage = 'download' | 'read' | 'train' | 'save'
 export type Progress = { stage: Stage; done: number; total: number; loss?: number }
@@ -18,6 +18,10 @@ export type TuneRequest = {
   modelUrl: string
   epochs?: number
   learningRate?: number
+  /** A shared model to start from (its adapters.safetensors) and its id, which the new one names as built on. */
+  startFrom?: { id: string; weights: ArrayBuffer } | null
+  /** Use the shared model as it is: merge it in, no training (adopting one from Community models). */
+  mergeOnly?: boolean
 }
 export type TuneResult = {
   examples: number
@@ -54,10 +58,30 @@ async function startGraphics(): Promise<void> {
     'video calls, other AI), or restart the browser, and try again.')
 }
 
+/** A shared model, used as it is: its adapter merged into the model it starts from, and kept in this browser. */
+async function adopt(request: TuneRequest, onProgress: (p: Progress) => void, started: number): Promise<TuneResult> {
+  const cache = await baseTensorCache()
+  const estimate = await navigator.storage?.estimate?.().catch(() => undefined)
+  if (estimate?.quota && estimate.quota - (estimate.usage || 0) < await roomNeeded(cache)) throw new Error(NO_ROOM)
+  const model = await loadModel(cache, (done, total) => onProgress({ stage: 'download', done, total }))
+  let adapter: Adapter | null = null
+  try {
+    adapter = readAdapter(request.startFrom!.weights)
+    const bytes = await saveTuned(model, cache, adapter, request.modelUrl, (done, total) => onProgress({ stage: 'save', done, total }))
+    await saveAdapter(adapter, request.modelUrl, { builtOn: request.startFrom!.id })
+    return { examples: 0, heldOut: 0, skipped: 0, steps: 0, lossBefore: null, lossAfter: null, bytes,
+             seconds: Math.round((performance.now() - started) / 1000) }
+  } finally {
+    if (adapter) tree.dispose(adapter)
+    tree.dispose(model)
+  }
+}
+
 export async function tune(request: TuneRequest, onProgress: (p: Progress) => void, cancelled: () => boolean): Promise<TuneResult> {
   const started = performance.now()
   const check = () => { if (cancelled()) throw new Cancelled() }
   await startGraphics()
+  if (request.mergeOnly && request.startFrom) return adopt(request, onProgress, started)
 
   const tok = new QwenTokenizer(await baseTokenizer())
   let skipped = 0
@@ -112,10 +136,11 @@ export async function tune(request: TuneRequest, onProgress: (p: Progress) => vo
     }
     const lossBefore = await meanLoss(null)
 
-    adapter = newAdapter()
+    // From a shared model: its adapter is where training starts, once through the items, as the laptop scripts do.
+    adapter = request.startFrom ? readAdapter(request.startFrom.weights) : newAdapter()
     const optimizer = optax.chain(optax.clipByGlobalNorm(1.0), optax.adam(request.learningRate ?? 1e-4))
     state = optimizer.init(tree.ref(adapter))
-    const steps = Math.max(10, (request.epochs ?? 2) * learnRows.length)
+    const steps = Math.max(10, (request.epochs ?? (request.startFrom ? 1 : 2)) * learnRows.length)
     for (let step = 0; step < steps; step++) {
       check()
       const i = step % learnRows.length
@@ -132,7 +157,9 @@ export async function tune(request: TuneRequest, onProgress: (p: Progress) => vo
     const lossAfter = await meanLoss(adapter)
     check()
     const bytes = await saveTuned(model, cache, adapter, request.modelUrl, (done, total) => onProgress({ stage: 'save', done, total }))
-    await saveAdapter(adapter, request.modelUrl)
+    // The training set it learned from stays with it here, for the memory check if it's shared.
+    const trainingSet = request.examples.map((messages) => JSON.stringify({ messages })).join('\n') + '\n'
+    await saveAdapter(adapter, request.modelUrl, { builtOn: request.startFrom?.id ?? null, trainingSet })
     const round = (x: number) => Math.round(x * 1000) / 1000
     return {
       examples: rows.length, heldOut: held, skipped, steps,

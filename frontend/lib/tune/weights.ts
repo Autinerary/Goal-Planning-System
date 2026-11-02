@@ -8,7 +8,7 @@
  * keeps. Nothing is uploaded: the files go from this browser's storage to this browser's storage.
  */
 import { numpy as np } from '@jax-js/jax'
-import { CONFIG, FIRST, LAYERS, RANK, SCALE, Layer, Model, Adapter, Target, TARGETS, mergedHalves } from './model'
+import { CONFIG, DIMS, FIRST, LAYERS, RANK, SCALE, Layer, Model, Adapter, Target, TARGETS, mergedHalves } from './model'
 
 export const BASE_ID = 'Qwen3-0.6B-q0f16-MLC'
 export const BASE = 'https://huggingface.co/mlc-ai/Qwen3-0.6B-q0f16-MLC/resolve/main/'
@@ -184,9 +184,35 @@ const MLX_NAMES: Record<Target, string> = {
   gate: 'mlp.gate_proj', up: 'mlp.up_proj', down: 'mlp.down_proj',
 }
 
+/** An adapter shared from the browser (mlx-lm's format: adapters.safetensors), as arrays to tune from or merge in.
+ *  It must be for this model as tuned here: the last LAYERS layers, rank RANK. */
+export function readAdapter(bytes: ArrayBuffer): Adapter {
+  const view = new DataView(bytes)
+  const size = Number(view.getBigUint64(0, true))
+  const header = JSON.parse(new TextDecoder().decode(new Uint8Array(bytes, 8, size)))
+  const start = 8 + size
+  const adapter = Array.from({ length: LAYERS }, () => ({} as Record<Target, { a?: np.Array; b?: np.Array }>))
+  for (const [name, info] of Object.entries<any>(header)) {
+    if (name === '__metadata__') continue
+    const m = name.match(/^model\.layers\.(\d+)\.(self_attn|mlp)\.(q|k|v|o|gate|up|down)_proj\.lora_(a|b)$/)
+    const layer = m ? Number(m[1]) - FIRST : -1
+    if (!m || layer < 0 || layer >= LAYERS || info.dtype !== 'F32') throw new Error('That adapter wasn’t tuned the way this browser tunes one.')
+    const target = m[3] as Target, part = m[4] as 'a' | 'b'
+    const [inDim, outDim] = DIMS[target]
+    const shape = part === 'a' ? [inDim, RANK] : [RANK, outDim]
+    if (JSON.stringify(info.shape) !== JSON.stringify(shape)) throw new Error('That adapter wasn’t tuned the way this browser tunes one.')
+    const [from, to] = info.data_offsets
+    adapter[layer][target] = { ...adapter[layer][target], [part]: np.array(new Float32Array(bytes.slice(start + from, start + to)), { shape }) }
+  }
+  if (adapter.some((l) => TARGETS.some((t) => !l[t]?.a || !l[t]?.b))) throw new Error('That adapter is missing weights.')
+  return adapter as Adapter
+}
+
 /** The adapter itself (the part that's the person's, about 6 MB), as mlx-lm keeps one: adapters.safetensors and
- *  adapter_config.json, beside the tuned model (…/adapter/), to download or share like one tuned on a laptop. */
-export async function saveAdapter(adapter: Adapter, modelUrl: string): Promise<number> {
+ *  adapter_config.json, beside the tuned model (…/adapter/), to share like one tuned on a laptop; with the training
+ *  set it learned from, for the memory check before sharing (it never leaves this browser unless shared, and it isn't
+ *  shared: only the adapter and its settings are). `builtOn`: the shared model it started from. */
+export async function saveAdapter(adapter: Adapter, modelUrl: string, extra: { builtOn?: string | null; trainingSet?: string | null } = {}): Promise<number> {
   const tensors: { name: string; shape: number[]; data: Float32Array }[] = []
   for (let i = 0; i < LAYERS; i++) {
     for (const t of TARGETS) {
@@ -197,9 +223,11 @@ export async function saveAdapter(adapter: Adapter, modelUrl: string): Promise<n
     }
   }
   const file = safetensors(tensors)
-  const config = { fine_tune_type: 'lora', num_layers: LAYERS, lora_parameters: { rank: RANK, scale: SCALE, dropout: 0 }, model: 'Qwen/Qwen3-0.6B' }
+  const config = { fine_tune_type: 'lora', num_layers: LAYERS, lora_parameters: { rank: RANK, scale: SCALE, dropout: 0 }, model: 'Qwen/Qwen3-0.6B',
+                   ...(extra.builtOn ? { built_on: extra.builtOn } : {}) }
   const store = await caches.open(MODEL_CACHE)
   await put(store, modelUrl + 'adapter/adapters.safetensors', file)
   await put(store, modelUrl + 'adapter/adapter_config.json', JSON.stringify(config, null, 2))
+  if (extra.trainingSet) await put(store, modelUrl + 'adapter/training-set.jsonl', extra.trainingSet)
   return file.byteLength
 }
