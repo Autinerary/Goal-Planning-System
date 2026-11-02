@@ -1064,6 +1064,21 @@ async def goal_helper(request: GoalHelperRequest, actor: str = Depends(onboardin
         raise HTTPException(status_code=429, detail=e.message)
 
 
+class AgentSetupRequest(BaseModel):
+    text: str = ""
+
+
+@router.post("/agent-setup")
+async def agent_setup(request: AgentSetupRequest, actor: str = Depends(onboarding_user_id)):
+    """My agents' "Tell Autinerary what you need": what each built-in agent will do for them, and a 7th agent drafted
+    for the rest (core/agent_setup.py). Nothing is saved here."""
+    from core import agent_setup as setup
+    try:
+        return await setup.set_up(request.text, actor)
+    except budget.LimitExceeded as e:
+        raise HTTPException(status_code=429, detail=e.message)
+
+
 @router.get("/questions")
 async def get_onboarding_questions():
     """

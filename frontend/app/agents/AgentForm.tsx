@@ -6,7 +6,11 @@ import Link from 'next/link'
 import { Agent, AgentScope, LIMITS, SCOPES, cleanAgent } from '@/lib/agents'
 import { COMMUNITY_TAGS } from '@/lib/sharedModels'
 
-export default function AgentForm({ agent, onSave, onCancel }: { agent: Agent; onSave: (a: Agent) => void; onCancel: () => void }) {
+export default function AgentForm({ agent, onSave, onCancel, heading, note }: {
+  agent: Agent; onSave: (a: Agent) => void; onCancel: () => void
+  /** For an agent drafted from what someone asked for (app/agents/AgentSetup.tsx), instead of "Change …". */
+  heading?: string; note?: string
+}) {
   const [draft, setDraft] = useState<Agent>(agent)
   const set = (change: Partial<Agent>) => setDraft((d) => ({ ...d, ...change }))
   const toggle = <T,>(list: T[], item: T, on: boolean): T[] => (on ? [...list, item] : list.filter((x) => x !== item))
@@ -23,8 +27,9 @@ export default function AgentForm({ agent, onSave, onCancel }: { agent: Agent; o
       }}
     >
       <h2 id="agent-form-heading" className="text-lg font-semibold text-slate-900">
-        {agent.name ? `Change ${agent.name}` : 'Build an agent'}
+        {heading || (agent.name ? `Change ${agent.name}` : 'Build an agent')}
       </h2>
+      {note && <p className="text-sm text-slate-700">{note}</p>}
 
       <label className="block space-y-1 text-sm">
         <span className="font-medium text-slate-800">Name</span>

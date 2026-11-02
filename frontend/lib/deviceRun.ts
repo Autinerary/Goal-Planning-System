@@ -120,7 +120,7 @@ export function makePlanOnDevice(options: DeviceRunOptions): Promise<DeviceRunRe
 /** Everything else that writes with AI, on this device: step guidance, a goal's steps, a journal entry's insights
  *  and plan changes, the assistant's answer, and goal ideas in setup (backend api/routes/device.py, /run). The result
  *  is what the job's own endpoint returns. */
-export type DeviceJob = 'guidance' | 'goal-steps' | 'reflection' | 'assistant' | 'goal-helper'
+export type DeviceJob = 'guidance' | 'goal-steps' | 'reflection' | 'assistant' | 'goal-helper' | 'agent-setup'
 
 export function deviceRunUrl(apiUrl: string): string {
   return `${apiUrl.replace(/\/$/, '').replace(/^http/, 'ws')}/api/device/run`

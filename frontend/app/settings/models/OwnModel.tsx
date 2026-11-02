@@ -334,7 +334,7 @@ export default function OwnModel() {
           <li>Making your plan: yes, every agent.</li>
           <li>
             Everything else that writes with AI: adding a goal later, step guidance, your journal and the plan changes it
-            suggests, the assistant, and the goal helper in setup. If your model isn’t ready, you’re asked before a cloud
+            suggests, the assistant, the goal helper in setup, and setting up your agents on My agents. If your model isn’t ready, you’re asked before a cloud
             model is used, step guidance waits for it, and journal entries are saved without an AI reading them.
           </li>
           <li>

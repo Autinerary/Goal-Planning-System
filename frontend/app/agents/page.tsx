@@ -3,7 +3,8 @@
 /**
  * My agents opens with the six agents built into every plan (lib/builtInAgents.ts): what each does, what it said on
  * this person's plan, and the instructions it gives the model, read from its code. The person's own agents follow
- * them, numbered from 7.
+ * them, numbered from 7. "Tell Autinerary what you need" (AgentSetup) sets the six up for what they asked and drafts
+ * the 7th, opened in Build an agent to check before it's saved.
  *
  * Their own agents: agents a person builds to look at their plan their way (lib/agents.ts). Kept in this browser; each runs on
  * their device with their own model, or on our cloud model, as they choose; each sees only what they allow. They can
@@ -13,11 +14,13 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Agent, STARTERS, agentFile, agentFromFile, agentFromStarter, lensWords, loadAgents, personData, saveAgents, withAgent } from '@/lib/agents'
-import { insightMessage } from '@/lib/agentInsights'
+import { AgentKey, insightMessage } from '@/lib/agentInsights'
+import { SavedSetup, SetupResult, draftAgent, loadSetup, planLink, saveSetup } from '@/lib/agentSetup'
 import { BUILT_IN_AGENTS, BuiltInAgent, promptParts } from '@/lib/builtInAgents'
 import { MySharedAgent, agentLinkFor, listMySharedAgents, sharedAgentsStatus, takeDownSharedAgent } from '@/lib/sharedAgents'
 import { useAgentPath } from '../context/AgentPathContext'
 import AgentForm from './AgentForm'
+import AgentSetup from './AgentSetup'
 import { AgentPlanReview, AgentTalk } from './AgentTalk'
 import SharePanel, { freshToken } from './SharePanel'
 
@@ -31,19 +34,21 @@ const AgentNumber = ({ n, built }: { n: number; built: boolean }) => (
 )
 
 /** One of the six agents built into every plan: what it does, what it did on this plan, and what it tells the model. */
-function BuiltInCard({ agent, said }: { agent: BuiltInAgent; said: string | null }) {
+function BuiltInCard({ agent, said, forYou, fresh }: { agent: BuiltInAgent; said: string | null; forYou?: string; fresh?: boolean }) {
   return (
-    <li className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-2" data-built-in={agent.id}>
+    <li className={`rounded-xl border p-4 space-y-2 transition-colors duration-500 ${fresh ? 'border-emerald-400 bg-emerald-50' : 'border-slate-200 bg-slate-50/70'}`} data-built-in={agent.id}>
       <div className="flex flex-wrap items-center gap-2">
         <AgentNumber n={agent.number} built />
         <h3 className="text-lg font-semibold text-slate-900">{agent.name}</h3>
         <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-700">Built in</span>
+        {fresh && <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-xs font-semibold text-white">✓ Set up for you</span>}
       </div>
       <p className="text-sm text-slate-700">{agent.does}</p>
       <p className="text-xs text-slate-500">
         Looks at: {agent.looksAt}
         {agent.prompts.length > 0 && <> Writes with the model set for it in <Link href="/settings/models" className="underline">Models</Link>, or your own model when that&apos;s on.</>}
       </p>
+      {forYou && <p className="text-sm text-slate-900" data-for-you><span className="font-medium text-emerald-800">For what you asked:</span> {forYou}</p>}
       {said && <p className="text-sm text-slate-800"><span className="font-medium">On your plan:</span> {said}</p>}
       {agent.prompts.length > 0 ? (
         <details className="text-sm text-slate-700">
@@ -83,6 +88,11 @@ export default function AgentsPage() {
   const [agents, setAgents] = useState<Agent[]>([])
   const [loaded, setLoaded] = useState(false)
   const [editing, setEditing] = useState<Agent | null>(null)
+  // "Tell Autinerary what you need": what the six will do for what they asked (kept in this browser), the drafted
+  // agent being checked in Build an agent, and the six marked one by one as they're set up.
+  const [setup, setSetup] = useState<SavedSetup | null>(null)
+  const [drafted, setDrafted] = useState(false)
+  const [settingUp, setSettingUp] = useState<number | null>(null)
   const [open, setOpen] = useState<Open>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [sharing, setSharing] = useState(false)
@@ -97,6 +107,7 @@ export default function AgentsPage() {
   }
 
   useEffect(() => {
+    setSetup(loadSetup())
     setAgents(loadAgents())
     setLoaded(true)
     setOrigin(window.location.origin)
@@ -131,9 +142,27 @@ export default function AgentsPage() {
   }
 
   const save = (agent: Agent) => {
-    keep(withAgent(agents, agent))
+    const next = withAgent(agents, agent)
+    keep(next)
     setEditing(null)
-    setNotice(`Saved ${agent.name}.`)
+    const n = 7 + next.findIndex((a) => a.id === agent.id)
+    setNotice(drafted ? `Saved ${agent.name}: agent number ${n}, with the six.` : `Saved ${agent.name}.`)
+    setDrafted(false)
+  }
+
+  // What they asked: the six set up for it, one at a time on screen, and the 7th opened to check.
+  const setUp = (asked: string, result: SetupResult) => {
+    setSetup(saveSetup(asked, result))
+    setSettingUp(0)
+    BUILT_IN_AGENTS.forEach((_, i) => window.setTimeout(() => setSettingUp(i + 1), 450 * (i + 1)))
+    window.setTimeout(() => setSettingUp(null), 450 * BUILT_IN_AGENTS.length + 4000)
+    if (result.seventh) {
+      setEditing(draftAgent(result.seventh))
+      setDrafted(true)
+    }
+    setNotice(result.seventh
+      ? 'Your six agents are set up for it, and agent number 7 is written below. Check it, then save it.'
+      : 'Your six agents are set up for it.')
   }
 
   const remove = (agent: Agent) => {
@@ -174,10 +203,20 @@ export default function AgentsPage() {
         </p>
       </header>
 
+      <AgentSetup onResult={setUp} />
+
       {notice && <p role="status" className="rounded-lg bg-slate-50 p-3 text-sm text-slate-700">{notice}</p>}
+      {setup?.goal && settingUp !== null && (
+        <p className="text-sm text-slate-700">
+          Your goal: “{setup.goal.text}”. <Link href={planLink(setup.goal)} className="font-medium underline">Make a plan for it</Link>, and the six make it.
+        </p>
+      )}
 
       {editing ? (
-        <AgentForm key={editing.id || 'new'} agent={editing} onSave={save} onCancel={() => setEditing(null)} />
+        <AgentForm key={editing.id || (drafted ? `draft-${setup?.at}` : 'new')} agent={editing} onSave={save}
+          onCancel={() => { setEditing(null); setDrafted(false) }}
+          heading={drafted ? 'Agent number 7, written from what you asked' : undefined}
+          note={drafted ? 'Written with AI from what you typed. Check every part and change anything, then save it.' : undefined} />
       ) : (
         <div className="flex flex-wrap gap-3">
           <button type="button" onClick={blank} className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white">Build an agent</button>
@@ -199,7 +238,9 @@ export default function AgentsPage() {
         </div>
         <ol className="space-y-4" aria-label="Your plan’s agents, built in first">
           {BUILT_IN_AGENTS.map((agent) => (
-            <BuiltInCard key={agent.id} agent={agent} said={insightMessage(agent.id, slices[agent.id])} />
+            <BuiltInCard key={agent.id} agent={agent} said={insightMessage(agent.id, slices[agent.id])}
+              forYou={settingUp === null || settingUp >= agent.number ? setup?.forYou?.[agent.id as AgentKey] : undefined}
+              fresh={settingUp !== null && settingUp >= agent.number} />
           ))}
           {loaded && agents.map((agent, i) => (
               <li key={agent.id} className="rounded-xl border border-indigo-200 p-4 space-y-3" data-mine={agent.id}>

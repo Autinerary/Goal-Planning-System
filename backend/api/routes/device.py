@@ -167,9 +167,10 @@ async def plan_on_device(ws: WebSocket) -> None:
 #   assistant    the assistant's answer (the app's /api/assistant/chat, with About me and "Words we use" read here
 #                from the person's own row, as that route reads them)
 #   goal-helper  goal ideas from what they wrote in setup (POST /api/onboarding/goal-helper)
+#   agent-setup  their agents set up from what they typed on My agents (POST /api/onboarding/agent-setup)
 # While it runs every model call goes to their device (core.llm.resolve): nothing in it reaches a cloud model.
 
-JOBS = ("guidance", "goal-steps", "reflection", "assistant", "goal-helper")
+JOBS = ("guidance", "goal-steps", "reflection", "assistant", "goal-helper", "agent-setup")
 JOB_TIMEOUT_SECONDS = RUN_TIMEOUT_SECONDS     # a goal's steps took about 15 minutes with llama3.2:3b on an M3 laptop
 _jobs: Set[str] = set()                # one of each job per person at a time
 
@@ -223,6 +224,8 @@ async def _run_job(job: str, request: Any, actor: str, token: str) -> Any:
         return jsonable_encoder(out)
     if job == "goal-helper":
         return await onboarding.goal_helper(onboarding.GoalHelperRequest.model_validate(body), actor=actor)
+    if job == "agent-setup":
+        return await onboarding.agent_setup(onboarding.AgentSetupRequest.model_validate(body), actor=actor)
     # The assistant: what the app's route adds, read here from the person's own row, never taken from the browser.
     prefs = await asyncio.to_thread(_own_profile, actor)
     style = prefs.get("languageStyle")
