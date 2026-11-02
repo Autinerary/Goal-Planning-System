@@ -8,6 +8,7 @@ import { ChevronLeft, Calendar, ChevronDown, ChevronUp, Smile, Meh, Frown, Loade
 import { buildMotivationReport, MOTIVATION_META } from '@/lib/motivation'
 import { detectPatterns, MIN_ENTRIES_FOR_PATTERNS, type DetectedPattern } from '@/lib/reflection-patterns'
 import { createClient } from '@/lib/supabase/client'
+import { chooseRoute, withOwnModelOrRules } from '@/lib/ownModelRoute'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -123,31 +124,44 @@ export default function JournalHistory() {
     // them. Send the token, same as the reflection form does.
     const supabase = createClient()
     const { data: { session } } = await supabase.auth.getSession()
-    for (const text of entries) {
+    // Each entry is read by the person's own model when "Use my own model" is on, chosen once for them all; when it
+    // isn't ready they're saved without an AI reading them, and nothing goes to a cloud model (lib/ownModelRoute.ts).
+    const where = await chooseRoute({ ask: false })
+    let lastError = ''
+    for (const [i, text] of entries.entries()) {
+      if (where.route === 'device' && entries.length > 1) setImportMsg(`Your own model is reading entry ${i + 1} of ${entries.length}…`)
+      const body = {
+        contextType: 'imported',
+        contextId: 'imported',
+        questions: [{ id: 'imported', question: 'Imported journal entry', answer: text }],
+        freeFormText: text,
+        source: 'import',
+      }
+      const post = (extra: { aiReading?: false } = {}) => axios.post(`${API_URL}/api/reflections/`, { ...body, ...extra }, {
+        headers: session?.access_token
+          ? { Authorization: `Bearer ${session.access_token}` }
+          : undefined,
+      })
       try {
-        await axios.post(`${API_URL}/api/reflections/`, {
-          contextType: 'imported',
-          contextId: 'imported',
-          questions: [{ id: 'imported', question: 'Imported journal entry', answer: text }],
-          freeFormText: text,
-          source: 'import',
-        }, {
-          headers: session?.access_token
-            ? { Authorization: `Bearer ${session.access_token}` }
-            : undefined,
-        })
+        await withOwnModelOrRules(where, 'reflection', body, () => post(), () => post({ aiReading: false }))
         ok++
-      } catch {
+      } catch (e: any) {
         /* backend may be offline; keep going */
+        if (e?.ownModel) lastError = e.message
       }
     }
     setImportBusy(false)
+    const notRead = where.route === 'none' && ok > 0
+      ? ` No AI read ${ok === 1 ? 'it' : 'them'}, because your own model isn’t ready: ${where.why}`
+      : ''
     setImportMsg(
       ok === entries.length
-        ? `Imported ${ok} ${ok === 1 ? 'entry' : 'entries'}. They’ll be considered in your reflections.`
+        ? `Imported ${ok} ${ok === 1 ? 'entry' : 'entries'}. They’ll be considered in your reflections.${notRead}`
         : ok > 0
-          ? `Imported ${ok} of ${entries.length}. Some couldn’t be saved (is the backend running?).`
-          : `Couldn’t save entries: the journal backend may be offline. Your text is kept below so you can retry.`
+          ? `Imported ${ok} of ${entries.length}. ${lastError ? `Some couldn’t be saved: ${lastError}` : 'Some couldn’t be saved (is the backend running?).'}${notRead}`
+          : lastError
+            ? `Couldn’t save entries: ${lastError} Your text is kept below so you can retry.`
+            : `Couldn’t save entries: the journal backend may be offline. Your text is kept below so you can retry.`
     )
     if (ok > 0) {
       setImportText('')

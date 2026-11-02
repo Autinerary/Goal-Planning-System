@@ -83,6 +83,8 @@ function RacesContent() {
   const [captureFor, setCaptureFor] = useState<{ id: string; name: string } | null>(null)
   // "Your Goals, Dreams & Obstacles", opened from "Add one" under an area.
   const [goalsOpen, setGoalsOpen] = useState(false)
+  // Its last message, kept here: the plan reloads after a change, and the editor is taken away while it does.
+  const [goalsNote, setGoalsNote] = useState('')
   const goalsPanelRef = useRef<HTMLDivElement>(null)
   const openGoalsPanel = () => {
     setGoalsOpen(true)
@@ -507,7 +509,7 @@ function RacesContent() {
   // avoid or what helps (the team's notes), the same words as the Milestone
   // view's "Top 5 mistakes made at this stage" (lib/guidanceData.ts).
   const notesOn = newView === 'avoidance' || newView === 'suggestions'
-  const { guidance, loading: guidanceLoading, failed: guidanceFailed } = useMilestoneGuidance(
+  const { guidance, loading: guidanceLoading, failed: guidanceFailed, why: guidanceWhy } = useMilestoneGuidance(
     payload as any,
     milestones.map((m: any) => ({ id: m.id, name: m.name })),
     notesOn,
@@ -1026,7 +1028,7 @@ function RacesContent() {
                 {guidanceLoading
                   ? 'Writing it for each of your steps now…'
                   : guidanceFailed
-                    ? 'This couldn’t load right now. Try again later.'
+                    ? guidanceWhy || 'This couldn’t load right now. Try again later.'
                     : `Each step below shows it in ${newView === 'avoidance' ? 'red' : 'green'}.`}
                 {layoutMode === 'track' && (trackShape === 'pads' || trackShape === 'separate') && ' Switch to Trail Map, As One or List View to see it.'}
               </p>
@@ -1069,6 +1071,8 @@ function RacesContent() {
                   sharedFor={sharedGoal}
                   onSaved={refresh}
                   onUltimateDream={(text) => { updatePrefs({ biggestDream: text }) }}
+                  note={goalsNote}
+                  setNote={setGoalsNote}
                 />
               </details>
             </div>

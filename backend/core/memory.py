@@ -134,7 +134,7 @@ def summarize_for_prompt(memory: Optional[Dict[str, Any]]) -> str:
     runs = memory["recentRuns"]
     lines: List[str] = [
         f"This user has {len(runs)} prior planning session(s). "
-        "Build on this history; do not repeat milestones they've already seen."
+        "Don't repeat milestones they've already seen."
     ]
     for i, run in enumerate(runs[:3], 1):
         goals = ", ".join(run.get("goals", [])) or "n/a"

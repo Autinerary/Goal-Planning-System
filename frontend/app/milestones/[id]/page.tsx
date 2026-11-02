@@ -28,7 +28,7 @@ export default function MilestoneDetailView() {
   const [loading, setLoading] = useState(true)
   // What to avoid here: the same five the Race view's Avoidance shows (lib/guidanceData.ts).
   const planName = (pathPlanning?.milestones || []).find((m: any) => m.id === milestoneId)?.name || ''
-  const { guidance, loading: guidanceLoading, failed: guidanceFailed } = useMilestoneGuidance(
+  const { guidance, loading: guidanceLoading, failed: guidanceFailed, why: guidanceWhy } = useMilestoneGuidance(
     payload as any,
     planName ? [{ id: milestoneId, name: planName }] : [],
   )
@@ -231,6 +231,7 @@ export default function MilestoneDetailView() {
             guidance={guidanceFor(guidance, milestone.id, milestone.name)}
             loading={guidanceLoading}
             failed={guidanceFailed}
+            why={guidanceWhy}
           />
 
           {/* A rating per milestone: the first real signal about plans (B6). */}

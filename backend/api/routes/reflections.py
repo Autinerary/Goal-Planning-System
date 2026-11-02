@@ -28,6 +28,7 @@ When a journal entry comes in we now:
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Literal, Optional
@@ -37,7 +38,7 @@ from pydantic import BaseModel, Field
 
 from api.auth_guard import current_user_id, require_self_or_guardian
 from core.orchestrator import Orchestrator
-from core import learning
+from core import learning, llm
 from database.supabase_client import get_supabase
 
 router = APIRouter()
@@ -91,6 +92,9 @@ class ReflectionRequest(BaseModel):
     questions: List[dict]
     freeFormText: Optional[str] = None
     learningFeedback: Optional["LearningFeedback"] = None
+    # False: no AI reads it, only the agents' rules. Sent when the person uses their own model and it isn't ready
+    # (frontend lib/ownModelRoute.ts), so the entry is still saved and nothing goes to a cloud model.
+    aiReading: bool = True
 
 
 class LearningFeedback(BaseModel):
@@ -147,11 +151,12 @@ async def create_reflection(
     #    the existing LangGraph adaptation_graph. This is the same graph the
     #    orchestrator was wired with — we just hadn't been calling it from
     #    this route before.
-    pipeline = await orchestrator.adapt_path(
-        user_id=user_id,
-        path_id=request.contextId or "default",
-        reflection_data=reflection_data,
-    )
+    with contextlib.nullcontext() if request.aiReading else llm.without_a_model():
+        pipeline = await orchestrator.adapt_path(
+            user_id=user_id,
+            path_id=request.contextId or "default",
+            reflection_data=reflection_data,
+        )
 
     agent_responses = pipeline.get("agentResponses", [])
     reflection_response: Dict[str, Any] = {}

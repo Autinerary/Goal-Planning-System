@@ -17,12 +17,15 @@ export default function TopMistakes({
   guidance,
   loading = false,
   failed = false,
+  why = null,
   className = '',
 }: {
   milestoneId: string
   guidance: StepGuidance | null
   loading?: boolean
   failed?: boolean
+  /** Why it wasn't written, when it's the person's own model that wasn't ready (lib/useMilestoneGuidance.ts). */
+  why?: string | null
   className?: string
 }) {
   const headingId = `top-mistakes-${milestoneId}`
@@ -49,7 +52,7 @@ export default function TopMistakes({
       ) : loading ? (
         <p className="mt-2 text-sm text-red-900" role="status">Writing the top mistakes for this step…</p>
       ) : (
-        <p className="mt-2 text-sm text-red-900">{failed ? 'This list couldn’t load right now. Try again later.' : 'No list for this step yet.'}</p>
+        <p className="mt-2 text-sm text-red-900">{failed ? why || 'This list couldn’t load right now. Try again later.' : 'No list for this step yet.'}</p>
       )}
       <CommonMistakes milestoneId={milestoneId} />
     </section>

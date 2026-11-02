@@ -67,7 +67,7 @@ function MilestoneView() {
     null
   const currentName: string = currentMilestone?.name || currentMilestone?.title || ''
   const baseTools: PlanTool[] = currentMilestone ? toolsFromRecs((toolRecommendation?.recommendations || {})[currentMilestone.id]) : []
-  const { guidance, loading: guidanceLoading, failed: guidanceFailed } = useMilestoneGuidance(
+  const { guidance, loading: guidanceLoading, failed: guidanceFailed, why: guidanceWhy } = useMilestoneGuidance(
     payload as any,
     currentMilestone ? [{ id: currentMilestone.id, name: currentName }] : [],
   )
@@ -269,6 +269,7 @@ function MilestoneView() {
             guidance={guidanceFor(guidance, currentMilestone.id, currentName)}
             loading={guidanceLoading}
             failed={guidanceFailed}
+            why={guidanceWhy}
           />
         )}
 

@@ -4,11 +4,14 @@ import { useEffect, useMemo, useState } from 'react'
 import { backendAuthHeaders } from '@/lib/backendAuth'
 import { loadPreferences } from '@/lib/preferences'
 import { guidanceComplete } from '@/lib/guidanceData'
+import { withOwnModel } from '@/lib/ownModelRoute'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 // One request per plan and set of steps, however many parts of a page ask.
 const inflight = new Map<string, Promise<Record<string, unknown> | null>>()
+// Why guidance wasn't written, when it's the person's own model that wasn't ready (said on the page).
+const whyNot = new Map<string, string>()
 
 /**
  * What to avoid and what helps at each of these steps (lib/guidanceData.ts):
@@ -27,6 +30,7 @@ export function useMilestoneGuidance(
   const [fetched, setFetched] = useState<Record<string, unknown> | null>(null)
   const [loading, setLoading] = useState(false)
   const [failed, setFailed] = useState(false)
+  const [why, setWhy] = useState<string | null>(null)
 
   useEffect(() => {
     if (!enabled || complete || !payload || milestones.length === 0) return
@@ -36,18 +40,24 @@ export function useMilestoneGuidance(
     let request = inflight.get(key)
     if (!request) {
       request = (async () => {
+        whyNot.delete(key)
         try {
           const auth = await backendAuthHeaders()
           if (!auth.Authorization) return null
-          const res = await fetch(`${API_URL}/api/paths/me/guidance`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', ...auth },
-            body: JSON.stringify({ languageStyle: loadPreferences().languageStyle || null }),
-          })
-          if (!res.ok) return null
-          const j = await res.json()
+          const body = { languageStyle: loadPreferences().languageStyle || null }
+          // On the person's own model when "Use my own model" is on (lib/ownModelRoute.ts): in the background, so
+          // nothing is asked, and if their model isn't ready it isn't written, and the page says why.
+          const j: any = await withOwnModel('guidance', body, async () => {
+            const res = await fetch(`${API_URL}/api/paths/me/guidance`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', ...auth },
+              body: JSON.stringify(body),
+            })
+            return res.ok ? res.json() : null
+          }, { ask: false })
           return j?.guidance && typeof j.guidance === 'object' ? (j.guidance as Record<string, unknown>) : null
-        } catch {
+        } catch (e: any) {
+          if (e?.ownModel) whyNot.set(key, String(e.message))
           return null
         }
       })()
@@ -59,6 +69,7 @@ export function useMilestoneGuidance(
       if (cancelled) return
       setFetched(g)
       setFailed(!g)
+      setWhy(g ? null : whyNot.get(key) ?? null)
       setLoading(false)
     })
     return () => { cancelled = true }
@@ -69,5 +80,5 @@ export function useMilestoneGuidance(
     () => ({ ...((stored as Record<string, unknown>) || {}), ...(fetched || {}) }),
     [stored, fetched],
   )
-  return { guidance, loading: loading && !complete, failed: failed && !complete }
+  return { guidance, loading: loading && !complete, failed: failed && !complete, why: failed && !complete ? why : null }
 }

@@ -104,6 +104,8 @@ _actor_verified: ContextVar[bool] = ContextVar("llm_actor_verified", default=Fal
 # and 'person with autism' are both used within the community: offer the
 # choice rather than picking one house style." None is no preference.
 _language_style: ContextVar[Optional[str]] = ContextVar("llm_language_style", default=None)
+# No model at all in this block: the agents use their rules (without_a_model).
+_no_model: ContextVar[bool] = ContextVar("llm_no_model", default=False)
 
 LANGUAGE_RULES = {
     "identity": (
@@ -206,6 +208,17 @@ def use_selection(
             var.reset(token)
 
 
+@contextlib.contextmanager
+def without_a_model():
+    """No model answers anything in this block, so the agents use their rules. For work the person wants done
+    without AI, such as saving a journal entry while their own model isn't ready (api/routes/reflections.py)."""
+    token = _no_model.set(True)
+    try:
+        yield
+    finally:
+        _no_model.reset(token)
+
+
 def _legacy_default_model() -> Optional[str]:
     """Pre-harness behavior, still honoured when it names a listed model."""
     if os.getenv("LOCAL_LLM_BASE_URL", "").strip():
@@ -241,6 +254,9 @@ def resolve(agent: Optional[str] = None) -> Tuple[Optional[registry.Model], regi
     model_id: Optional[str] = None
     effort_id: Optional[str] = None
 
+    if _no_model.get():
+        return (None, registry.resolve_effort(selection.effort if selection else None))
+
     if selection is not None:
         if agent and agent in selection.per_agent:
             choice = selection.per_agent[agent]
@@ -249,10 +265,12 @@ def resolve(agent: Optional[str] = None) -> Tuple[Optional[registry.Model], regi
         model_id = model_id or selection.model
         effort_id = effort_id or selection.effort
 
-    if model_id == "device":
+    if model_id == "device" or device_llm.current() is not None:
         # The person chose the small open model on their own device. It answers only through their open connection
         # (core/device_llm.py); without one there is no model and the agents use their rules. Never a cloud model in
         # its place: falling back to one is something the person is asked about in the browser, not done here.
+        # And while their connection is open, every call in that work goes to it, whatever the code asked for: a job
+        # run on their device (api/routes/device.py, /run) never reaches a cloud model.
         return (registry.MODELS["device"] if device_llm.current() else None, registry.resolve_effort(effort_id))
 
     mode = private_mode()
@@ -273,7 +291,9 @@ def resolve(agent: Optional[str] = None) -> Tuple[Optional[registry.Model], regi
 
 def is_enabled() -> bool:
     """True if a model can answer: any configured provider, or with PRIVATE_MODE=require only our own, or the
-    person's own device while their connection is open."""
+    person's own device while their connection is open. Never inside without_a_model()."""
+    if _no_model.get():
+        return False
     if device_llm.current() is not None:
         return True
     if private_mode() == "require":

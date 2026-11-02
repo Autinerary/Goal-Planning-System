@@ -300,10 +300,13 @@ export function planRoute(ping: Ping, signedIn: boolean, origin?: string): PlanR
 }
 
 /** The question asked before a cloud model is used instead. */
-export function cloudFallbackQuestion(why: string, cloudModel?: string): string {
+export function cloudFallbackQuestion(why: string, cloudModel?: string, forPlan = true): string {
   return (
     `Your own model isn't ready: ${why}\n\n` +
-    `Make this plan with ${cloudModel || 'our usual cloud model'} instead? ` +
-    "That model runs in the cloud, so your plan's prompts go to that AI company."
+    (forPlan
+      ? `Make this plan with ${cloudModel || 'our usual cloud model'} instead? ` +
+        "That model runs in the cloud, so your plan's prompts go to that AI company."
+      : `Do this with ${cloudModel || 'our usual cloud model'} instead? ` +
+        'That model runs in the cloud, so what it needs to read goes to that AI company.')
   )
 }

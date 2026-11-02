@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { MessageSquareText, LifeBuoy, Check } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { track } from '@/lib/funnel'
+import { saidByServer, withOwnModel, wordsFor } from '@/lib/ownModelRoute'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -68,20 +69,24 @@ export default function GoalHelper({
     setBusy(true)
     setAnswer(null)
     try {
-      const { data: { session } } = await createClient().auth.getSession()
-      const res = await fetch(`${API_URL}/api/onboarding/goal-helper`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
-        },
-        body: JSON.stringify({ text: text.trim(), audience: audience || null, ideas }),
-        signal: AbortSignal.timeout(45000),
-      })
-      const json = await res.json().catch(() => null)
-      if (!res.ok) {
-        setAnswer({ kind: 'message', text: res.status === 429 && typeof json?.detail === 'string' ? json.detail : UNAVAILABLE })
-      } else if (json?.crisis) {
+      const body = { text: text.trim(), audience: audience || null, ideas }
+      // On the person's own model when "Use my own model" is on (lib/ownModelRoute.ts); asked first if it isn't ready.
+      const json: any = await withOwnModel('goal-helper', body, async () => {
+        const { data: { session } } = await createClient().auth.getSession()
+        const res = await fetch(`${API_URL}/api/onboarding/goal-helper`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+          },
+          body: JSON.stringify(body),
+          signal: AbortSignal.timeout(45000),
+        })
+        const out = await res.json().catch(() => null)
+        if (!res.ok) throw saidByServer(res.status === 429 && typeof out?.detail === 'string' ? out.detail : UNAVAILABLE)
+        return out
+      }, { ask: true })
+      if (json?.crisis) {
         setAnswer({ kind: 'crisis', crisis: json.crisis })
       } else if (typeof json?.message === 'string') {
         setAnswer({ kind: 'message', text: json.message })
@@ -92,8 +97,8 @@ export default function GoalHelper({
         setAnswer({ kind: 'suggestions', items })
         track('feature_use', 'goal_helper')
       }
-    } catch {
-      setAnswer({ kind: 'message', text: UNAVAILABLE })
+    } catch (e) {
+      setAnswer({ kind: 'message', text: wordsFor(e, UNAVAILABLE) })
     } finally {
       setBusy(false)
     }

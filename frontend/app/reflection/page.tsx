@@ -12,6 +12,7 @@ import AgentInsightsBanner from '../components/AgentInsightsBanner'
 import { useAgentPath } from '../context/AgentPathContext'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from '../components/Toaster'
+import { chooseRoute, withOwnModelOrRules } from '@/lib/ownModelRoute'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -118,7 +119,7 @@ function ReflectionContent() {
     try {
       const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
-      await axios.post(`${API_URL}/api/reflections/`, {
+      const body = {
         contextType,
         contextId: contextId || 'default',
         questions: questions.map((q) => ({
@@ -146,21 +147,30 @@ function ReflectionContent() {
                 : null
             : null,
         } : undefined,
-      }, {
+      }
+      const post = (extra: { aiReading?: false } = {}) => axios.post(`${API_URL}/api/reflections/`, { ...body, ...extra }, {
         headers: session?.access_token
           ? { Authorization: `Bearer ${session.access_token}` }
           : undefined,
       })
+      // Read by the person's own model when "Use my own model" is on (lib/ownModelRoute.ts); when it isn't ready the
+      // entry is still saved, read only by the agents' rules, and nothing goes to a cloud model.
+      const where = await chooseRoute({ ask: false })
+      await withOwnModelOrRules(where, 'reflection', body, () => post(), () => post({ aiReading: false }))
       // Paper/page-turn cue once the entry is saved (Liam: "for every
       // submission ... a page turning/paper sound to signify it processed").
       playPageTurnSound()
-      toast.success('Reflection saved.')
+      toast.success(where.route === 'none'
+        ? `Reflection saved. No AI read it, because your own model isn’t ready: ${where.why}`
+        : 'Reflection saved.')
       // All Entries takes the form's place, so Back from there goes to where
       // the Journal was opened from, not to an empty form or the Path.
       router.replace('/reflection/history?saved=1')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error:', error)
-      toast.error('Could not save your reflection. Your text is still here. Try again.')
+      toast.error(error?.ownModel
+        ? `${error.message} Your reflection wasn’t saved, and your text is still here.`
+        : 'Could not save your reflection. Your text is still here. Try again.')
     } finally {
       setLoading(false)
     }

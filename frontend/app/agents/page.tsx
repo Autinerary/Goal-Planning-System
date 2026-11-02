@@ -219,7 +219,6 @@ export default function AgentsPage() {
 
       <p className="text-xs text-slate-500">
         Agents write with AI, from your instructions. They can be wrong, and they are not medical or clinical advice.
-        {!sharing && <> Sharing agents with others: <span className="text-slate-600">coming soon</span>.</>}
       </p>
     </main>
   )

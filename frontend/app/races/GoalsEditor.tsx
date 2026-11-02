@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Loader2, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react'
 import { backendAuthHeaders } from '@/lib/backendAuth'
 import { loadPreferences } from '@/lib/preferences'
+import { saidByServer, withOwnModel, wordsFor } from '@/lib/ownModelRoute'
 import { GOAL_AREAS } from '@/lib/goalAreas'
 import type { GoalArea } from '@/lib/goalCategories'
 import { SharedBadge, type Collab } from './GoalsTogether'
@@ -34,6 +35,8 @@ export default function GoalsEditor({
   sharedFor,
   onSaved,
   onUltimateDream,
+  note,
+  setNote,
 }: {
   day: boolean
   goals: string[]
@@ -46,6 +49,10 @@ export default function GoalsEditor({
   sharedFor: (goal: string) => Collab | null
   onSaved: () => Promise<void> | void
   onUltimateDream: (text: string) => void
+  /** What happened last ("Added 4 steps…"), kept by the page: reloading the plan after a change shows the page's
+   *  loading state, which takes this editor away and back, and its own state with it. */
+  note: string
+  setNote: (note: string) => void
 }) {
   const [editing, setEditing] = useState(false)
   const [rows, setRows] = useState<GoalRow[]>([])
@@ -55,7 +62,6 @@ export default function GoalsEditor({
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [building, setBuilding] = useState<string | null>(null)
-  const [note, setNote] = useState('')
 
   const txt = day ? 'text-slate-900' : 'text-white'
   const sub = day ? 'text-slate-700' : 'text-indigo-200'
@@ -105,20 +111,23 @@ export default function GoalsEditor({
     setBuilding(goal)
     setNote(`Building steps for “${goal}”. This can take a minute.`)
     try {
-      const auth = await backendAuthHeaders()
-      const res = await fetch(`${API_URL}/api/paths/me/goal-steps`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...auth },
-        body: JSON.stringify({ goal, languageStyle: loadPreferences().languageStyle || null }),
-      })
-      const j = await res.json().catch(() => null)
-      if (!res.ok) setNote(typeof j?.detail === 'string' ? j.detail : 'The steps couldn’t be built. Try again later.')
-      else {
-        setNote(j?.added ? `Added ${j.added} steps for “${goal}”. They aren’t on your calendar yet.` : `“${goal}” has its steps already.`)
-        await onSaved()
-      }
-    } catch {
-      setNote('The steps couldn’t be built. Try again later.')
+      const body = { goal, languageStyle: loadPreferences().languageStyle || null }
+      // On the person's own model when "Use my own model" is on (lib/ownModelRoute.ts); asked first if it isn't ready.
+      const j: any = await withOwnModel('goal-steps', body, async () => {
+        const auth = await backendAuthHeaders()
+        const res = await fetch(`${API_URL}/api/paths/me/goal-steps`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...auth },
+          body: JSON.stringify(body),
+        })
+        const out = await res.json().catch(() => null)
+        if (!res.ok) throw saidByServer(typeof out?.detail === 'string' ? out.detail : 'The steps couldn’t be built. Try again later.')
+        return out
+      }, { ask: true, onDevice: () => setNote(`Building steps for “${goal}” on your own model. On a laptop this can take 15 minutes or more; keep this tab open.`) })
+      setNote(j?.added ? `Added ${j.added} steps for “${goal}”. They aren’t on your calendar yet.` : `“${goal}” has its steps already.`)
+      await onSaved()
+    } catch (e) {
+      setNote(wordsFor(e, 'The steps couldn’t be built. Try again later.'))
     } finally {
       setBuilding(null)
     }

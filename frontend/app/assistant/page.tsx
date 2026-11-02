@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { useAgentPath } from '../context/AgentPathContext'
 import { usePreferences } from '../context/usePreferences'
 import { toLlmConfig } from '@/lib/modelPrefs'
+import { withOwnModel, wordsFor } from '@/lib/ownModelRoute'
 import { speak } from '@/lib/speech'
 
 interface Msg {
@@ -84,6 +85,7 @@ export default function AssistantPage() {
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const [warmingUp, setWarmingUp] = useState(false)
+  const [onDevice, setOnDevice] = useState(false)
   const [context, setContext] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -130,25 +132,27 @@ export default function AssistantPage() {
     // The backend sleeps when idle; if a reply is slow, reassure the user it's
     // waking up rather than broken.
     const warmTimer = setTimeout(() => setWarmingUp(true), 7000)
+    // Only real turns (drop the canned intro) go to the model.
+    const request = { messages: next.filter((m) => m !== INTRO), context }
     try {
-      const res = await fetch('/api/assistant/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          // Only real turns (drop the canned intro) go to the model.
-          messages: next.filter((m) => m !== INTRO),
-          context,
-          llm_config: toLlmConfig(),
-        }),
-      })
-      const data = await res.json().catch(() => null)
+      // Answered by the person's own model when "Use my own model" is on (lib/ownModelRoute.ts); asked first if it
+      // isn't ready. About me and "Words we use" are added from their own row either way.
+      const data: any = await withOwnModel('assistant', request, async () => {
+        const res = await fetch('/api/assistant/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...request, llm_config: toLlmConfig() }),
+        })
+        return res.json().catch(() => null)
+      }, { ask: true, onDevice: () => setOnDevice(true) })
       const reply = data?.reply || "Sorry, I couldn't respond just now. Please try again."
       setMessages((m) => [...m, { role: 'assistant', content: reply }])
-    } catch {
-      setMessages((m) => [...m, { role: 'assistant', content: 'Something went wrong. Please try again.' }])
+    } catch (e) {
+      setMessages((m) => [...m, { role: 'assistant', content: wordsFor(e, 'Something went wrong. Please try again.') }])
     } finally {
       clearTimeout(warmTimer)
       setWarmingUp(false)
+      setOnDevice(false)
       setSending(false)
     }
   }
@@ -195,7 +199,11 @@ export default function AssistantPage() {
               <div className="bg-white border border-slate-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm flex items-center gap-2">
                 <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />
                 {warmingUp && (
-                  <span className="text-xs text-slate-500">Waking the assistant up. This first reply can take up to a minute…</span>
+                  <span className="text-xs text-slate-500">
+                    {onDevice
+                      ? 'Your own model is writing this. On a small model it can take a minute…'
+                      : 'Waking the assistant up. This first reply can take up to a minute…'}
+                  </span>
                 )}
               </div>
             </div>

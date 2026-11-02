@@ -199,9 +199,9 @@ function CommunityAgents() {
       </header>
 
       {enabled === null && <p className="text-sm text-slate-500">Loading…</p>}
-      {enabled === false && (
+      {enabled === false && !error && (
         <p className="rounded-lg border border-dashed border-slate-300 p-4 text-sm text-slate-600">
-          Sharing agents isn&apos;t on yet. <span className="text-slate-500">Coming soon.</span>
+          Sharing agents is switched off for now.
         </p>
       )}
       {error && <p role="alert" className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-800">{error}</p>}

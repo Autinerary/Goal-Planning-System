@@ -126,6 +126,7 @@ export default function ShareModelPage() {
         if (!status.enabled) return
       } catch {
         setEnabled(false)
+        setError('Sharing couldn’t be reached just now. Please try again in a moment.')
         return
       }
       const token = await freshToken()
@@ -272,9 +273,9 @@ export default function ShareModelPage() {
       </header>
 
       {enabled === null && <p className="text-sm text-slate-500">Loading…</p>}
-      {enabled === false && (
+      {enabled === false && !error && (
         <p className="rounded-lg border border-dashed border-slate-300 p-4 text-sm text-slate-600">
-          Sharing models isn&apos;t on yet. <span className="text-slate-500">Coming soon.</span>
+          Sharing models is switched off for now.
         </p>
       )}
       {enabled && signedOut && (

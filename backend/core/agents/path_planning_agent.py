@@ -459,6 +459,10 @@ class PathPlanningAgent(BaseAgent):
                     f"{per_area} concrete, actionable milestone name{'s' if per_area != 1 else ''} (max 8 words each) that move "
                     "the user toward the SAME goal from that dimension's angle. "
                     "Tailor wording to the user's barriers. No numbering, no commentary. "
+                    # A small model on the person's device (2 November 2026, llama3.2:3b) planned a goal added later,
+                    # "Swim once a week", with steps from their earlier plan's goal ("Join language exchange group").
+                    "Every milestone is about this one goal: their earlier plans are background, never another goal "
+                    "to plan for. "
                     + (supporting_rule(for_person)
                        + "Here the dimensions mean: "
                        + "; ".join(f"{key} = {focus}" for key, _, focus in dimensions)
@@ -471,7 +475,7 @@ class PathPlanningAgent(BaseAgent):
                     + f"Goal: {llm.user_text(goal, 300)}\n"
                     f"Barriers: {llm.user_list(barriers)}\n"
                     + (f"Functional support needs and successful accommodations: {llm.user_text(support_summary, 5000)}\n" if support_summary else "")
-                    + (f"Prior history:\n{llm.user_text(memory_hint, 1500)}\n" if memory_hint else "")
+                    + (f"Earlier plans (background only; don't repeat their milestones):\n{llm.user_text(memory_hint, 1500)}\n" if memory_hint else "")
                     + (f"Steps the user picked from a path model for this goal (use each one as a "
                        f"milestone, in the area where it fits best, keeping their words): "
                        f"{llm.user_list(step_ideas, 120, 8)}\n" if step_ideas else "")

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { track } from '@/lib/funnel'
+import { withOwnModel, wordsFor } from '@/lib/ownModelRoute'
 import type { GoalIdea } from './GoalHelper'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -129,14 +130,18 @@ export default function ChatSetup({
     setBusy(true)
     say({ from: 'you', text: words })
     try {
-      const { data: { session } } = await createClient().auth.getSession()
-      const res = await fetch(`${API_URL}/api/onboarding/goal-helper`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}) },
-        body: JSON.stringify({ text: words, audience: chosen.audience || null, ideas: helperIdeas }),
-        signal: AbortSignal.timeout(45000),
-      })
-      const json = await res.json().catch(() => null)
+      const body = { text: words, audience: chosen.audience || null, ideas: helperIdeas }
+      // On the person's own model when "Use my own model" is on (lib/ownModelRoute.ts); asked first if it isn't ready.
+      const json: any = await withOwnModel('goal-helper', body, async () => {
+        const { data: { session } } = await createClient().auth.getSession()
+        const res = await fetch(`${API_URL}/api/onboarding/goal-helper`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}) },
+          body: JSON.stringify(body),
+          signal: AbortSignal.timeout(45000),
+        })
+        return res.json().catch(() => null)
+      }, { ask: true })
       if (json?.crisis) {
         say({ from: 'bot', text: [json.crisis.message, ...json.crisis.lines.map((l: any) => `${l.name}: ${l.how}.`), json.crisis.after].join(' ') })
         setSuggestions([])
@@ -148,8 +153,8 @@ export default function ChatSetup({
         say({ from: 'bot', text: 'I can keep your words as they are. Tap below to use them.' })
         setSuggestions([])
       }
-    } catch {
-      say({ from: 'bot', text: 'I can keep your words as they are. Tap below to use them.' })
+    } catch (e) {
+      say({ from: 'bot', text: wordsFor(e, 'I can keep your words as they are. Tap below to use them.') })
       setSuggestions([])
     } finally {
       setBusy(false)
