@@ -45,7 +45,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 // people on to ResourceHub, signed in or not, so setup never interrupts it.
 // The terms, the newsletter's sign-up and Community's Choice (its vote comes
 // from the newsletter) are for anyone too.
-const publicRoutes = ['/', '/start', '/login', '/signup', '/forgot-password', '/reset-password', '/checkin', '/privacy', '/terms', '/newsletter', '/community-choice', '/spot-guides', '/petition', '/pricing', '/providers/survey', '/help', '/newsletter/confirm', '/newsletter/unsubscribe', '/emails/weekly-stop', '/emails/setup-reminder', '/emails/first-weeks', '/emails/requests-stop', '/go/servicehub']
+const publicRoutes = ['/', '/start', '/login', '/signup', '/forgot-password', '/reset-password', '/checkin', '/privacy', '/terms', '/newsletter', '/community-choice', '/spot-guides', '/petition', '/pricing', '/providers/survey', '/help', '/newsletter/confirm', '/newsletter/unsubscribe', '/emails/weekly-stop', '/emails/setup-reminder', '/emails/first-weeks', '/emails/requests-stop', '/go/servicehub',
+  // Shared agents and models: someone given a private link may not have an account yet (they read it, then sign in to use it).
+  '/agents/community', '/settings/models/community']
 const isPublicRoute = (pathname: string) => publicRoutes.includes(pathname) || pathname === '/kits' || pathname.startsWith('/kits/')
 const AGE_ROUTE = '/auth/age'
 

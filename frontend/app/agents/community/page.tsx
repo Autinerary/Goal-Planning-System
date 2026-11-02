@@ -107,14 +107,21 @@ function Card({ agent, signedIn, linkKey, onChanged }: {
         )}
       </div>
       {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
-      <div className="flex flex-wrap gap-2 text-sm">
-        <button type="button" aria-expanded={trying} onClick={() => setTrying(!trying)} className="rounded-lg bg-slate-900 px-4 py-2 font-medium text-white">
-          Try it on my plan
-        </button>
-        <button type="button" onClick={add} disabled={added} className="rounded-lg border border-slate-300 px-4 py-2 font-medium disabled:opacity-60">
-          {added ? 'Added to your agents' : 'Add to my agents'}
-        </button>
-      </div>
+      {signedIn ? (
+        <div className="flex flex-wrap gap-2 text-sm">
+          <button type="button" aria-expanded={trying} onClick={() => setTrying(!trying)} className="rounded-lg bg-slate-900 px-4 py-2 font-medium text-white">
+            Try it on my plan
+          </button>
+          <button type="button" onClick={add} disabled={added} className="rounded-lg border border-slate-300 px-4 py-2 font-medium disabled:opacity-60">
+            {added ? 'Added to your agents' : 'Add to my agents'}
+          </button>
+        </div>
+      ) : (
+        <p className="text-sm text-slate-700">
+          <a href={`/login?returnTo=${encodeURIComponent(typeof window === 'undefined' ? '/agents/community' : window.location.pathname + window.location.search)}`} className="font-medium underline">Sign in</a>{' '}
+          to try it on your plan or keep it. <a href="/signup" className="underline">New here?</a>
+        </p>
+      )}
       {added && <p className="text-sm text-slate-600">It’s in <Link href="/agents" className="underline">My agents</Link>, to use and change as you like.</p>}
       {trying && (
         <div className="space-y-3">
