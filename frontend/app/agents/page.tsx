@@ -1,7 +1,11 @@
 'use client'
 
 /**
- * My agents: agents a person builds to look at their plan their way (lib/agents.ts). Kept in this browser; each runs on
+ * My agents opens with the six agents built into every plan (lib/builtInAgents.ts): what each does, what it said on
+ * this person's plan, and the instructions it gives the model, read from its code. The person's own agents follow
+ * them, numbered from 7.
+ *
+ * Their own agents: agents a person builds to look at their plan their way (lib/agents.ts). Kept in this browser; each runs on
  * their device with their own model, or on our cloud model, as they choose; each sees only what they allow. They can
  * talk with one, have it look at their plan, or ask it about a step (app/components/AskMyAgents.tsx); and, once
  * sharing is on (unless SHARED_AGENTS=off; STEP 97), share one (SharePanel) or try others' (app/agents/community).
@@ -9,6 +13,8 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Agent, STARTERS, agentFile, agentFromFile, agentFromStarter, lensWords, loadAgents, personData, saveAgents, withAgent } from '@/lib/agents'
+import { insightMessage } from '@/lib/agentInsights'
+import { BUILT_IN_AGENTS, BuiltInAgent, promptParts } from '@/lib/builtInAgents'
 import { MySharedAgent, agentLinkFor, listMySharedAgents, sharedAgentsStatus, takeDownSharedAgent } from '@/lib/sharedAgents'
 import { useAgentPath } from '../context/AgentPathContext'
 import AgentForm from './AgentForm'
@@ -20,8 +26,60 @@ const VISIBILITY_WORDS = { everyone: 'shared with everyone', people: 'shared wit
 
 type Open = { id: string; panel: 'talk' | 'plan' | 'share' } | null
 
+const AgentNumber = ({ n, built }: { n: number; built: boolean }) => (
+  <span aria-hidden="true" className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${built ? 'bg-slate-200 text-slate-800' : 'bg-indigo-600 text-white'}`}>{n}</span>
+)
+
+/** One of the six agents built into every plan: what it does, what it did on this plan, and what it tells the model. */
+function BuiltInCard({ agent, said }: { agent: BuiltInAgent; said: string | null }) {
+  return (
+    <li className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-2" data-built-in={agent.id}>
+      <div className="flex flex-wrap items-center gap-2">
+        <AgentNumber n={agent.number} built />
+        <h3 className="text-lg font-semibold text-slate-900">{agent.name}</h3>
+        <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-700">Built in</span>
+      </div>
+      <p className="text-sm text-slate-700">{agent.does}</p>
+      <p className="text-xs text-slate-500">
+        Looks at: {agent.looksAt}
+        {agent.prompts.length > 0 && <> Writes with the model set for it in <Link href="/settings/models" className="underline">Models</Link>, or your own model when that&apos;s on.</>}
+      </p>
+      {said && <p className="text-sm text-slate-800"><span className="font-medium">On your plan:</span> {said}</p>}
+      {agent.prompts.length > 0 ? (
+        <details className="text-sm text-slate-700">
+          <summary className="cursor-pointer text-slate-600">
+            The instructions it gives the model ({agent.prompts.length})
+          </summary>
+          <div className="mt-2 space-y-3">
+            {agent.prompts.map((p) => (
+              <div key={p.label} className="rounded-lg bg-white p-3">
+                <p className="font-medium text-slate-900">{p.label}</p>
+                <p className="mt-1 whitespace-pre-wrap text-slate-700">
+                  {promptParts(p.text).map((part, i) => (part.filled
+                    ? <span key={i} className="rounded bg-amber-100 px-0.5 text-amber-900">{part.text}</span>
+                    : <span key={i}>{part.text}</span>))}
+                </p>
+              </div>
+            ))}
+            <p className="text-xs text-slate-500">Read from its code. The highlighted parts are filled in for each plan.</p>
+          </div>
+        </details>
+      ) : (
+        <p className="text-xs text-slate-600">{agent.note}</p>
+      )}
+    </li>
+  )
+}
+
 export default function AgentsPage() {
-  const { payload, pathPlanning } = useAgentPath()
+  const agentPath = useAgentPath()
+  const { payload, pathPlanning } = agentPath
+  // What each built-in agent said on this person's plan, from the plan itself (as its banners elsewhere show it).
+  const slices = {
+    path_planning: agentPath.pathPlanning, pattern_recognition: agentPath.patternRecognition,
+    tool_recommendation: agentPath.toolRecommendation, reflection_analysis: agentPath.reflectionAnalysis,
+    adaptation: agentPath.adaptation, calendar_optimization: agentPath.calendarOptimization,
+  }
   const [agents, setAgents] = useState<Agent[]>([])
   const [loaded, setLoaded] = useState(false)
   const [editing, setEditing] = useState<Agent | null>(null)
@@ -129,14 +187,30 @@ export default function AgentsPage() {
         </div>
       )}
 
-      {loaded && agents.length > 0 && (
-        <section aria-labelledby="mine-heading" className="space-y-4">
-          <h2 id="mine-heading" className="text-lg font-semibold text-slate-900">Your agents</h2>
-          <ul className="space-y-4">
-            {agents.map((agent) => (
-              <li key={agent.id} className="rounded-xl border border-slate-200 p-4 space-y-3">
+      <section aria-labelledby="mine-heading" className="space-y-4">
+        <div className="space-y-1">
+          <h2 id="mine-heading" className="text-lg font-semibold text-slate-900">Your plan’s agents</h2>
+          <p className="text-sm text-slate-600">
+            Six agents are built into every plan
+            {loaded && agents.length > 0
+              ? `, and you’ve added ${agents.length === 1 ? 'one' : agents.length}: ${agents.length === 1 ? 'number 7' : `numbers 7 to ${6 + agents.length}`}.`
+              : '. The ones you build, or add from Community agents, join them as number 7 and on.'}
+          </p>
+        </div>
+        <ol className="space-y-4" aria-label="Your plan’s agents, built in first">
+          {BUILT_IN_AGENTS.map((agent) => (
+            <BuiltInCard key={agent.id} agent={agent} said={insightMessage(agent.id, slices[agent.id])} />
+          ))}
+          {loaded && agents.map((agent, i) => (
+              <li key={agent.id} className="rounded-xl border border-indigo-200 p-4 space-y-3" data-mine={agent.id}>
                 <div className="space-y-1">
-                  <h3 className="text-lg font-semibold text-slate-900">{agent.name}</h3>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <AgentNumber n={7 + i} built={false} />
+                    <h3 className="text-lg font-semibold text-slate-900">{agent.name}</h3>
+                    <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-800">
+                      {agent.from?.kind === 'community' ? 'Added from Community agents' : 'Yours'}
+                    </span>
+                  </div>
                   {agent.purpose && <p className="text-sm text-slate-700">{agent.purpose}</p>}
                   <p className="text-xs text-slate-500">
                     {agent.runsOn === 'cloud' ? 'Runs on our cloud model' : 'Runs on your device'}
@@ -168,12 +242,17 @@ export default function AgentsPage() {
                 {open?.id === agent.id && open.panel === 'share' && <SharePanel agent={agent} onShared={sharedChanged} onTakenDown={sharedChanged} />}
               </li>
             ))}
-          </ul>
+        </ol>
+        {loaded && agents.length > 0 ? (
           <p className="text-sm text-slate-600">
             You can also ask your agents about one step, on that step’s page. <Link href="/milestones" className="underline">Your steps</Link>
           </p>
-        </section>
-      )}
+        ) : !editing && (
+          <button type="button" onClick={blank} className="rounded-lg border border-indigo-300 px-4 py-2 text-sm font-medium text-indigo-900">
+            Build the 7th
+          </button>
+        )}
+      </section>
 
       {sharing && shared.length > 0 && (
         <section aria-labelledby="shared-heading" className="space-y-2 text-sm text-slate-700">
