@@ -22,7 +22,8 @@ import {
   pingOwnModel,
   saveOwnModel,
 } from '@/lib/localModel'
-import { BROWSER_MODELS } from '@/lib/browserModel'
+import { BROWSER_MODELS, browserModelInfo } from '@/lib/browserModel'
+import { tunedModels, tunedLabel, type TunedModel } from '@/lib/tunedModels'
 import { sharingStatus } from '@/lib/sharedModels'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -44,6 +45,8 @@ export default function OwnModel() {
   const [download, setDownload] = useState<{ state: 'idle' | 'running' | 'done' | 'failed'; fraction?: number; text?: string }>({ state: 'idle' })
   const [origin, setOrigin] = useState('this site')
   const [sharing, setSharing] = useState(false)
+  // Models the person tuned in this browser (Build my training set), kept only here.
+  const [tuned, setTuned] = useState<TunedModel[]>([])
 
   /** Saves the change and returns the settings with it. */
   const save = useCallback((next: Partial<OwnModelSettings>): OwnModelSettings => {
@@ -68,6 +71,7 @@ export default function OwnModel() {
     setBaseUrl(loaded.baseUrl)
     setModel(loaded.model)
     setOrigin(window.location.origin)
+    setTuned(tunedModels())
     if (loaded.enabled) check(loaded)
     sharingStatus(API_URL).then((s) => setSharing(s.enabled)).catch(() => {})
   }, [check])
@@ -76,7 +80,7 @@ export default function OwnModel() {
   const urlOk = cleanBaseUrl(baseUrl) !== null
   const modelOk = cleanModelName(model) !== null
   const canAsk = inBrowser ? !!(ping?.ok && ping.hasModel) : urlOk && modelOk
-  const thinks = inBrowser ? !!BROWSER_MODELS.find((m) => m.id === settings.browserModel)?.thinks : !!(ping?.ok && ping.thinks)
+  const thinks = inBrowser ? !!browserModelInfo(settings.browserModel)?.thinks : !!(ping?.ok && ping.thinks)
 
   const runTest = async () => {
     const current = inBrowser ? loadOwnModel() : save({ baseUrl: cleanBaseUrl(baseUrl) ?? settings.baseUrl, model: cleanModelName(model) ?? settings.model })
@@ -113,7 +117,11 @@ export default function OwnModel() {
     const browser = await import('@/lib/browserModel')
     await browser.forgetBrowserModel(settings.browserModel).catch(() => {})
     setDownload({ state: 'idle' })
-    check(loadOwnModel())
+    // A tuned model taken out is gone from the list: the first of ours takes its place.
+    const left = tunedModels()
+    setTuned(left)
+    if (!browserModelInfo(settings.browserModel)) check(save({ browserModel: BROWSER_MODELS[0].id }))
+    else check(loadOwnModel())
   }
 
   return (
@@ -174,6 +182,9 @@ export default function OwnModel() {
               onChange={(e) => { setDownload({ state: 'idle' }); check(save({ browserModel: e.target.value })) }}
               className="w-full rounded-lg border border-slate-200 px-3 py-2"
             >
+              {tuned.map((m) => (
+                <option key={m.id} value={m.id}>{tunedLabel(m)}: kept in this browser</option>
+              ))}
               {BROWSER_MODELS.map((m) => (
                 <option key={m.id} value={m.id}>{m.label}: {m.size}{m.phones ? ', for phones and tablets' : ''}</option>
               ))}
@@ -181,7 +192,9 @@ export default function OwnModel() {
           </label>
           <p className="text-slate-600">
             It&apos;s downloaded once from Hugging Face into this browser and runs on this device&apos;s graphics chip.
-            Use Wi-Fi: it&apos;s large. Models you tuned yourself run in Ollama, not here.
+            Use Wi-Fi: it&apos;s large. A model you tune in{' '}
+            <Link href="/settings/models/training-set" className="underline">Build my training set</Link> is kept here too, for
+            you alone; models you tune on a laptop run in Ollama.
           </p>
         </div>
       ) : (
@@ -320,8 +333,9 @@ export default function OwnModel() {
         <ul className="list-disc pl-5 space-y-1">
           <li>Making your plan: yes, every agent.</li>
           <li>
-            Adding a goal later, step guidance, plan changes, the assistant and journal insights: your cloud model for
-            now. <span className="text-slate-500">Coming soon.</span>
+            Everything else that writes with AI: adding a goal later, step guidance, your journal and the plan changes it
+            suggests, the assistant, and the goal helper in setup. If your model isn’t ready, you’re asked before a cloud
+            model is used, step guidance waits for it, and journal entries are saved without an AI reading them.
           </li>
           <li>
             Tuning it to your own writing:{' '}
@@ -334,7 +348,7 @@ export default function OwnModel() {
               start from one someone shared in <Link href="/settings/models/community" className="underline">Community models</Link>.
             </li>
           ) : (
-            <li>Sharing a tuned model with your community. <span className="text-slate-500">Coming soon.</span></li>
+            <li>Sharing a tuned model with your community: switched off for now.</li>
           )}
         </ul>
       </div>

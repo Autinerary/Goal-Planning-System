@@ -4,9 +4,11 @@
  * WebLLM downloads the model once from Hugging Face into this browser's storage and runs it on this device's graphics
  * chip (WebGPU), in a background worker so the page keeps working. Prompts and answers never leave this device. It
  * needs WebGPU: a recent Chrome or Edge, or Safari on iOS, iPadOS or macOS 26 and later. Phones and tablets have less
- * memory, so the 1B model is the one for them. Models tuned on a laptop (train-my-model.sh) run in Ollama, not here.
+ * memory, so the 1B model is the one for them. A model the person tuned in this browser (lib/tunedModels.ts) runs here
+ * too; models tuned on a laptop (train-my-model.sh) run in Ollama.
  */
 import type { Ask } from './localModel'
+import { TUNED_BASE, TUNED_CONTEXT, isTunedId, tunedLabel, tunedModels, webllmRecord } from './tunedModels'
 
 /** `context`: the tokens it keeps room for, prompt and answer together. The agents' longest prompts (Tool
  *  Recommendation's shortlists) are about 6,500 tokens; the phone model keeps less room, so it needs less memory.
@@ -21,7 +23,22 @@ export const BROWSER_MODELS: BrowserModel[] = [
   { id: 'Qwen3-4B-q4f16_1-MLC', label: 'Qwen3 4B, thinks first', size: '2.3 GB download, about 5.2 GB of memory', thinks: true, phones: false, context: 16384 },
 ]
 
-export const browserModelInfo = (id: string): BrowserModel | null => BROWSER_MODELS.find((m) => m.id === id) ?? null
+/** One of ours, or one the person tuned in this browser. */
+export function browserModelInfo(id: string): BrowserModel | null {
+  const listed = BROWSER_MODELS.find((m) => m.id === id)
+  if (listed) return listed
+  const tuned = isTunedId(id) ? tunedModels().find((m) => m.id === id) : undefined
+  return tuned
+    ? { id, label: tunedLabel(tuned), size: 'kept in this browser, about 2.5 GB of memory', thinks: true, phones: false, context: TUNED_CONTEXT }
+    : null
+}
+
+/** WebLLM's list of models: its own, and the person's tuned ones, which run on the base model's runtime. */
+function appConfig(w: any) {
+  const base = w.prebuiltAppConfig.model_list.find((m: any) => m.model_id === TUNED_BASE)
+  const tuned = base ? tunedModels().map((m) => webllmRecord(m, base)) : []
+  return { ...w.prebuiltAppConfig, model_list: [...w.prebuiltAppConfig.model_list, ...tuned] }
+}
 
 /** Whether this browser can run a model at all. */
 export const hasWebGPU = (): boolean => typeof navigator !== 'undefined' && 'gpu' in navigator
@@ -42,7 +59,8 @@ const webllm = () => import('@mlc-ai/web-llm')
 
 export async function isDownloaded(model: string): Promise<boolean> {
   try {
-    return await (await webllm()).hasModelInCache(model)
+    const w = await webllm()
+    return await w.hasModelInCache(model, appConfig(w))
   } catch {
     return false
   }
@@ -52,15 +70,22 @@ export async function isDownloaded(model: string): Promise<boolean> {
 export async function loadBrowserModel(model: string, onProgress?: (fraction: number, text: string) => void): Promise<void> {
   if (engine && engineModel === model) return
   if (!hasWebGPU()) throw new Error('This browser can’t run models: it has no WebGPU.')
+  // A tuned model exists only in this browser's storage: there's nothing to download it from.
+  if (isTunedId(model) && !(await isDownloaded(model))) {
+    throw new Error('Your tuned model isn’t in this browser any more (browsers can clear what sites keep). Tune it again in Build my training set.')
+  }
   if (starting) await starting.catch(() => {})
   if (engine && engineModel === model) return
   starting = (async () => {
     const w = await webllm()
     const progress = (r: { progress?: number; text?: string }) => onProgress?.(r.progress ?? 0, r.text ?? '')
     engineModel = null
+    const config = appConfig(w)
     if (engine) {
-      // Another model was running: this one takes its place, in the same worker.
+      // Another model was running: this one takes its place, in the same worker (with the list as it is now, so a
+      // model tuned since is in it).
       engine.setInitProgressCallback(progress)
+      engine.setAppConfig(config)
       await engine.reload(model, { context_window_size: contextFor(model) })
     } else {
       let worker: Worker | null = null
@@ -71,8 +96,8 @@ export async function loadBrowserModel(model: string, onProgress?: (fraction: nu
       }
       try {
         engine = worker
-          ? await w.CreateWebWorkerMLCEngine(worker, model, { initProgressCallback: progress }, { context_window_size: contextFor(model) })
-          : await w.CreateMLCEngine(model, { initProgressCallback: progress }, { context_window_size: contextFor(model) })
+          ? await w.CreateWebWorkerMLCEngine(worker, model, { initProgressCallback: progress, appConfig: config }, { context_window_size: contextFor(model) })
+          : await w.CreateMLCEngine(model, { initProgressCallback: progress, appConfig: config }, { context_window_size: contextFor(model) })
       } catch (e) {
         // A failed download is reported as it is, not tried again on the page.
         worker?.terminate()
@@ -114,7 +139,13 @@ export async function forgetBrowserModel(model: string): Promise<void> {
     await engine?.unload?.().catch?.(() => {})
     engineModel = null
   }
-  await (await webllm()).deleteModelAllInfoInCache(model)
+  if (isTunedId(model)) {
+    // Its own files and its place in the list; the base model's files stay for other models.
+    await (await import('./tunedModels')).forgetTunedModel(model)
+    return
+  }
+  const w = await webllm()
+  await w.deleteModelAllInfoInCache(model, appConfig(w))
   // WebLLM leaves the model's tensor-cache.json behind; nothing of it should stay.
   for (const name of await caches.keys()) {
     if (!name.startsWith('webllm/')) continue

@@ -5,8 +5,9 @@
  * them scrubbed beside what you wrote, and download them to train a small open model on your own laptop.
  *
  * Nothing is chosen until the person turns it on. The backend reads only their own items, scrubs them in memory and
- * keeps nothing but a record of what they approved (backend/api/routes/training.py, STEP 95); the file is made here,
- * in the browser (lib/trainingSet.ts), and trained on their laptop (public/own-model/).
+ * keeps nothing but a record of what they approved (backend/api/routes/training.py, STEP 95). Then, with one button,
+ * their model is tuned right here, in this browser, and kept in it (lib/tunedModels.ts, lib/tune/); or the file is
+ * made here (lib/trainingSet.ts) and trained on their laptop (public/own-model/).
  */
 
 import { useEffect, useState } from 'react'
@@ -16,6 +17,7 @@ import {
   ConsentRecord,
   ScrubbedItem,
   TrainingItem,
+  chatExample,
   foundSummary,
   itemKey,
   listConsents,
@@ -27,10 +29,29 @@ import {
   trainingFileName,
 } from '@/lib/trainingSet'
 import { sharingStatus } from '@/lib/sharedModels'
+import { hasWebGPU } from '@/lib/browserModel'
+import { loadOwnModel, saveOwnModel } from '@/lib/localModel'
+import { TuneHandle, TunedModel, forgetTunedModel, tuneInThisBrowser, tunedLabel } from '@/lib/tunedModels'
+import type { Progress } from '@/lib/tune/run'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 type Review = ScrubbedItem & { edited: boolean; checking: boolean; note?: string }
+
+/** Where tuning is, in words. */
+function progressWords(p: Progress): string {
+  const mb = (n: number) => Math.round(n / 1e6).toLocaleString()
+  switch (p.stage) {
+    case 'download':
+      return `Getting the model it starts from: ${mb(p.done)} of ${mb(p.total)} MB (the first time only; it stays in this browser).`
+    case 'read':
+      return `Reading your items: ${p.done} of ${p.total}.`
+    case 'train':
+      return `Tuning: step ${p.done} of ${p.total}.`
+    case 'save':
+      return `Saving your model in this browser: ${p.done} of ${p.total}.`
+  }
+}
 
 async function freshToken(): Promise<string | null> {
   const { data } = await createClient().auth.getSession()
@@ -62,8 +83,15 @@ export default function TrainingSetPage() {
   const [done, setDone] = useState<{ file: string; count: number; at: string } | null>(null)
   const [records, setRecords] = useState<ConsentRecord[]>([])
   const [sharing, setSharing] = useState(false)
+  const [canTune, setCanTune] = useState(true)
+  const [tuning, setTuning] = useState<TuneHandle | null>(null)
+  const [progress, setProgress] = useState<Progress | null>(null)
+  const [tuned, setTuned] = useState<TunedModel | null>(null)
+  const [tuneNote, setTuneNote] = useState<string | null>(null)
+  const [using, setUsing] = useState(false)
 
   useEffect(() => {
+    setCanTune(hasWebGPU())
     sharingStatus(API_URL).then((s) => setSharing(s.enabled)).catch(() => {})
     ;(async () => {
       const token = await freshToken()
@@ -133,25 +161,60 @@ export default function TrainingSetPage() {
   const kept = (review || []).filter((item) => item.after.trim())
   const unchecked = (review || []).some((item) => item.edited || item.checking)
 
-  const approve = async () => {
+  /** Your approval recorded (which items, when, with which scrubber; never their text), then the file or the tuning. */
+  const approve = async (then: 'download' | 'tune') => {
     const token = await freshToken()
     if (!token || !review || !kept.length || unchecked || !confirmed) return
     setSaving(true)
     setError(null)
+    setTuneNote(null)
     try {
       const record = await recordConsent(API_URL, token, kept, version)
-      const file = trainingFileName()
-      download(toJsonl(kept), file)
-      setDone({ file, count: kept.length, at: record.createdAt })
       setRecords((current) => [
         { id: record.id, createdAt: record.createdAt, itemCount: record.itemCount, scrubberVersion: record.scrubberVersion },
         ...current,
       ])
+      if (then === 'download') {
+        const file = trainingFileName()
+        download(toJsonl(kept), file)
+        setDone({ file, count: kept.length, at: record.createdAt })
+      } else {
+        startTuning()
+      }
     } catch (e: any) {
       setError(e.message)
     } finally {
       setSaving(false)
     }
+  }
+
+  // Tuned here, in a worker on this device's graphics chip: the approved items never leave this browser.
+  const startTuning = () => {
+    setTuned(null)
+    setProgress(null)
+    const handle = tuneInThisBrowser(kept.map((item) => chatExample(item).messages as any), setProgress)
+    setTuning(handle)
+    handle.done
+      .then((model) => setTuned(model))
+      .catch((e: any) => setTuneNote(e?.cancelled ? 'Stopped. Nothing was kept.' : `Your model couldn’t be tuned here: ${e?.message || e}`))
+      .finally(() => {
+        setTuning(null)
+        setProgress(null)
+      })
+  }
+
+  const useTuned = (model: TunedModel) => {
+    saveOwnModel({ ...loadOwnModel(), enabled: true, runtime: 'browser', browserModel: model.id })
+    setUsing(true)
+  }
+
+  const forget = async (model: TunedModel) => {
+    await forgetTunedModel(model.id)
+    const settings = loadOwnModel()
+    if (settings.browserModel === model.id) saveOwnModel({ ...settings, enabled: false })
+    setTuned(null)
+    setUsing(false)
+    setTuneNote('Your tuned model was taken out of this browser.')
   }
 
   return (
@@ -163,8 +226,8 @@ export default function TrainingSetPage() {
         <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Build my training set</h1>
         <p className="text-slate-600">
           Choose things you wrote, like journal entries, reflections, notes on your plan and steps you made your own, to
-          tune a small open model on your device to how you talk about your steps. The training happens on your laptop,
-          not on our servers.
+          tune a small open model to how you talk about your steps. It&apos;s tuned on your own device, here in this
+          browser or on your laptop, never on our servers.
         </p>
       </header>
 
@@ -178,9 +241,9 @@ export default function TrainingSetPage() {
             and edit or remove anything.
           </li>
           <li>
-            <span className="font-medium">Download.</span> The file is made in this browser and saved to your computer.
-            We keep only a record that you approved these items: which ones, when, and the scrubber&apos;s version. Never
-            their text.
+            <span className="font-medium">Approve.</span> With one button your model is tuned here, in this browser, and kept
+            in it. Or download the file to train on your laptop. Either way we keep only a record that you approved these
+            items: which ones, when, and the scrubber&apos;s version. Never their text.
           </li>
         </ol>
         <p className="text-slate-500">
@@ -302,22 +365,79 @@ export default function TrainingSetPage() {
           </ul>
 
           <div className="rounded-xl border border-slate-200 p-4 space-y-3">
-            <h2 className="text-lg font-semibold text-slate-900">3. Download</h2>
+            <h2 className="text-lg font-semibold text-slate-900">3. Approve</h2>
             <label className="flex items-start gap-3">
               <input type="checkbox" className="mt-1" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
               <span className="text-sm text-slate-800">
                 I&apos;ve read every item on the right. Nothing in them says who I am or who anyone else is.
               </span>
             </label>
-            <button
-              type="button"
-              disabled={!confirmed || !kept.length || unchecked || saving}
-              onClick={approve}
-              className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-            >
-              {saving ? 'Saving…' : `Approve and download ${kept.length} item${kept.length === 1 ? '' : 's'}`}
-            </button>
+            <p className="text-sm text-slate-700">
+              Tuning here downloads a small open model once (Qwen3 0.6B, which thinks first; 1.2 GB) and tunes it on this
+              device&apos;s graphics chip, which takes a few minutes. Your items never leave this browser, and neither does
+              your model: it&apos;s kept here, for you alone.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={!confirmed || !kept.length || unchecked || saving || !!tuning || !canTune}
+                onClick={() => approve('tune')}
+                className="rounded-lg bg-indigo-700 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-800 disabled:opacity-50"
+              >
+                {tuning ? 'Tuning…' : `Approve and tune my model here (${kept.length} item${kept.length === 1 ? '' : 's'})`}
+              </button>
+              <button
+                type="button"
+                disabled={!confirmed || !kept.length || unchecked || saving || !!tuning}
+                onClick={() => approve('download')}
+                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 disabled:opacity-50"
+              >
+                {saving ? 'Saving…' : `Approve and download ${kept.length} item${kept.length === 1 ? '' : 's'} instead`}
+              </button>
+            </div>
+            {!canTune && (
+              <p className="text-xs text-slate-700">
+                This browser can&apos;t tune a model (it has no WebGPU). Try a recent Chrome or Edge, or Safari 26, or download
+                the items and train on your laptop.
+              </p>
+            )}
             {unchecked && <p className="text-xs text-slate-600">Click outside the box you edited, so your edit can be checked first.</p>}
+            {tuning && (
+              <div className="space-y-2" role="status" aria-live="polite">
+                <p className="text-sm text-slate-800">{progress ? progressWords(progress) : 'Starting…'}</p>
+                <progress className="w-full" max={progress?.total || 1} value={progress?.done || 0} aria-label="Tuning progress" />
+                <button type="button" onClick={() => tuning.cancel()} className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm">
+                  Stop
+                </button>
+              </div>
+            )}
+            {tuneNote && <p role="status" className="rounded-lg bg-slate-50 border border-slate-200 p-3 text-sm text-slate-800">{tuneNote}</p>}
+            {tuned && (
+              <div role="status" className="rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-sm text-emerald-900 space-y-2">
+                <p>
+                  <span className="font-semibold">{tunedLabel(tuned)}</span> is ready, kept in this browser.
+                  {tuned.lossBefore !== null && tuned.lossAfter !== null && (
+                    <> On the {tuned.heldOut} item{tuned.heldOut === 1 ? '' : 's'} held back to check it, it now fits your
+                      answers {tuned.lossAfter < tuned.lossBefore ? 'better' : 'no better'} (from {tuned.lossBefore} to {tuned.lossAfter}; lower is closer).</>
+                  )}
+                </p>
+                {using ? (
+                  <p>
+                    It&apos;s your own model now: plans and everything else that writes with AI use it. Change that in{' '}
+                    <Link href="/settings/models" className="underline">Use my own model</Link>.
+                  </p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    <button type="button" onClick={() => useTuned(tuned)} className="rounded-lg bg-emerald-700 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-800">
+                      Use it as my own model
+                    </button>
+                    <button type="button" onClick={() => forget(tuned)} className="rounded-lg border border-emerald-300 bg-white px-3 py-1.5 text-sm">
+                      Take it out of this browser
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
             {done && (
               <p role="status" className="rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-sm text-emerald-900">
                 Saved {done.file} with {done.count} example{done.count === 1 ? '' : 's'}. Your approval was recorded
@@ -329,7 +449,7 @@ export default function TrainingSetPage() {
       )}
 
       <section aria-labelledby="train-heading" className="rounded-xl border border-slate-200 p-4 text-sm text-slate-700 space-y-2">
-        <h2 id="train-heading" className="text-lg font-semibold text-slate-900">Train it on your laptop</h2>
+        <h2 id="train-heading" className="text-lg font-semibold text-slate-900">Or train it on your laptop</h2>
         <p>
           For a Mac with Apple silicon (M1 or newer). 16 GB of memory is best; with 8 GB the script picks a smaller model.
           It downloads a small open model the first time (a few GB), trains for about 10 to 30 minutes, and adds the result
@@ -346,8 +466,9 @@ export default function TrainingSetPage() {
         <p className="text-slate-500">
           A few dozen items change the model only a little, and a tuned model can get worse as well as better. Try it with
           Send a test prompt and keep the one you prefer. On Windows or Linux with an NVIDIA graphics card,{' '}
-          <a className="underline" href="/own-model/autinerary_model.py" download>autinerary_model.py</a> tunes it and makes an
-          adapter you can share; using it in Ollama there is <span className="text-slate-500">coming soon</span>.
+          <a className="underline" href="/own-model/autinerary_model.py" download>autinerary_model.py</a> tunes it, makes an
+          adapter you can share, and runs it for Autinerary: <code className="font-mono">python autinerary_model.py serve my-model</code>,
+          then use the address <code className="font-mono">http://localhost:11435/v1</code> in Use my own model.
         </p>
       </section>
 
@@ -361,8 +482,8 @@ export default function TrainingSetPage() {
         </section>
       ) : (
         <section aria-labelledby="share-heading" className="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-600 space-y-1">
-          <h2 id="share-heading" className="font-semibold text-slate-800">Share it with your community <span className="text-slate-500 font-normal">Coming soon</span></h2>
-          <p>Sharing a tuned model, and starting from one someone else shared, isn&apos;t available yet.</p>
+          <h2 id="share-heading" className="font-semibold text-slate-800">Share it with your community</h2>
+          <p>Sharing a tuned model, and starting from one someone else shared, is switched off for now.</p>
         </section>
       )}
 
