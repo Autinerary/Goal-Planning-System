@@ -331,7 +331,14 @@ async function RecommendedSection() {
 }
 
 async function HighestRatingsSection() {
-  const popular = await getPopularResources(12)
+  // Only services that have ratings (getPopularResources falls back to the newest listings when nothing is rated at
+  // all, which belongs under "Recommended", not under "Highest Ratings"). Ratings of test and made-up accounts are left
+  // out (STEP 99), so for now few services have enough; with none, no heading over nothing.
+  const popular = (await getPopularResources(12)).filter((resource: any) => (resource.ratingCount || 0) > 0)
+
+  if (popular.length === 0) {
+    return null
+  }
 
   return (
     <section className="mb-12" aria-labelledby="highest-ratings-heading">
@@ -373,6 +380,16 @@ async function HighestRatingsByCategorySection() {
     return null
   }
 
+  // Only categories with services rated by enough people (STEP 99 left out test and made-up accounts' ratings); with
+  // none, no heading over nothing.
+  const lists = (
+    await Promise.all(topCategories.map(async (category) => ({ category, resources: await getHighestRatedByCategory(category, 6) })))
+  ).filter((list) => list.resources.length > 0)
+
+  if (lists.length === 0) {
+    return null
+  }
+
   return (
     <section className="mb-12" aria-labelledby="highest-by-category-heading">
       <div className="flex items-center justify-between mb-6">
@@ -385,21 +402,15 @@ async function HighestRatingsByCategorySection() {
       </div>
 
       <div className="space-y-8">
-        {topCategories.map((category) => (
-          <HighestRatingsByCategoryItem key={category} category={category} limit={6} />
+        {lists.map(({ category, resources }) => (
+          <HighestRatingsByCategoryItem key={category} category={category} resources={resources} />
         ))}
       </div>
     </section>
   )
 }
 
-async function HighestRatingsByCategoryItem({ category, limit }: { category: string; limit: number }) {
-  const resources = await getHighestRatedByCategory(category, limit)
-
-  if (resources.length === 0) {
-    return null
-  }
-
+function HighestRatingsByCategoryItem({ category, resources }: { category: string; resources: any[] }) {
   return (
     <div>
       <h3 className="text-lg font-semibold text-gray-800 mb-4 capitalize">{category}</h3>

@@ -116,6 +116,13 @@ try {
     const { ctx, page, sent } = await fresh()
     await go(page, HUB + '/')
     check('ResourceHub: the cookie question shows on a first visit', await bannerShown(page))
+    // Only real people's ratings count (STEP 99), and few services have enough yet: a "Highest Ratings" heading is
+    // shown only over services, never over nothing.
+    const rated = await page.evaluate(() => [...document.querySelectorAll('h2')].filter((h) => /^Highest Ratings/.test(h.textContent.trim())).map((h) => {
+      const box = h.closest('section')
+      return { heading: h.textContent.trim(), cards: box ? new Set([...box.querySelectorAll('a[href^="/resources/"]')].map((a) => a.getAttribute('href'))).size : 0 }
+    }))
+    check('ResourceHub: no "Highest Ratings" heading over an empty list', rated.every((r) => r.cards > 0), rated)
     await go(page, HUB + '/search?q=autism')
     const k = await keys(page)
     check('ResourceHub: no visit counting kept before an answer', !k.some((x) => HUB_COUNTING.includes(x)), k)
