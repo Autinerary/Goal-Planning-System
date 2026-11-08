@@ -509,6 +509,9 @@ export default function ShareModelPage() {
             <label className="block space-y-1">
               <span className="font-medium">Title</span>
               <input value={title} maxLength={80} onChange={(e) => { setTitle(e.target.value); setChecks(null) }} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+              {family === 'llama3' && !/^llama/i.test(title.trim()) && (
+                <span className="block text-slate-600">It will be listed as “Llama {title.trim() || '…'}”: Llama’s licence asks that a model made from it begin with “Llama”.</span>
+              )}
             </label>
             <label className="block space-y-1">
               <span className="font-medium">What it&apos;s good for</span>

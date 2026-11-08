@@ -3,6 +3,7 @@ import type { User } from '@supabase/supabase-js'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { emailEnabled, sendEmail, welcomeEmail } from '@/lib/email'
+import { postalAddress } from '@/lib/newsletter'
 import { isCandidate, isPaused } from '@/lib/welcomeBackfill'
 
 export const dynamic = 'force-dynamic'
@@ -80,7 +81,7 @@ export async function POST(req: NextRequest) {
   let sent = 0
   const failed: string[] = []
   for (const u of next) {
-    const { subject, html, text } = welcomeEmail(appUrl)
+    const { subject, html, text } = welcomeEmail(appUrl, postalAddress())
     const result = await sendEmail({ to: u.email!, subject, html, text, idempotencyKey: `welcome-v1-${u.id}` })
     if (!result.ok) { failed.push(u.id); continue }
     await admin.auth.admin.updateUserById(u.id, { app_metadata: { ...u.app_metadata, welcome_email_sent_at: new Date().toISOString(), welcome_email_id: result.id || null } })

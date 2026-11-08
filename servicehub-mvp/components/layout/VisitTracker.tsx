@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
+import { countingAllowed } from '@/lib/consent'
 import { firstTime, track } from '@/lib/track'
 
 const DAY_KEY = 'rh_visit_day'
@@ -23,6 +24,8 @@ export default function VisitTracker() {
   const pathname = usePathname()
 
   useEffect(() => {
+    // Only with a yes to counting (lib/consent.ts): until then nothing about visits is kept or sent.
+    if (!countingAllowed()) return
     const day = today()
     let last: string | null = null
     try {
@@ -34,6 +37,7 @@ export default function VisitTracker() {
   }, [])
 
   useEffect(() => {
+    if (!countingAllowed()) return
     if (!/^\/resources\/[^/]+$/.test(pathname || '') || pathname === '/resources/new') return
     if (!firstTime('rh_first_resource_at')) return
     let from = 'browse'

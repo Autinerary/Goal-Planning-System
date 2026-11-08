@@ -4,18 +4,20 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/app/context/AuthContext'
-import { TERMS_VERSION } from '@/lib/legal'
+import { TERMS_CHANGE, TERMS_UPDATED, TERMS_VERSION } from '@/lib/legal'
 
 /**
  * Once, for people who made their account before the Terms and Conditions
- * (or before a new version): say there are terms, link to them, and record
- * "OK" (terms_acceptances, STEP 79). New accounts accept at sign-up, so they
- * never see it. Not on the terms page itself, or the sign-in pages.
+ * (or before a new version): say there are terms, or what changed for someone
+ * who accepted an earlier version, link to them, and record "OK"
+ * (terms_acceptances, STEP 79). New accounts accept at sign-up, so they never
+ * see it. Not on the terms page itself, or the sign-in pages.
  */
 export default function TermsNotice() {
   const { user } = useAuth()
   const pathname = usePathname() || '/'
   const [show, setShow] = useState(false)
+  const [changed, setChanged] = useState(false)
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
@@ -27,7 +29,10 @@ export default function TermsNotice() {
     if (seen) return
     fetch('/api/me/terms', { cache: 'no-store' })
       .then((r) => (r.ok ? r.json() : null))
-      .then((d) => setShow(Boolean(d && d.accepted === false)))
+      .then((d) => {
+        setShow(Boolean(d && d.accepted === false))
+        setChanged(Boolean(d?.earlier))
+      })
       .catch(() => {})
   }, [user])
 
@@ -48,9 +53,11 @@ export default function TermsNotice() {
       <div className="mx-auto flex max-w-5xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-slate-900">
           <span id="terms-notice-heading" className="font-semibold">
-            Autinerary now has Terms and Conditions.
+            {changed ? `Our Terms and Conditions changed on ${TERMS_UPDATED}.` : 'Autinerary now has Terms and Conditions.'}
           </span>{' '}
-          They cover the app and ResourceHub, and say what Autinerary is and is not, and the rules for ratings and posts.{' '}
+          {changed
+            ? TERMS_CHANGE
+            : 'They cover the app and ResourceHub, and say what Autinerary is and is not, and the rules for ratings and posts.'}{' '}
           <Link href="/terms" className="font-medium text-indigo-800 underline underline-offset-2">
             Read them
           </Link>

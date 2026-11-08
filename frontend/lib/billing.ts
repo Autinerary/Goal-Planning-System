@@ -59,7 +59,7 @@ export const planWords = (plan: Plan) => (plan === 'monthly' ? 'a month' : 'a ye
 export const PROMOTION_BUDGETS = [2500, 5000, 10000, 25000]
 
 /** Pages that stay open when someone has no access: paying, free access, the rules, and their own account. */
-export const PAYWALL_OPEN = ['/', '/start', '/kits', '/go', '/billing', '/free-access', '/pricing', '/petition', '/terms', '/privacy', '/help', '/profile', '/auth', '/login', '/signup', '/forgot-password', '/reset-password', '/onboarding', '/newsletter', '/community-choice', '/spot-guides', '/emails', '/checkin', '/business', '/providers']
+export const PAYWALL_OPEN = ['/', '/start', '/kits', '/go', '/billing', '/free-access', '/pricing', '/petition', '/terms', '/privacy', '/help', '/profile', '/auth', '/login', '/signup', '/forgot-password', '/reset-password', '/onboarding', '/newsletter', '/community-choice', '/spot-guides', '/emails', '/checkin', '/business', '/providers', '/about', '/cookies', '/refunds', '/delete-my-data', '/credits']
 
 export const isPaywallOpen = (path: string) => PAYWALL_OPEN.some((p) => path === p || path.startsWith(`${p}/`))
 

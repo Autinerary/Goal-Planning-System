@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { verifyCheckinToken } from '@/lib/checkinToken'
+import { stopCheckinEmails, verifyCheckinToken } from '@/lib/checkinToken'
 import { STOP_REASONS, USEFULNESS, EARLY_REASONS, type CheckinKind } from '@/lib/checkin'
 
 export const dynamic = 'force-dynamic'
@@ -89,13 +89,10 @@ export async function POST(req: NextRequest) {
 }
 
 async function stopEmails(token: unknown) {
-  const userId = verifyCheckinToken(String(token || ''))
-  if (!userId) return NextResponse.json({ error: 'This link has expired or is not valid.' }, { status: 401 })
-  const admin = createAdminClient()
-  const { data: profile, error } = await admin.from('profiles').select('preferences').eq('id', userId).maybeSingle()
-  if (error || !profile) return NextResponse.json({ error: 'Could not update your settings' }, { status: 500 })
-  const preferences = { ...((profile.preferences as Record<string, unknown>) || {}), checkin: { optIn: false, updatedAt: new Date().toISOString() } }
-  const { error: updateError } = await admin.from('profiles').update({ preferences }).eq('id', userId)
-  if (updateError) return NextResponse.json({ error: 'Could not update your settings' }, { status: 500 })
+  try {
+    if (!(await stopCheckinEmails(createAdminClient(), String(token || '')))) return NextResponse.json({ error: 'This link has expired or is not valid.' }, { status: 401 })
+  } catch {
+    return NextResponse.json({ error: 'Could not update your settings' }, { status: 500 })
+  }
   return NextResponse.json({ stopped: true })
 }

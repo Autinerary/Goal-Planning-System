@@ -49,6 +49,10 @@ export async function GET(req: NextRequest) {
 
 /**
  * POST /api/me/movement
+ *
+ * Saves the order of pages opened, by address only: what follows a "?" or "#" (a search, a link's code) is never
+ * kept, whatever the browser sends, and each visit keeps only its address, label and time (the compliance checklist,
+ * November 2026: "No unnecessary data"). The browser sends it only once counting is allowed (lib/consent.ts).
  */
 export async function POST(req: NextRequest) {
   const { user, supabase } = await getAuthenticatedUser(req)
@@ -70,11 +74,15 @@ export async function POST(req: NextRequest) {
   }
 
   // Keep payload bounded to protect row size
-  const trimmed = visits.slice(-500)
-  const summary =
-    typeof body.summary === 'string'
-      ? body.summary
-      : trimmed.map((v: any) => v?.label).filter(Boolean).join(' → ')
+  const trimmed = visits
+    .slice(-500)
+    .filter((v: any) => v && typeof v.path === 'string')
+    .map((v: any) => ({
+      path: v.path.split(/[?#]/)[0].slice(0, 200),
+      label: typeof v.label === 'string' ? v.label.slice(0, 60) : '',
+      at: typeof v.at === 'string' ? v.at.slice(0, 40) : '',
+    }))
+  const summary = trimmed.map((v: { label: string }) => v.label).filter(Boolean).join(' → ').slice(0, 20000)
 
   const movement = {
     visits: trimmed,

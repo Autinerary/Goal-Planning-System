@@ -171,6 +171,16 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
   }
   useEffect(() => { loadCollabGroups() }, [])
 
+  // Escape closes Create Collab Group, as its Close button does.
+  useEffect(() => {
+    if (!showGroupModal) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowGroupModal(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [showGroupModal])
+
   const createCollabGroup = async () => {
     setCollabError('')
     if (groupForm.name.trim().length < 2) { setCollabError('Give the group a name.'); return }

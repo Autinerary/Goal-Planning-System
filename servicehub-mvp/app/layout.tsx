@@ -1,3 +1,4 @@
+import CookieConsent from '@/components/layout/CookieConsent'
 import type { Metadata } from "next";
 import "./globals.css";
 import "./themes.css";
@@ -79,6 +80,7 @@ export default function RootLayout({
             },
           }}
         />
+        <CookieConsent />
         <UserWay />
       </body>
     </html>

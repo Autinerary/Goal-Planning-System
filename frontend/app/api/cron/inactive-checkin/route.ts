@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { emailEnabled, sendEmail, checkinEmail } from '@/lib/email'
+import { emailEnabled, sendEmail, checkinEmail, checkinStopHeaders } from '@/lib/email'
+import { postalAddress } from '@/lib/newsletter'
 import { pushEnabled, pushToUser } from '@/lib/push'
 import { createCheckinToken } from '@/lib/checkinToken'
 import { AWAY_DAYS } from '@/lib/checkin'
@@ -122,8 +123,8 @@ export async function GET(req: NextRequest) {
     const token = createCheckinToken(p.id, new Date(now))
     let reached = false
     if (p.email && canEmail) {
-      const { subject, html, text } = checkinEmail(appUrl, token)
-      const res = await sendEmail({ to: p.email, subject, html, text, idempotencyKey: `checkin-${p.id}-${today}` })
+      const { subject, html, text } = checkinEmail(appUrl, token, postalAddress())
+      const res = await sendEmail({ to: p.email, subject, html, text, headers: checkinStopHeaders(appUrl, token), idempotencyKey: `checkin-${p.id}-${today}` })
       if (res.ok) {
         emailed++
         reached = true

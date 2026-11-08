@@ -9,7 +9,8 @@ const missing = (e: { code?: string; message?: string } | null) => !!e && (e.cod
 
 /**
  * GET  /api/me/terms  whether the signed-in person has accepted this version
- *      of the Terms and Conditions (lib/legal.ts)
+ *      of the Terms and Conditions (lib/legal.ts), and whether they accepted
+ *      an earlier one (`earlier`: the notice then says what changed)
  * POST /api/me/terms  accept it, from the notice (TermsNotice)
  */
 export async function GET() {
@@ -18,9 +19,10 @@ export async function GET() {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ accepted: true })
-  const { data, error } = await supabase.from('terms_acceptances').select('version').eq('user_id', user.id).eq('version', TERMS_VERSION).limit(1)
+  const { data, error } = await supabase.from('terms_acceptances').select('version').eq('user_id', user.id).limit(50)
   if (error) return NextResponse.json({ accepted: true, open: !missing(error) })
-  return NextResponse.json({ accepted: (data || []).length > 0, version: TERMS_VERSION })
+  const versions = (data || []).map((r) => r.version as string)
+  return NextResponse.json({ accepted: versions.includes(TERMS_VERSION), earlier: versions.some((v) => v !== TERMS_VERSION), version: TERMS_VERSION })
 }
 
 export async function POST() {

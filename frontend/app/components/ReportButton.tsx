@@ -6,7 +6,7 @@
  * same moderation queue (community_reports, ResourceHub's /admin/community).
  */
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Flag } from 'lucide-react'
 
 interface ReportButtonProps {
@@ -22,6 +22,16 @@ export default function ReportButton({ what, onReport, className }: ReportButton
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Escape closes the dialog, as its Cancel does.
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open])
 
   const submit = async () => {
     setSubmitting(true)

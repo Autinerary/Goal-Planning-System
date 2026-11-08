@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { emailEnabled, providerReviewedEmail, providerSurveyEmail, sendEmail } from '@/lib/email'
 import { postalAddress } from '@/lib/newsletter'
 import { surveyLink, usableEmail } from '@/lib/listings'
+import { PROOF_EMAIL } from '@/lib/legal'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300
@@ -113,7 +114,7 @@ export async function POST(req: NextRequest) {
       kind === 'reviewed'
         ? providerReviewedEmail({ name: t.name, ratings: t.ratings, listing, survey, claim, image: t.image, postal })
         : providerSurveyEmail({ name: t.name, listing, survey, claim, image: t.image, postal })
-    const r = await sendEmail({ to: t.email, ...email, idempotencyKey: `provider-${kind}-${t.ref}`.slice(0, 256), headers: { 'List-Unsubscribe': `<mailto:heydevs@autinerary.ca?subject=stop>` } })
+    const r = await sendEmail({ to: t.email, ...email, idempotencyKey: `provider-${kind}-${t.ref}`.slice(0, 256), replyTo: PROOF_EMAIL, headers: { 'List-Unsubscribe': `<mailto:${PROOF_EMAIL}?subject=stop>` } })
     if (r.ok) {
       sent += 1
       await db.from('provider_emails').upsert({ resource_id: t.id, kind, ref: t.ref, sent_to: t.email }, { onConflict: 'kind,ref', ignoreDuplicates: true })

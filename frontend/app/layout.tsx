@@ -19,7 +19,8 @@ import ServiceWorkerRegistrar from './components/ServiceWorkerRegistrar'
 import InstallPrompt from './components/InstallPrompt'
 import InfoModeProvider from './components/InfoModeProvider'
 import SkyBackdrop from './components/SkyBackdrop'
-import AnalyticsConsent from './components/AnalyticsConsent'
+import CookieConsent from './components/CookieConsent'
+import SiteFooter from './components/SiteFooter'
 import TermsNotice from './components/TermsNotice'
 import Paywall from './components/Paywall'
 import PageFooter from './components/PageFooter'
@@ -119,6 +120,13 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen">
+        {/* The first thing a keyboard reaches: past the menus to the page (WCAG 2.4.1). */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:font-semibold focus:text-indigo-800 focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-700"
+        >
+          Skip to main content
+        </a>
         <AuthProvider>
           <AgentPathProvider>
             <LanguageProvider>
@@ -132,17 +140,18 @@ export default function RootLayout({
             <Paywall />
             <ViewTabs />
             <MovementTracker />
-            <main>
+            <main id="main-content" tabIndex={-1} className="focus:outline-none">
               {children}
             </main>
             <PageFooter />
+            <SiteFooter />
             <FeedbackGate />
             <Toaster />
             <InteractiveDemo />
             <PageGuide />
             <InfoModeProvider />
             <SkyBackdrop />
-            <AnalyticsConsent />
+            <CookieConsent />
             <UserWay />
             </LanguageProvider>
           </AgentPathProvider>

@@ -1,10 +1,12 @@
+import { countingAllowed } from '@/lib/consent'
 import { SETUP_VERSION } from '@/lib/onboarding/setup'
 
 /**
  * ResourceHub's first-session events (app/api/events). Fire and forget: a
- * failed send never shows or blocks anything. Browsers that send Do Not
- * Track or Global Privacy Control send nothing, as in Goal Planning
- * (frontend/lib/funnel.ts).
+ * failed send never shows or blocks anything. Nothing is sent, and no visitor
+ * ID is made, until this browser says yes to counting (lib/consent.ts);
+ * browsers that send Do Not Track or Global Privacy Control send nothing, as
+ * in Goal Planning (frontend/lib/funnel.ts).
  */
 
 export type TrackEvent =
@@ -21,10 +23,10 @@ export type PromptId = (typeof PROMPT_IDS)[number]
 
 const VISITOR_KEY = 'rh_visitor_id'
 
+// Only after a yes to counting (lib/consent.ts, the cookie banner), and never when the browser sends Global Privacy
+// Control or Do Not Track.
 function optedOut(): boolean {
-  if (typeof navigator === 'undefined') return true
-  const nav = navigator as Navigator & { globalPrivacyControl?: boolean }
-  return nav.globalPrivacyControl === true || nav.doNotTrack === '1'
+  return !countingAllowed()
 }
 
 function newId(): string {

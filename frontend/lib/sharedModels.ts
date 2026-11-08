@@ -264,6 +264,8 @@ export type SharedAdapter = {
   family: 'llama3' | 'qwen3' | null
   /** Set for one tuned in the browser: the model WebLLM runs it on. It's used, or tuned further, in the browser. */
   browserBase?: string | null
+  /** Its base model's licence (api/routes/adapters.py, BASE_LICENCES): Llama-based ones say "Built with Llama". */
+  licence?: { name: string; url: string; policy: string | null; builtWithLlama: boolean } | null
   createdAt: string
   visibility: Visibility
   rating: { average: number | null; count: number }

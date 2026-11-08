@@ -3,7 +3,9 @@ import assert from 'node:assert/strict'
 import { formatMoney, isPaywallOpen, isPlan, planWords, FEEDBACK_REASONS, ACCESS_KINDS } from './billing.ts'
 
 // What stays open when someone has no access: paying, free access, the rules, their account, the public pages.
-for (const open of ['/', '/billing', '/billing?done=1'.split('?')[0], '/free-access', '/pricing', '/petition', '/terms', '/privacy', '/profile/settings', '/kits/school', '/start', '/business', '/help']) {
+for (const open of ['/', '/billing', '/billing?done=1'.split('?')[0], '/free-access', '/pricing', '/petition', '/terms', '/privacy', '/profile/settings', '/kits/school', '/start', '/business', '/help',
+  // The policies and who we are, and stopping emails (the compliance checklist, November 2026).
+  '/about', '/cookies', '/refunds', '/delete-my-data', '/credits', '/emails/stop']) {
   assert.equal(isPaywallOpen(open), true, open)
 }
 // And what doesn't: the app itself. "/" opens only the home page, not everything under it.

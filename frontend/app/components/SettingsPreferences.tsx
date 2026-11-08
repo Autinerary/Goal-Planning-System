@@ -24,6 +24,7 @@ import { FIRST_WEEKS_CONSENT, firstWeeksStillAhead } from '@/lib/firstWeeks'
 import { LANGUAGE_STYLES } from '@/lib/languageStyle'
 import { browserTimeZone } from '@/lib/reminderSchedule'
 import { gaConsent, gaEnabled, setGaConsent } from '@/lib/analytics'
+import { browserSaysNo } from '@/lib/consent'
 
 /** Odosa's wording for the four artistic levels, in her order. */
 // A plain icon for each look, in place of emoji (Riipen Labs, Group 9).
@@ -388,7 +389,7 @@ export default function SettingsPreferences() {
         <div className="mt-4">
           <PushOptIn />
         </div>
-        {gaEnabled() && <AnalyticsSetting />}
+        <AnalyticsSetting />
       </section>
     </div>
   )
@@ -427,10 +428,15 @@ function WeeklyPicksSetting({ enabled, onChange }: { enabled: boolean; onChange:
   )
 }
 
-/** Google Analytics, when it is set up: the visitor's yes or no, changeable here. */
+/** Counting how the app is used (lib/consent.ts), and Google Analytics with it when it is set up: this browser's yes
+ * or no, as in the cookie banner. */
 function AnalyticsSetting() {
   const [on, setOn] = useState(false)
-  useEffect(() => setOn(gaConsent() === 'yes'), [])
+  const [browserNo, setBrowserNo] = useState(false)
+  useEffect(() => {
+    setOn(gaConsent() === 'yes')
+    setBrowserNo(browserSaysNo())
+  }, [])
   return (
     <label className="mt-4 flex items-start gap-3 text-sm text-slate-700 cursor-pointer">
       <input
@@ -442,7 +448,11 @@ function AnalyticsSetting() {
         }}
         className="mt-0.5 h-4 w-4 rounded border-slate-300 text-cyan-700 focus:ring-cyan-500"
       />
-      <span>Let Google Analytics count which pages I use (never what I type, not for ads).</span>
+      <span>
+        Count which pages I open and how far setup goes, in this browser{gaEnabled() ? ', with Google Analytics' : ''} (never what I
+        type, not for ads).{browserNo ? ' Your browser asks sites not to track you, so nothing is counted.' : ''}{' '}
+        <a href="/cookies" className="underline">Cookie policy</a>
+      </span>
     </label>
   )
 }

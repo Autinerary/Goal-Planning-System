@@ -89,6 +89,29 @@ BASE_FAMILIES = {
 
 def shareable_base(base_model: Optional[str]) -> bool:
     return base_model in BASE_MODELS or base_model in BROWSER_BASES
+
+
+# The base models' licences, shown with every model shared from them (Credits and licences, app/credits). Llama 3.2's
+# Community License (section 1.b.i) asks that a model made from it and made available say "Built with Llama" and that
+# its name begin with "Llama": licensed_title() adds it to a title that doesn't.
+LLAMA_LICENCE = {"name": "Llama 3.2 Community License", "url": "https://www.llama.com/llama3_2/license/",
+                 "policy": "https://www.llama.com/llama3_2/use-policy/", "builtWithLlama": True}
+APACHE_LICENCE = {"name": "Apache License 2.0", "url": "https://www.apache.org/licenses/LICENSE-2.0", "policy": None,
+                  "builtWithLlama": False}
+BASE_LICENCES = {
+    "mlx-community/Llama-3.2-1B-Instruct-bf16": LLAMA_LICENCE,
+    "mlx-community/Llama-3.2-3B-Instruct-bf16": LLAMA_LICENCE,
+    "Qwen/Qwen3-0.6B": APACHE_LICENCE,
+}
+
+
+def licensed_title(title: str, base_model: Optional[str]) -> str:
+    """The title a shared model is listed under: as written, with "Llama" in front when its base is Llama and it
+    doesn't already begin with it (the licence's naming rule). At most 80 characters, as the title may be."""
+    text = " ".join((title or "").split())
+    if (BASE_LICENCES.get(base_model) or {}).get("builtWithLlama") and not text.lower().startswith("llama"):
+        text = f"Llama {text}"
+    return text[:80]
 VISIBILITIES = ("everyone", "people", "link")
 # On 24 training answers, the untuned Llama 3.2 1B's closest continuation was 0.40; the same model tuned for 10 steps
 # said 13 of them back at 0.5 or more (31 October 2026). A failure only means training again with less repetition.
@@ -434,6 +457,7 @@ def _public(row: Dict[str, Any], ratings: List[Dict[str, Any]], caller: Optional
         "ollamaBase": BASE_MODELS.get(row["base_model"]), "family": BASE_FAMILIES.get(row["base_model"]),
         # Used, or tuned further, in the browser (WebLLM), not Ollama.
         "browserBase": BROWSER_BASES.get(row["base_model"]),
+        "licence": BASE_LICENCES.get(row["base_model"]),
         "createdAt": row.get("created_at"), "visibility": row.get("visibility") or "everyone",
         "rating": {"average": round(sum(stars) / len(stars), 1) if stars else None, "count": len(stars)},
         "ratingForYou": tags.rating_for(me, [(raters.get(r.get("user_id"), set()), int(r["rating"])) for r in own]) if me and own else None,
@@ -584,7 +608,7 @@ async def create_adapter(body: AdapterIn, user_id: str = Depends(current_user_id
     key = secrets.token_urlsafe(24) if body.visibility == "link" else None
     try:
         sb.table("shared_adapters").insert({
-            "id": adapter_id, "owner_id": user_id, "title": body.title.strip(), "description": body.description.strip(),
+            "id": adapter_id, "owner_id": user_id, "title": licensed_title(body.title, body.baseModel), "description": body.description.strip(),
             "community_tags": tags.clean_tags(body.tags), "base_model": body.baseModel, "file_path": adapter_id,
             "scrubber_version": checks["scrub_review"]["scrubberVersion"], "consent_id": body.consentId,
             "visibility": body.visibility, "link_token": key, "built_on": checks["lineage"].get("builtOn"),
@@ -644,7 +668,7 @@ async def edit_adapter(adapter_id: str, body: AdapterEdit, user_id: str = Depend
         raise HTTPException(status_code=422, detail={"message": " ".join(c["why"] for c in checks.values() if c["why"]), "checks": checks})
     key = (row.get("link_token") or secrets.token_urlsafe(24)) if visibility == "link" else None
     sb.table("shared_adapters").update({
-        "title": body.title.strip(), "description": body.description.strip(), "community_tags": tags.clean_tags(body.tags),
+        "title": licensed_title(body.title, row.get("base_model")), "description": body.description.strip(), "community_tags": tags.clean_tags(body.tags),
         "visibility": visibility, "link_token": key, "moderation_checks": {**(row.get("moderation_checks") or {}), **checks},
     }).eq("id", row["id"]).execute()
     sb.table("shared_adapter_access").delete().eq("adapter_id", row["id"]).execute()

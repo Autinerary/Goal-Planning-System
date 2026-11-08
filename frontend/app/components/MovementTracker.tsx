@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
+import { countingAllowed } from '@/lib/consent'
 import { recordVisit, syncMovement } from '@/lib/movement'
 
 function MovementTrackerInner() {
@@ -10,9 +11,10 @@ function MovementTrackerInner() {
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    if (!pathname) return
-    const qs = searchParams?.toString()
-    recordVisit(qs ? `${pathname}?${qs}` : pathname)
+    // Only with a yes to counting (the cookie banner, lib/consent.ts), and only the page's path: a query string can
+    // carry search words or a private link's key.
+    if (!pathname || !countingAllowed()) return
+    recordVisit(pathname)
     // Best-effort, debounced upload for cross-device analytics.
     syncMovement()
   }, [pathname, searchParams])

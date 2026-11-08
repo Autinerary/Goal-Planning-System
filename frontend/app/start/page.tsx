@@ -4,7 +4,6 @@ import FunnelPing from '../components/FunnelPing'
 import StartHere from '../components/StartHere'
 import AccountLink from './AccountLink'
 import PublicDisplay from '../components/PublicDisplay'
-import FeedbackButton from '../components/FeedbackButton'
 
 export const metadata: Metadata = {
   title: 'Start here · Autinerary',
@@ -41,23 +40,6 @@ export default function StartPage() {
       <main>
         <StartHere standalone />
       </main>
-      <footer className="border-t border-slate-200 bg-slate-50 px-4 py-6">
-        <div className="mx-auto flex max-w-3xl flex-col items-center justify-between gap-2 text-sm text-slate-700 sm:flex-row">
-          <Link href="/" className="font-medium text-slate-800 underline underline-offset-2 hover:text-slate-900">
-            What is Autinerary?
-          </Link>
-          <span className="flex gap-4">
-            <Link href="/privacy" className="font-medium text-slate-800 underline underline-offset-2 hover:text-slate-900">
-              Privacy
-            </Link>
-            <Link href="/terms" className="font-medium text-slate-800 underline underline-offset-2 hover:text-slate-900">
-              Terms
-            </Link>
-            <FeedbackButton icon={false} className="font-medium text-slate-800 underline underline-offset-2 hover:text-slate-900" />
-          </span>
-          <span>© 2026 Autinerary Corp. All rights reserved.</span>
-        </div>
-      </footer>
     </div>
   )
 }

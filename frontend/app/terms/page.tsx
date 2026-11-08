@@ -65,6 +65,7 @@ export default function TermsPage() {
             <li>Rate only what you have used, honestly. Don’t fake ratings, votes or reviews.</li>
             <li>Be kind to other people here, and don’t share anyone’s private information.</li>
             <li>What you post is yours; you let us show it in Autinerary.</li>
+            <li>A model, agent or pathway you share can be used, copied and built on by the people you share it with.</li>
             <li>Autinerary is free during the beta. We will tell you before anything you use costs money.</li>
             <li>When paid plans start: a free first month with no card, then monthly or yearly, and you can cancel any time.</li>
           </List>
@@ -223,6 +224,42 @@ export default function TermsPage() {
           </List>
         </Section>
 
+        <Section id="agents-models" title="Agents, your own model, and what you share">
+          <List>
+            <li>
+              <strong>Agents and models.</strong> Your agents, and a model on your device or in your browser, write with AI, so
+              what they say can be wrong, as anywhere else in Autinerary. Agents you build are kept in your browser; keep a copy
+              if you want them on another device.
+            </li>
+            <li>
+              <strong>Open models.</strong> The model in your browser is Qwen3 (Apache License 2.0). The training scripts tune
+              Llama 3.2, under the{' '}
+              <a href="https://www.llama.com/llama3_2/license/" className="font-medium text-indigo-800 underline underline-offset-2" target="_blank" rel="noopener noreferrer">Llama 3.2 Community License</a>{' '}
+              and its{' '}
+              <a href="https://www.llama.com/llama3_2/use-policy/" className="font-medium text-indigo-800 underline underline-offset-2" target="_blank" rel="noopener noreferrer">Acceptable Use Policy</a>,
+              which apply to you when you use it or anything made from it. A model you tune is yours to keep, under its base
+              model’s licence. {link('/credits', 'Credits and licences')} lists them.
+            </li>
+            <li>
+              <strong>Sharing.</strong> When you share a model, an agent or a pathway, you confirm that you have the right to,
+              that it says nothing private about anyone, and that everyone you credit agreed to be named. You let us store it,
+              check it, and show it to the people you chose; and you let them use it, add a copy to their own device, build on
+              it and share what they build (which says what it was built on), for free, under these terms. A model built on
+              Llama is listed with a name starting “Llama”, and is shared under Llama’s licence.
+            </li>
+            <li>
+              <strong>Checks, and no promises.</strong> Shared models and agents are checked before anyone sees them (for
+              personal details, for saying their training items back, and for harmful instructions), and pathways are read by
+              the team. Checks can miss things: what other people share is theirs, not advice from us, and we don’t promise it
+              works or suits you.
+            </li>
+            <li>
+              <strong>Taking it down.</strong> You can take down anything you shared at any time. We may remove anything that
+              breaks these terms, a licence or the law, or that people report. People who already added a copy keep theirs.
+            </li>
+          </List>
+        </Section>
+
         <Section id="conduct" title="What not to do">
           <List>
             <li>Break the law, or help someone else to.</li>
@@ -232,6 +269,7 @@ export default function TermsPage() {
             <li>Copy ResourceHub’s listings in bulk with scripts, or access Autinerary by automated means without our permission.</li>
             <li>Try to get into other accounts, test or break our security, or upload anything harmful.</li>
             <li>Use the AI features to make anything harmful, or to fake ratings, reviews or votes.</li>
+            <li>Share a model or agent made to get around its checks, to say someone’s private information, or to break its base model’s licence.</li>
             <li>
               Share a photo or video in Hare World Social that shows someone else’s face or name without their OK, or that
               isn’t about your own journey.
@@ -323,7 +361,7 @@ export default function TermsPage() {
 
         <Section id="ending" title="Ending">
           <p>
-            You can delete your account at any time in Settings. We may pause or close an account that breaks these terms or the
+            You can delete your account at any time on Your profile ({link('/delete-my-data', 'Delete my data')} says how). We may pause or close an account that breaks these terms or the
             law, or puts other people at risk. Where we can, we will tell you why, and you can ask us to look again.
           </p>
         </Section>
@@ -366,7 +404,10 @@ export default function TermsPage() {
         </Section>
 
         <Section id="contact" title="Contact">
-          <p>Questions about these terms: {mail(CONTACT_EMAIL)} (Autinerary Corp.). Proof that you used a service: {mail(PROOF_EMAIL)}.</p>
+          <p>
+            Questions about these terms: {mail(CONTACT_EMAIL)} (Autinerary Corp., Ontario, Canada; {link('/about', 'our address')}).
+            Proof that you used a service: {mail(PROOF_EMAIL)}. Refunds: {link('/refunds', 'Refunds')}.
+          </p>
         </Section>
 
         <p className="mt-10 text-sm">

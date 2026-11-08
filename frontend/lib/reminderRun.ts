@@ -13,6 +13,7 @@ import { sendEmail, dailyReminderEmail, finishSetupEmail, setupReminderEmail, st
 import { setupReminderLinks } from '@/lib/setupReminders'
 import { firstWeeksDue, type FirstWeeksFacts } from '@/lib/firstWeeks'
 import { firstWeeksLinks } from '@/lib/firstWeeksLinks'
+import { oneClickHeaders, stopLinks } from '@/lib/emailStopLinks'
 import { createCheckinToken } from '@/lib/checkinToken'
 import { milestoneNames } from '@/lib/pathMilestones'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -73,8 +74,9 @@ export async function runReminders(now: Date, appUrl: string): Promise<ReminderR
       } else if (emailEnabled()) {
         const to = (rem.contact as string) || (row.email as string)
         if (to) {
-          const { subject, html, text } = dailyReminderEmail(prefs.name || null, appUrl)
-          const res = await sendEmail({ to, subject, html, text, idempotencyKey: `reminder-${row.id}-${day}` })
+          const links = stopLinks(appUrl, 'reminders', row.id)
+          const { subject, html, text } = dailyReminderEmail(prefs.name || null, appUrl, links.stop, postalAddress())
+          const res = await sendEmail({ to, subject, html, text, headers: oneClickHeaders(links.oneClick), idempotencyKey: `reminder-${row.id}-${day}` })
           if (res.ok) { sent = true; result.sent++ } else if (!res.skipped) result.failures.push(`${row.id}: ${res.error}`)
         }
       }
@@ -185,7 +187,7 @@ export async function notifyStories(appUrl: string): Promise<number> {
     const { data: found } = await admin.auth.admin.getUserById(story.user_id)
     const to = found?.user?.email
     if (!to) continue
-    const res = await sendEmail({ ...storyReadyEmail(appUrl), to, idempotencyKey: `story-ready-${story.id}` })
+    const res = await sendEmail({ ...storyReadyEmail(appUrl, postalAddress()), to, idempotencyKey: `story-ready-${story.id}` })
     if (res.ok) {
       sent++
       await admin.from('stories').update({ notified_at: new Date().toISOString() }).eq('id', story.id)

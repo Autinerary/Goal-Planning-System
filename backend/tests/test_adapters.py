@@ -330,6 +330,23 @@ class ListTests(unittest.TestCase):
         self.assertEqual([a["id"] for a in listed], [made["id"]])
         self.assertEqual((listed[0]["ollamaBase"], listed[0]["family"], listed[0]["browserBase"]), (None, "qwen3", "Qwen3-0.6B-q0f16-MLC"))
 
+    def test_a_llama_model_is_named_and_credited_as_its_licence_asks(self):
+        db = FakeDB()
+        share(db, title="Calm first steps")
+        share(db, title="llama for small steps")
+        share(db, title="Quiet mornings", baseModel="Qwen/Qwen3-0.6B")
+        listed = {a["title"]: a for a in run(adapters.list_adapters, db, caller=None)["adapters"]}
+        self.assertEqual(sorted(listed), ["Llama Calm first steps", "Quiet mornings", "llama for small steps"])
+        self.assertTrue(listed["Llama Calm first steps"]["licence"]["builtWithLlama"])
+        self.assertEqual(listed["Llama Calm first steps"]["licence"]["name"], "Llama 3.2 Community License")
+        self.assertEqual(listed["Quiet mornings"]["licence"]["name"], "Apache License 2.0")
+        self.assertFalse(listed["Quiet mornings"]["licence"]["builtWithLlama"])
+
+    def test_the_name_rule_keeps_the_title_short_enough(self):
+        self.assertEqual(adapters.licensed_title("  Calm   steps ", BASE), "Llama Calm steps")
+        self.assertEqual(adapters.licensed_title("Calm steps", "Qwen/Qwen3-0.6B"), "Calm steps")
+        self.assertEqual(len(adapters.licensed_title("x" * 80, BASE)), 80)
+
     def test_best_for_you_first_by_your_onboarding_answers(self):
         db = FakeDB().add_people("student", 5, goals=["Graduate college"])
         share(db, title="Reading help", tags=["dyslexia"], visibility="people", people=[FRIEND])  # not listed for everyone
@@ -338,7 +355,8 @@ class ListTests(unittest.TestCase):
         share(db, title="Calm first steps", tags=["autism", "work"])
         listed = run(adapters.list_adapters, db, caller=OTHER)       # autistic, with ADHD, looking for an internship
         self.assertTrue(listed["forYou"])
-        self.assertEqual([a["title"] for a in listed["adapters"]], ["Calm first steps", "Interview nerves", "Study blocks"])
+        # Llama-based, so their names begin with "Llama" (the licence; adapters.licensed_title).
+        self.assertEqual([a["title"] for a in listed["adapters"]], ["Llama Calm first steps", "Llama Interview nerves", "Llama Study blocks"])
         self.assertEqual(listed["adapters"][0]["match"], {"score": 1.0, "shared": ["autism", "work"]})
         self.assertEqual(listed["adapters"][2]["match"]["score"], 0.0)
 
@@ -361,7 +379,7 @@ class ListTests(unittest.TestCase):
         child, _ = share(db, user=OTHER, title="Calm first steps for interns", builtOn=parent["id"],
                          consentId="c0000000-0000-4000-8000-000000000002", description="Built on another.")
         listed = {a["id"]: a for a in run(adapters.list_adapters, db, caller=None)["adapters"]}
-        self.assertEqual(listed[child["id"]]["builtOn"], {"id": parent["id"], "title": "Calm first steps"})
+        self.assertEqual(listed[child["id"]]["builtOn"], {"id": parent["id"], "title": "Llama Calm first steps"})
         self.assertEqual(listed[parent["id"]]["builtOnCount"], 1)
 
     def test_a_model_built_on_one_that_isnt_shared_any_more_cant_name_it(self):
@@ -414,7 +432,7 @@ class UsingTests(unittest.TestCase):
         db = FakeDB()
         made, _ = share(db)
         out = run(adapters.download_adapter, db, made["id"], caller=None)
-        self.assertEqual([f["name"] for f in out["files"]], ["calm-first-steps.safetensors", "calm-first-steps.adapter_config.json"])
+        self.assertEqual([f["name"] for f in out["files"]], ["llama-calm-first-steps.safetensors", "llama-calm-first-steps.adapter_config.json"])
         self.assertTrue(all("expires=600" in f["url"] for f in out["files"]))
 
     def test_ratings_but_not_your_own(self):
@@ -444,7 +462,7 @@ class UsingTests(unittest.TestCase):
             run(adapters.edit_adapter, db, made["id"], adapters.AdapterEdit(title="Calm", description="Ask Priya Sharma"), user_id=OWNER)
         self.assertEqual(caught.exception.status_code, 422)
         run(adapters.edit_adapter, db, made["id"], adapters.AdapterEdit(title="Calmer first steps", tags=["autism"]), user_id=OWNER)
-        self.assertEqual(db.tables["shared_adapters"][0]["title"], "Calmer first steps")
+        self.assertEqual(db.tables["shared_adapters"][0]["title"], "Llama Calmer first steps")
         with self.assertRaises(HTTPException):
             run(adapters.delete_adapter, db, made["id"], user_id=OTHER)
         run(adapters.delete_adapter, db, made["id"], user_id=OWNER)

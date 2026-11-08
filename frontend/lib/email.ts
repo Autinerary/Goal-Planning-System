@@ -5,6 +5,7 @@
 // the key. Server-only (never import from client components).
 
 import { recapLines, communityAction, type FirstWeeksFacts } from '@/lib/firstWeeks'
+import { CONTACT_EMAIL } from '@/lib/contact'
 
 export interface SendEmailInput {
   to: string
@@ -67,33 +68,37 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
 /**
  * The daily reminder. Calm, with no streak to keep and no emoji (Riipen
  * Labs, Group 15: "No countdown timers, guilt-based prompts, or artificial
- * urgency"; Group 18: emoji-heavy screens read as generic).
+ * urgency"; Group 18: emoji-heavy screens read as generic). `stop` turns it
+ * off without signing in (lib/reminderLinks.ts); with our mailing address, as
+ * Canada's anti-spam law asks. No survey tiles: it can come every day.
  */
-export function dailyReminderEmail(name: string | null, appUrl: string): { subject: string; html: string; text: string } {
+export function dailyReminderEmail(name: string | null, appUrl: string, stop: string, postal: string | null): { subject: string; html: string; text: string } {
   const who = name ? `Hi ${name},` : 'Hi,'
   const link = `${appUrl.replace(/\/$/, '')}/path`
+  const foot = footer(stop, postal, 'You get this because you turned on daily reminders. You can also change them in Settings, under Emails.', false)
   return {
     subject: 'Your next step for today',
-    text: `${who}\n\nYour next step is on your Path, with today's tasks. Do as much or as little as fits today:\n${link}\n\nYou're getting this because you turned on daily reminders. You can turn them off in Settings, under Emails.\n\n— Autinerary`,
+    text: `${who}\n\nYour next step is on your Path, with today's tasks. Do as much or as little as fits today:\n${link}\n${foot.text}\n\n— Autinerary`,
     html: `
       <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#0f172a">
         <p style="font-size:16px">${esc(who)}</p>
         <p style="font-size:16px;line-height:1.5">Your next step is on your Path, with today's tasks. Do as much or as little as fits today.</p>
         <p style="margin:24px 0">
           <a href="${link}" style="background:#1b5d30;color:#fff;text-decoration:none;padding:12px 22px;border-radius:12px;font-weight:600;display:inline-block">Open my Path</a>
-        </p>
-        <p style="font-size:12px;color:#64748b">You're getting this because you turned on daily reminders. You can turn them off in Settings, under Emails.</p>
+        </p>${foot.html}
       </div>`,
   }
 }
 
 
-/** Sent once, when someone finishes setup (app/api/me/welcome). */
-export function welcomeEmail(appUrl: string): { subject: string; html: string; text: string } {
-  const link = `${appUrl.replace(/\/$/, '')}/path`
+/** Sent once, when someone finishes setup (app/api/me/welcome). Says who we are and where, and how to stop emails. */
+export function welcomeEmail(appUrl: string, postal: string | null = null): { subject: string; html: string; text: string } {
+  const base = appUrl.replace(/\/$/, '')
+  const link = `${base}/path`
+  const foot = noticeFooter(base, postal, 'You get this once, because you made an Autinerary account.')
   return {
     subject: 'Welcome to Autinerary',
-    text: `Welcome to Autinerary!\n\nYour account and first Path are ready. Open it to see your first milestone:\n${link}\n\nYou can explore resources and people whenever you are ready.\n\n- Autinerary`,
+    text: `Welcome to Autinerary!\n\nYour account and first Path are ready. Open it to see your first milestone:\n${link}\n\nYou can explore resources and people whenever you are ready.\n${foot.text}\n\n- Autinerary`,
     html: `
       <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#0f172a">
         <h1 style="font-size:24px;margin:0 0 16px">Welcome to Autinerary</h1>
@@ -101,7 +106,7 @@ export function welcomeEmail(appUrl: string): { subject: string; html: string; t
         <p style="margin:24px 0">
           <a href="${link}" style="background:#1b5d30;color:#fff;text-decoration:none;padding:12px 22px;border-radius:12px;font-weight:600;display:inline-block">Open my Path</a>
         </p>
-        <p style="font-size:16px;line-height:1.5">You can explore resources and people whenever you are ready.</p>
+        <p style="font-size:16px;line-height:1.5">You can explore resources and people whenever you are ready.</p>${foot.html}
       </div>`,
   }
 }
@@ -165,24 +170,31 @@ export function setupReminderEmail(
 /**
  * The inactive-user check-in (Riipen Labs, Group 2): one question, sent only to
  * people who opted in, after two weeks away. The links work without signing
- * in: one answers the question, the other turns these emails off.
+ * in: one answers the question, the other turns these emails off (and so does
+ * `oneClick`, the mail app's unsubscribe: app/api/checkin/stop).
  */
-export function checkinEmail(appUrl: string, token: string): { subject: string; html: string; text: string } {
+export function checkinEmail(appUrl: string, token: string, postal: string | null = null): { subject: string; html: string; text: string } {
   const base = `${appUrl.replace(/\/$/, '')}/checkin?t=${encodeURIComponent(token)}`
   const stop = `${base}&stop=1`
+  const foot = footer(stop, postal, "You're getting this because you asked us to check in if you stopped using Autinerary.", false)
   return {
     subject: 'One quick question from Autinerary',
-    text: `Hi,\n\nYou haven't opened Autinerary for a couple of weeks, and that's okay. Could you tell us why? It's one question, you don't need to sign in, and it helps us fix whatever got in the way:\n${base}\n\nYou're getting this because you asked us to check in if you stopped using Autinerary. To stop these emails: ${stop}\n\n- Autinerary`,
+    text: `Hi,\n\nYou haven't opened Autinerary for a couple of weeks, and that's okay. Could you tell us why? It's one question, you don't need to sign in, and it helps us fix whatever got in the way:\n${base}\n${foot.text}\n\n- Autinerary`,
     html: `
       <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#0f172a">
         <p style="font-size:16px">Hi,</p>
         <p style="font-size:16px;line-height:1.5">You haven't opened Autinerary for a couple of weeks, and that's okay. Could you tell us why? It's one question, you don't need to sign in, and it helps us fix whatever got in the way.</p>
         <p style="margin:24px 0">
           <a href="${base}" style="background:#1b5d30;color:#fff;text-decoration:none;padding:12px 22px;border-radius:12px;font-weight:600;display:inline-block">Answer one question</a>
-        </p>
-        <p style="font-size:13px;color:#475569;line-height:1.5">You're getting this because you asked us to check in if you stopped using Autinerary. <a href="${stop}" style="color:#334155">Stop these emails</a>.</p>
+        </p>${foot.html}
       </div>`,
   }
+}
+
+/** The mail app's one-click unsubscribe for the check-in (app/api/checkin/stop). */
+export function checkinStopHeaders(appUrl: string, token: string): Record<string, string> {
+  const oneClick = `${appUrl.replace(/\/$/, '')}/api/checkin/stop?t=${encodeURIComponent(token)}`
+  return { 'List-Unsubscribe': `<${oneClick}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' }
 }
 
 const BOX = 'font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#0f172a'
@@ -271,15 +283,17 @@ export function firstWeeksEmail(
 }
 
 /** A shared story's final version is ready for its teller to approve (app/api/stories). */
-export function storyReadyEmail(appUrl: string): { subject: string; html: string; text: string } {
-  const link = `${appUrl.replace(/\/$/, '')}/share-your-story`
+export function storyReadyEmail(appUrl: string, postal: string | null = null): { subject: string; html: string; text: string } {
+  const base = appUrl.replace(/\/$/, '')
+  const link = `${base}/share-your-story`
+  const foot = noticeFooter(base, postal, 'You get this because you shared your story with Autinerary.')
   return {
     subject: 'Your story is ready for you to approve',
-    text: `Hi,\n\nThank you for sharing your story. The team has prepared the final version. Nothing is shared until you approve it:\n${link}\n\nYou can also change your mind and withdraw it there at any time.\n\n- Autinerary`,
+    text: `Hi,\n\nThank you for sharing your story. The team has prepared the final version. Nothing is shared until you approve it:\n${link}\n\nYou can also change your mind and withdraw it there at any time.\n${foot.text}\n\n- Autinerary`,
     html: `<div style="${BOX}"><p style="font-size:16px">Hi,</p>
       <p style="font-size:16px;line-height:1.5">Thank you for sharing your story. The team has prepared the final version. Nothing is shared until you approve it.</p>
       <p style="margin:24px 0"><a href="${link}" style="${BUTTON}">Read and approve it</a></p>
-      <p style="${SMALL}">You can also change your mind and withdraw it there at any time.</p></div>`,
+      <p style="${SMALL}">You can also change your mind and withdraw it there at any time.</p>${foot.html}</div>`,
   }
 }
 
@@ -402,12 +416,29 @@ function insights(): { text: string; html: string } {
   }
 }
 
-function footer(unsubscribe: string, postal: string | null, why: string): { text: string; html: string } {
+/**
+ * The end of every email to people: why they got it, how to stop, who we are and our mailing address (Canada's
+ * anti-spam law), with the survey tiles above it unless `withInsights` is false (an email that can come every day).
+ */
+function footer(unsubscribe: string, postal: string | null, why: string, withInsights = true): { text: string; html: string } {
   const address = postal ? `Autinerary Corp., ${postal}` : 'Autinerary Corp.'
-  const told = insights()
+  const told = withInsights ? insights() : { text: '', html: '' }
   return {
     text: `${told.text}\n${why}\nStop these emails: ${unsubscribe}\n${address} · https://app.autinerary.ca/privacy · https://app.autinerary.ca/terms`,
     html: `${told.html}<p style="${SMALL};margin-top:28px">${esc(why)} <a href="${unsubscribe}" style="color:#334155">Stop these emails</a>.<br>${esc(address)} · <a href="https://app.autinerary.ca/privacy" style="color:#334155">Privacy</a> · <a href="https://app.autinerary.ca/terms" style="color:#334155">Terms</a></p>`,
+  }
+}
+
+/**
+ * The end of an email sent once, about something the person did (welcome, a story ready to approve): nothing to
+ * unsubscribe from, so it says where to turn other emails off, and who to write to, with who we are and our address.
+ */
+function noticeFooter(appUrl: string, postal: string | null, why: string): { text: string; html: string } {
+  const address = postal ? `Autinerary Corp., ${postal}` : 'Autinerary Corp.'
+  const settings = `${appUrl}/profile/settings#emails`
+  return {
+    text: `\n${why} Turn other emails on or off in Settings, under Emails: ${settings}\nQuestions, or to stop every email from us: ${CONTACT_EMAIL}\n${address} · https://app.autinerary.ca/privacy · https://app.autinerary.ca/terms`,
+    html: `<p style="${SMALL};margin-top:28px">${esc(why)} Turn other emails on or off in <a href="${settings}" style="color:#334155">Settings, under Emails</a>. Questions, or to stop every email from us: <a href="mailto:${CONTACT_EMAIL}" style="color:#334155">${CONTACT_EMAIL}</a>.<br>${esc(address)} · <a href="https://app.autinerary.ca/privacy" style="color:#334155">Privacy</a> · <a href="https://app.autinerary.ca/terms" style="color:#334155">Terms</a></p>`,
   }
 }
 
@@ -833,8 +864,11 @@ export function providerReviewedEmail(a: { name: string; ratings: number; listin
   }
 }
 
-/** To a product vendor, before a discount event (the products round, Goal 10; app/api/cron/vendor-notices). */
-export function vendorDiscountEventEmail(a: { name: string; starts: string; ends: string; percent: number | null; link: string; postal: string }) {
+/**
+ * To a product vendor, before a discount event (the products round, Goal 10; app/api/cron/vendor-notices). `stop`
+ * stops these emails without signing in (lib/emailStopLinks.ts).
+ */
+export function vendorDiscountEventEmail(a: { name: string; starts: string; ends: string; percent: number | null; link: string; postal: string; stop: string }) {
   const sign = `Autinerary Corp., ${a.postal}. You get this because you sell products through a ResourceHub Resource Account.`
   const lines = [
     `${a.name} runs from ${a.starts} to ${a.ends}. Many families look for products then.`,
@@ -842,7 +876,7 @@ export function vendorDiscountEventEmail(a: { name: string; starts: string; ends
   ]
   return {
     subject: `${a.name} is coming: a discount for ResourceHub's shop?`,
-    text: `Hello,\n\n${lines.join('\n\n')}\n\nYour Resource Account: ${a.link}\n\n${sign}`,
-    html: `<div style="${BOX}"><p style="font-size:16px">Hello,</p>${lines.map((l) => `<p style="font-size:16px;line-height:1.5">${esc(l)}</p>`).join('')}<p style="margin:24px 0"><a href="${a.link}" style="${BUTTON}">Choose your discounts</a></p><p style="${SMALL}">${esc(sign)}</p></div>`,
+    text: `Hello,\n\n${lines.join('\n\n')}\n\nYour Resource Account: ${a.link}\n\n${sign}\nStop these emails: ${a.stop}`,
+    html: `<div style="${BOX}"><p style="font-size:16px">Hello,</p>${lines.map((l) => `<p style="font-size:16px;line-height:1.5">${esc(l)}</p>`).join('')}<p style="margin:24px 0"><a href="${a.link}" style="${BUTTON}">Choose your discounts</a></p><p style="${SMALL}">${esc(sign)} <a href="${a.stop}" style="color:#334155">Stop these emails</a>.</p></div>`,
   }
 }

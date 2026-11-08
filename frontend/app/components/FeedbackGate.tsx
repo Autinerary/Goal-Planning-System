@@ -1,17 +1,19 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { dayKey, getVisitDayCountSince } from '@/lib/disclosure'
 import { useAuth } from '../context/AuthContext'
 
 /**
- * Blocking feedback modal.
+ * The feedback form, asked for once.
  *
- * Renders a fixed full-screen overlay that embeds the project feedback form
- * (Google Forms) and refuses to dismiss until the user confirms they have
- * submitted a response. Once confirmed, a localStorage flag prevents the
- * modal from showing again on this device.
+ * A full-screen overlay that embeds the project feedback form (Google Forms).
+ * It is optional: "Not now" (or Escape) asks again in a week, "Don't ask
+ * again" never does, and "I sent it" thanks them; it used to refuse to close
+ * until someone said they had sent it, which is a forced action (the
+ * compliance checklist, November 2026: "Remove dark patterns"). Once answered,
+ * a localStorage flag keeps it from showing again on this device.
  *
  * Override the embedded URL via NEXT_PUBLIC_FEEDBACK_FORM_URL — supply the
  * "embedded" iframe URL from Google Forms (Send → < > Embed HTML).
@@ -30,7 +32,7 @@ const FORM_URL = process.env.NEXT_PUBLIC_FEEDBACK_FORM_URL || DEFAULT_FORM_URL
 
 // Routes where the gate must NOT block (auth/onboarding entry — otherwise
 // brand-new users could be locked out before they have an account).
-const SKIP_PREFIXES = ['/login', '/signup', '/forgot-password', '/reset-password', '/auth', '/onboarding', '/onboarding-confirmation', '/checkin', '/privacy', '/terms', '/newsletter', '/community-choice', '/spot-guides', '/petition', '/pricing', '/providers', '/billing', '/free-access', '/business', '/help']
+const SKIP_PREFIXES = ['/login', '/signup', '/forgot-password', '/reset-password', '/auth', '/onboarding', '/onboarding-confirmation', '/checkin', '/privacy', '/terms', '/newsletter', '/community-choice', '/spot-guides', '/petition', '/pricing', '/providers', '/billing', '/free-access', '/business', '/help', '/about', '/cookies', '/refunds', '/delete-my-data', '/credits', '/emails']
 
 /**
  * How much use has to happen before we are entitled to ask.
@@ -47,6 +49,9 @@ const SKIP_PREFIXES = ['/login', '/signup', '/forgot-password', '/reset-password
  */
 const MIN_VISIT_DAYS = 2
 const MIN_DWELL_MS = 90_000
+/** "Not now" asks again after this many days. */
+const LATER_DAYS = 7
+const LATER_KEY = `${FEEDBACK_KEY}_later`
 
 export default function FeedbackGate() {
   const pathname = usePathname() || ''
@@ -61,7 +66,7 @@ export default function FeedbackGate() {
   const usedEnough = Boolean(user?.hasCompletedOnboarding && joined && getVisitDayCountSince(joined) >= MIN_VISIT_DAYS)
   const [hydrated, setHydrated] = useState(false)
   const [done, setDone] = useState(true)         // start true to avoid SSR flash
-  const [confirmed, setConfirmed] = useState(false)
+  const panel = useRef<HTMLDivElement>(null)
   // Whether enough use has happened AND enough of this session has elapsed.
   const [earnedTheRight, setEarnedTheRight] = useState(false)
   const skipped = SKIP_PREFIXES.some(prefix => pathname === prefix || pathname.startsWith(`${prefix}/`))
@@ -70,7 +75,8 @@ export default function FeedbackGate() {
     setHydrated(true)
     try {
       const stored = window.localStorage.getItem(FEEDBACK_KEY) === 'true'
-      setDone(stored)
+      const later = window.localStorage.getItem(LATER_KEY)
+      setDone(stored || Boolean(later && later > dayKey(new Date())))
     } catch {
       // No localStorage (private mode, etc.) — show the gate.
       setDone(false)
@@ -95,19 +101,35 @@ export default function FeedbackGate() {
     }
   }, [hydrated, done, skipped, earnedTheRight])
 
-  if (!hydrated) return null
-  if (done) return null
-  if (skipped) return null
-  if (!earnedTheRight || !usedEnough) return null
+  const showing = hydrated && !done && !skipped && earnedTheRight && usedEnough
 
-  const handleConfirm = () => {
+  const answer = (how: 'sent' | 'never' | 'later') => {
     try {
-      window.localStorage.setItem(FEEDBACK_KEY, 'true')
+      if (how === 'later') {
+        const again = new Date()
+        again.setDate(again.getDate() + LATER_DAYS)
+        window.localStorage.setItem(LATER_KEY, dayKey(again))
+      } else {
+        window.localStorage.setItem(FEEDBACK_KEY, 'true')
+      }
       // CheckinPrompt waits for another day before asking anything else.
       window.localStorage.setItem(`${FEEDBACK_KEY}_on`, new Date().toISOString().slice(0, 10))
     } catch {}
     setDone(true)
   }
+
+  // Escape is "Not now", and the form is where the keyboard starts.
+  useEffect(() => {
+    if (!showing) return
+    panel.current?.focus()
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') answer('later')
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [showing]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!showing) return null
 
   return (
     <div
@@ -117,7 +139,7 @@ export default function FeedbackGate() {
       aria-describedby="feedback-gate-desc"
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 backdrop-blur-sm p-3 sm:p-6 overlay-scroll"
     >
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[94vh] flex flex-col overflow-hidden">
+      <div ref={panel} tabIndex={-1} className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[94vh] flex flex-col overflow-hidden focus:outline-none">
         <div className="px-4 sm:px-6 py-4 border-b border-gray-200 flex-shrink-0">
           <h2
             id="feedback-gate-title"
@@ -127,8 +149,8 @@ export default function FeedbackGate() {
             Quick feedback: help us improve
           </h2>
           <p id="feedback-gate-desc" className="text-sm text-gray-600 mt-1">
-            Before you continue, please take a moment to fill out this short form.
-            Your feedback shapes what we build next.
+            If you have a few minutes, this short form shapes what we build next.
+            It is optional: you can skip it.
           </p>
         </div>
 
@@ -146,15 +168,22 @@ export default function FeedbackGate() {
         </div>
 
         <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 flex-shrink-0 flex flex-col sm:flex-row sm:items-center gap-3">
-          <label className="flex items-start sm:items-center gap-2 text-sm text-gray-700 cursor-pointer flex-1 select-none">
-            <input
-              type="checkbox"
-              checked={confirmed}
-              onChange={(e) => setConfirmed(e.target.checked)}
-              className="mt-0.5 sm:mt-0 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-            <span>I have submitted my response above.</span>
-          </label>
+          <div className="flex flex-1 flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => answer('later')}
+              className="px-4 py-2 text-sm font-semibold rounded-xl border border-gray-300 text-gray-800 hover:bg-gray-100 transition-colors"
+            >
+              Not now
+            </button>
+            <button
+              type="button"
+              onClick={() => answer('never')}
+              className="px-4 py-2 text-sm font-semibold rounded-xl border border-gray-300 text-gray-800 hover:bg-gray-100 transition-colors"
+            >
+              Don’t ask again
+            </button>
+          </div>
           <div className="flex items-center gap-3">
             <a
               href={FORM_URL.replace('?embedded=true', '').replace('&embedded=true', '')}
@@ -166,11 +195,10 @@ export default function FeedbackGate() {
             </a>
             <button
               type="button"
-              onClick={handleConfirm}
-              disabled={!confirmed}
-              className="px-4 py-2 text-sm font-semibold rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              onClick={() => answer('sent')}
+              className="px-4 py-2 text-sm font-semibold rounded-xl bg-blue-700 text-white hover:bg-blue-800 transition-colors"
             >
-              Continue to app
+              I sent it
             </button>
           </div>
         </div>

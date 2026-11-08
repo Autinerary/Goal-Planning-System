@@ -741,8 +741,8 @@ export default async function Home() {
                 Welcome{user ? `, ${userName}` : ''}
               </h1>
               <p className="text-lg sm:text-xl text-white/90 mb-8 max-w-2xl mx-auto leading-relaxed">
-                Find resources rated <span className="font-semibold">BY people like you</span>,{' '}
-                <span className="font-semibold">FOR people like you</span>
+                Find places, services and products, with ratings from people who used them,{' '}
+                <span className="font-semibold">shown by who rated</span>
               </p>
             </div>
 

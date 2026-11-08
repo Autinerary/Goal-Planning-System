@@ -47,6 +47,9 @@ async function run(req: NextRequest) {
         to: r.email,
         ...mail,
         from: process.env.REMINDER_FROM_EMAIL || undefined,
+        // "To stop these emails, reply stop": replies, and the mail app's unsubscribe, reach the team.
+        replyTo: PROOF_EMAIL,
+        headers: { 'List-Unsubscribe': `<mailto:${PROOF_EMAIL}?subject=stop>` },
         idempotencyKey: `sweep-${r.resource_id}-${r.to_state}-${new Date().toISOString().slice(0, 7)}`,
       })
       if (res.ok) emailed++

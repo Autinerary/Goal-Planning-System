@@ -47,7 +47,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 // from the newsletter) are for anyone too.
 const publicRoutes = ['/', '/start', '/login', '/signup', '/forgot-password', '/reset-password', '/checkin', '/privacy', '/terms', '/newsletter', '/community-choice', '/spot-guides', '/petition', '/pricing', '/providers/survey', '/help', '/newsletter/confirm', '/newsletter/unsubscribe', '/emails/weekly-stop', '/emails/setup-reminder', '/emails/first-weeks', '/emails/requests-stop', '/go/servicehub',
   // Shared agents and models: someone given a private link may not have an account yet (they read it, then sign in to use it).
-  '/agents/community', '/settings/models/community']
+  '/agents/community', '/settings/models/community',
+  // Who we are, the cookie and refund policies, deleting your data, credits, and "Stop these emails" from an email
+  // (the compliance checklist, November 2026): for anyone, with or without an account.
+  '/about', '/cookies', '/refunds', '/delete-my-data', '/credits', '/emails/stop']
 const isPublicRoute = (pathname: string) => publicRoutes.includes(pathname) || pathname === '/kits' || pathname.startsWith('/kits/')
 const AGE_ROUTE = '/auth/age'
 

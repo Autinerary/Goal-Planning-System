@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { emailEnabled, sendEmail, welcomeEmail } from '@/lib/email'
+import { postalAddress } from '@/lib/newsletter'
 
 export async function POST(req: Request) {
   const supabase = createServerSupabase()
@@ -22,7 +23,7 @@ export async function POST(req: Request) {
   if (!emailEnabled()) return NextResponse.json({ sent: false, reason: 'Email delivery is not configured' }, { status: 503 })
 
   // With a button to the Path, like the reminder and check-in emails.
-  const { subject, html, text } = welcomeEmail(process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin)
+  const { subject, html, text } = welcomeEmail(process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin, postalAddress())
   const result = await sendEmail({ to: user.email, subject, html, text, idempotencyKey: `welcome-v1-${user.id}` })
   if (!result.ok) return NextResponse.json({ sent: false, error: 'Email delivery failed' }, { status: 502 })
 

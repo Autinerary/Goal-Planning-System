@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 // Where privacy questions and requests go (lib/contact.ts).
 const CONTACT = CONTACT_EMAIL
-const UPDATED = '26 October 2026'
+const UPDATED = '8 November 2026'
 
 // Sponsored listings (STEP 83; lib/sponsored.ts): what this page says changes when the team turns them on.
 const SPONSORED = process.env.NEXT_PUBLIC_SPONSORED === 'on'
@@ -28,7 +28,17 @@ const PROVIDERS: { name: string; does: string; gets: string }[] = [
     does: 'Writes plans and suggestions',
     gets: `The parts of your profile needed for that, such as your goals, norms you have shared and your preferences; what you type into the goal helper during setup, if you use it; what you ask the assistant, with a summary of your path, and your About me if you choose to share it; what you ask the help chat on the Help page (not saved by Autinerary); a sentence you type into ResourceHub’s search and send with Enter, to work out what you are looking for; a photo or a list you choose to import into your calendar or plan, to read the dates, tasks or steps in it for you to check; what you post in Tidbits (posts, comments and answers), to flag anything a moderator should read${SIGNUP ? '; the words on a local service’s contact form (never anything about you), when Sign me up sends your request through it and a box needs working out; the name and place of a listing with no email or website, to look on the web for its own (never anything about you)' : ''}. OpenAI’s terms for this kind of use say it does not train its models on this data`,
   },
+  {
+    name: 'OpenAI (checking shared agents)',
+    does: 'Checks an agent you share with other people for harmful instructions, after our own checks for personal details pass',
+    gets: 'The agent’s name, purpose and instructions, never who made it',
+  },
   { name: 'Resend', does: 'Sends our emails', gets: 'Your email address and the email itself' },
+  {
+    name: 'Hugging Face and GitHub',
+    does: 'Store the open models (and the WebLLM code that runs them) your browser downloads, if you use a model in your browser',
+    gets: 'Your network address and which model files your browser downloads; nothing about you or your account',
+  },
   {
     name: 'Stripe',
     does: 'Takes payments for paid plans, if you choose one, for anything you buy from a vendor through ResourceHub (on the vendor’s own Stripe account), and for a sponsored listing’s budget, if you manage a listing',
@@ -109,7 +119,7 @@ export default function PrivacyPage() {
 
         <Section id="short" title="The short version">
           <List>
-            <li>We collect what you tell us, to build your plan and find services that fit, and a little about how the app is used, to fix what is confusing.</li>
+            <li>We collect what you tell us, to build your plan and find services that fit. How the app is used is counted only if you allow it, to fix what is confusing.</li>
             <li>Some of it can be sensitive, like conditions or norms you share. That is always optional, and only used to personalize Autinerary for you.</li>
             {SPONSORED ? (
               <li>
@@ -120,6 +130,10 @@ export default function PrivacyPage() {
             ) : (
               <li>We don’t sell your information, we don’t show ads, and we don’t use your information to train AI models.</li>
             )}
+            <li>
+              If you choose to tune your own model, it learns only from items you pick and approve, on your own device, and it
+              stays there unless you share it, after checks that it doesn’t say your items back.
+            </li>
             <li>Your information is stored in the United States.</li>
             <li>You can ask to see, correct or delete your information at any time.</li>
           </List>
@@ -371,7 +385,60 @@ export default function PrivacyPage() {
               <li>Our feedback form is a Google Form, so your answers to it are stored by Google.</li>
             </List>
           </Sub>
+          <Sub title="Your own model, your agents, and what you share">
+            <List>
+              <li>
+                <strong>Use my own model.</strong> Which model, and where it runs, are kept in your browser. When it is on, the
+                AI work goes to the model on your device instead of OpenAI. Our server still puts together what the model is
+                asked, and saves your plan, as it always does.
+              </li>
+              <li>
+                <strong>Build my training set.</strong> You pick journal entries, notes and steps of your plan. Our server takes
+                out names, contact details and places to show you what would be used, and keeps none of the text. When you
+                approve them, we keep a record of your approval only: which items (by their codes, not their words), how many,
+                which version of the check, and when. The training file and the model tuned from it are made and kept on your
+                device, never on our server.
+              </li>
+              <li>
+                <strong>My agents.</strong> The agents you build, and what the six built-in agents will do for you, are kept in
+                your browser, not in your account. When an agent runs in the cloud, what you ask it, and the parts of your plan
+                and profile you let it see, go through our server to OpenAI, and are not saved; your About me is never sent to
+                an agent. On your own model, they go to your device.
+              </li>
+              <li>
+                <strong>Tell Autinerary what you need.</strong> What you type goes to OpenAI (or your own model) to set up your
+                agents, and is not saved by us.
+              </li>
+              <li>
+                <strong>Sharing a model.</strong> We keep its files (the small part that was tuned) in a private store, its
+                name and description, the community tags you pick, the model it starts from, who may see it (everyone, people
+                you pick, or anyone with the link), and the results of its checks, linked to your account. Before it is shared:
+                your items were reviewed, a check on your device that it doesn’t say them back, and a check of its name and
+                description for personal details. Other people see the model, its description, tags and ratings, not who
+                shared it.
+              </li>
+              <li>
+                <strong>Sharing an agent.</strong> Its name, purpose, instructions, tags and what it may see, with who may see
+                it, checked for personal details and rule-breaking instructions, and then by OpenAI for harmful ones. Other
+                people see the agent, not who shared it.
+              </li>
+              <li>
+                <strong>Sharing a pathway</strong> (Path Market). The pathway and the names you credit, which you confirm
+                agreed to be named. The team reads it before it is public, and then anyone can see it, with those names.
+              </li>
+              <li>Ratings you give a shared model or agent are counted, not shown with your name.</li>
+              <li>
+                Take down anything you shared at any time; deleting your account takes it all down. Someone who already added a
+                copy to their device keeps theirs.
+              </li>
+            </List>
+          </Sub>
           <Sub title="How the app is used">
+            <p>
+              Only if you allow counting, when we ask or in <Link href="/profile/settings#emails" className="font-medium text-indigo-800 underline underline-offset-2">Settings</Link>. Until
+              then nothing here is counted, and no ID is made. Your browser sending Do Not Track or Global Privacy Control
+              counts as a no. The <Link href="/cookies" className="font-medium text-indigo-800 underline underline-offset-2">cookie policy</Link> lists what is kept, and where.
+            </p>
             <List>
               <li>
                 When you view the home page, open the sign-up form, create an account, reach each setup step, finish setup,
@@ -389,20 +456,26 @@ export default function PrivacyPage() {
                 resources you open, whether you said they were useful, and when you save the path. Your answers are also
                 kept in your browser, so setup can start with them, and saved to your account when you save the path.
               </li>
-              <li>We don’t record anything you type in these, and your browser sends none of them if it has Do Not Track or Global Privacy Control turned on.</li>
+              <li>
+                The order of pages you open, by their address only (never what follows a “?”, so never what you searched or a
+                link’s code), kept in your browser, and saved with your account when you are signed in, to see where people get
+                lost.
+              </li>
+              <li>We don’t record anything you type in these. Say no later, and what counting kept in your browser is removed.</li>
               {gaEnabled() && (
                 <li>
                   If you allow it when asked, Google Analytics gets the same counts, to show us which pages are used. It is
                   off until you say yes, it is not used for ads, and you can change your answer in Settings.
                 </li>
               )}
-              <li>How much AI processing your account uses, to keep use fair.</li>
             </List>
+            <p>Whatever you choose, we count how much AI processing your account uses, to keep use fair.</p>
           </Sub>
           <Sub title="On your device">
             <p>
               Your browser keeps your settings, unfinished setup answers and similar conveniences, plus the cookies that keep
-              you signed in. Clearing your browser’s data for this site removes them.
+              you signed in, and your agents, your own model and its settings if you use them. Clearing your browser’s data for
+              this site removes them. The <Link href="/cookies" className="font-medium text-indigo-800 underline underline-offset-2">cookie policy</Link> lists each one.
             </p>
           </Sub>
         </Section>
@@ -418,8 +491,8 @@ export default function PrivacyPage() {
               To send email: a welcome email when you finish setup, up to three reminders to finish setup if you ask for them (each one lets you wait longer or stop), daily
               reminders at the time you choose if you turn them on, a weekly email with the resources you saved in
               ResourceHub and new picks for you if you turn it on, and a check-in if you opt in. Without an account: a
-              Start here list or the weekly email, if you ask and confirm. Each of these emails tells you how to turn them
-              off.{SIGNUP ? ' When you press Sign me up, the service you chose sends you its own emails, such as a welcome or a link to confirm.' : ''}
+              Start here list or the weekly email, if you ask and confirm. Each of these emails says who sent it, with our
+              mailing address, and has a link to stop them.{SIGNUP ? ' When you press Sign me up, the service you chose sends you its own emails, such as a welcome or a link to confirm.' : ''}
             </li>
             <li>
               To send notifications, only to devices you turn them on for: one when you turn them on, and a check-in if you
@@ -497,7 +570,11 @@ export default function PrivacyPage() {
               On Your profile you can pause your account (we send you nothing and nobody can find you in search until you
               resume), or delete it.
             </li>
-            <li>To see, correct or delete anything else, or if you can’t delete your account yourself, email {mail}. We will reply within 30 days.</li>
+            <li>
+              To see, correct or delete anything else, or if you can’t delete your account yourself, email {mail}. We will reply
+              within 30 days. <Link href="/delete-my-data" className="font-medium text-indigo-800 underline underline-offset-2">Delete my data</Link> says how, with or without an account.
+            </li>
+            <li>Change your answer about counting at any time with “Cookie settings”, at the bottom of every page.</li>
             <li>You can withdraw your consent for optional information at any time.</li>
             <li>
               If you are not happy with how we handled something, please tell us first. You can also contact the Office of the
@@ -530,7 +607,10 @@ export default function PrivacyPage() {
         </Section>
 
         <Section id="contact" title="Contact">
-          <p>Questions or requests about your information: {mail} (Autinerary Corp.).</p>
+          <p>
+            Questions or requests about your information: {mail}. Autinerary Corp., Ontario, Canada:{' '}
+            <Link href="/about" className="font-medium text-indigo-800 underline underline-offset-2">our address and how to reach us</Link>.
+          </p>
         </Section>
 
         <p className="mt-10 text-sm">

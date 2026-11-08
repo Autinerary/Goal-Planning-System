@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { openCookieSettings } from '@/lib/consent'
 import FeedbackLink from './FeedbackLink'
 import ListenButton from './ListenButton'
 import PositiveNote from './PositiveNote'
@@ -24,11 +25,11 @@ export default function Footer() {
           <div className="col-span-1 md:col-span-2">
             <h3 className="text-white text-lg font-semibold mb-4">ResourceHub</h3>
             <p className="text-sm mb-4">
-              Resource rating platform for the autism community. Rated BY people like you, FOR
-              people like you.
+              Places, services and products for neurodivergent people and the people who support them, with ratings from
+              people who used them, shown by who rated.
             </p>
             <p className="text-xs text-gray-400">
-              © {currentYear} Autinerary Corp. All rights reserved.
+              © {currentYear} Autinerary Corp., Ontario, Canada. All rights reserved.
             </p>
           </div>
 
@@ -98,11 +99,22 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Bottom Bar */}
+        {/* Bottom Bar: the rest of the policies, and the cookie settings (lib/consent.ts). */}
         <div className="mt-8 pt-8 border-t border-gray-800">
-          <p className="text-xs text-gray-400 text-center">
-            Community-verified resource ratings, by people with similar norms
-          </p>
+          <ul className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
+            {[['/about', 'About and contact'], ['/cookies', 'Cookies'], ['/refunds', 'Refunds'], ['/delete-my-data', 'Delete my data'], ['/credits', 'Credits and licences']].map(([href, label]) => (
+              <li key={href}>
+                <Link href={href} className="hover:text-white underline underline-offset-2 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded">
+                  {label}
+                </Link>
+              </li>
+            ))}
+            <li>
+              <button type="button" onClick={openCookieSettings} className="hover:text-white underline underline-offset-2 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded">
+                Cookie settings
+              </button>
+            </li>
+          </ul>
         </div>
       </div>
     </footer>

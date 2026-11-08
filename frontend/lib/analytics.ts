@@ -3,14 +3,15 @@
 // data").
 //
 // Off unless NEXT_PUBLIC_GA_MEASUREMENT_ID is set in Vercel. Even then,
-// nothing loads until a visitor says yes (components/AnalyticsConsent), never
+// nothing loads until a visitor says yes to counting (components/CookieConsent, lib/consent.ts), never
 // when the browser sends Do Not Track or Global Privacy Control, and Google
 // signals and ad personalization are turned off. GA receives the same events
 // as Autinerary's own funnel (lib/funnel.ts): event names and step ids, never
 // anything typed. The privacy page and the home page say so when it is on.
 
+import { countingConsent, setCountingConsent } from '@/lib/consent'
+
 export const GA_ID = (process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || '').trim()
-const CONSENT_KEY = 'autinerary_ga_consent'
 
 type Gtag = (...args: unknown[]) => void
 declare global {
@@ -30,13 +31,9 @@ export function browserOptedOut(): boolean {
   return nav.globalPrivacyControl === true || nav.doNotTrack === '1'
 }
 
+/** The answer to counting (lib/consent.ts): one answer covers Autinerary's own counts and Google Analytics. */
 export function gaConsent(): 'yes' | 'no' | null {
-  try {
-    const v = localStorage.getItem(CONSENT_KEY)
-    return v === 'yes' || v === 'no' ? v : null
-  } catch {
-    return null
-  }
+  return countingConsent()
 }
 
 let loaded = false
@@ -59,9 +56,7 @@ export function loadGa(): void {
 }
 
 export function setGaConsent(value: 'yes' | 'no'): void {
-  try {
-    localStorage.setItem(CONSENT_KEY, value)
-  } catch {}
+  setCountingConsent(value)
   if (value === 'yes') loadGa()
   // Turning it off takes effect fully on the next page load; until then GA
   // is told not to collect.

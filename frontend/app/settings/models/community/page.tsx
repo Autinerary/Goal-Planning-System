@@ -229,6 +229,13 @@ function Card({ adapter, signedIn, linkKey, onRated }: {
         {typeof adapter.checks.memoryCheck === 'number' ? ` · memory check ${adapter.checks.memoryCheck} (it fails at 0.5)` : ''}
         {adapter.mine ? ' · shared by you' : ''}
       </p>
+      {adapter.licence && (
+        <p className="text-xs text-slate-600" data-licence>
+          {adapter.licence.builtWithLlama && <><strong>Built with Llama.</strong> </>}
+          Under the <a href={adapter.licence.url} className="underline" target="_blank" rel="noopener noreferrer">{adapter.licence.name}</a>
+          {adapter.licence.policy && <>, and its <a href={adapter.licence.policy} className="underline" target="_blank" rel="noopener noreferrer">Acceptable Use Policy</a> applies</>}.
+        </p>
+      )}
       {(adapter.builtOn || adapter.builtOnCount > 0) && (
         <p className="text-xs text-slate-600">
           {adapter.builtOn && (adapter.builtOn.title

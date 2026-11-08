@@ -85,6 +85,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
+  // Everyone credited agreed to be named (the form asks; form consents, November 2026).
+  if (body?.creditsAgreed !== true) {
+    return NextResponse.json({ error: 'Please confirm that everyone you credit agreed to be named.' }, { status: 400 })
+  }
+
   const name = text(body?.name, 80)
   const description = text(body?.description, 400)
   const contributors = list(body?.contributors, 6, 80)

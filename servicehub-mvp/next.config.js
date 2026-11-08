@@ -12,8 +12,17 @@ const nextConfig = {
   },
   // One privacy policy and one set of terms cover both apps (they share an
   // account) and live in the Autinerary app; the footer's links land on them.
+  // So do the cookie and refund policies, About and contact, Delete my data and
+  // the credits (November 2026).
   async redirects() {
     return [
+      // One account for both apps, made in the Autinerary app, with the terms, the age check and the record that the
+      // terms were accepted (ResourceHub's own sign-up had none of them; November 2026).
+      {
+        source: '/signup',
+        destination: `${process.env.NEXT_PUBLIC_GOAL_PLANNING_URL || 'http://localhost:3000'}/signup`,
+        permanent: false,
+      },
       {
         source: '/privacy',
         destination: `${process.env.NEXT_PUBLIC_GOAL_PLANNING_URL || 'http://localhost:3000'}/privacy`,
@@ -22,6 +31,31 @@ const nextConfig = {
       {
         source: '/terms',
         destination: `${process.env.NEXT_PUBLIC_GOAL_PLANNING_URL || 'http://localhost:3000'}/terms`,
+        permanent: false,
+      },
+      {
+        source: '/cookies',
+        destination: `${process.env.NEXT_PUBLIC_GOAL_PLANNING_URL || 'http://localhost:3000'}/cookies`,
+        permanent: false,
+      },
+      {
+        source: '/refunds',
+        destination: `${process.env.NEXT_PUBLIC_GOAL_PLANNING_URL || 'http://localhost:3000'}/refunds`,
+        permanent: false,
+      },
+      {
+        source: '/about',
+        destination: `${process.env.NEXT_PUBLIC_GOAL_PLANNING_URL || 'http://localhost:3000'}/about`,
+        permanent: false,
+      },
+      {
+        source: '/delete-my-data',
+        destination: `${process.env.NEXT_PUBLIC_GOAL_PLANNING_URL || 'http://localhost:3000'}/delete-my-data`,
+        permanent: false,
+      },
+      {
+        source: '/credits',
+        destination: `${process.env.NEXT_PUBLIC_GOAL_PLANNING_URL || 'http://localhost:3000'}/credits`,
         permanent: false,
       },
     ]

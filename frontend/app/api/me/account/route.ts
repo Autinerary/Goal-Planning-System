@@ -15,8 +15,9 @@ export const dynamic = 'force-dynamic'
  * account, which can't be deleted this way.
  *
  * DELETE { confirm: 'DELETE' }: removes the person's photos (storage can
- * only be emptied through its API), their newsletter sign-up, then
- * everything in the database, then the sign-in itself; and signs out.
+ * only be emptied through its API), the files of models they shared and the
+ * pathways they shared, their newsletter sign-up, then everything in the
+ * database, then the sign-in itself; and signs out.
  */
 
 type Status = { deletable: true } | { deletable: false; reason: 'not_ready' | 'staff' | 'error' }
@@ -76,6 +77,20 @@ export async function DELETE(req: NextRequest) {
     if (!files?.length) break
     const { error: removeError } = await moments.remove(files.map((f) => `${user.id}/${f.name}`))
     if (removeError) break
+  }
+
+  // Models they shared (Share my model, STEP 96): their rows go with the account, so their files go first, from the
+  // private bucket, one folder per model. And pathways they shared in the Path Market, which carry their name.
+  try {
+    const { data: shared } = await admin.from('shared_adapters').select('id').eq('owner_id', user.id)
+    const bucket = admin.storage.from('shared-adapters')
+    for (const model of shared || []) {
+      const { data: files } = await bucket.list(model.id, { limit: 100 })
+      if (files?.length) await bucket.remove(files.map((f) => `${model.id}/${f.name}`))
+    }
+    await admin.from('path_models').delete().eq('contributor_id', user.id)
+  } catch (e: any) {
+    console.error('[account] shared models or pathways not removed:', user.id, e?.message)
   }
 
   // A newsletter sign-up with the same address is the same person.

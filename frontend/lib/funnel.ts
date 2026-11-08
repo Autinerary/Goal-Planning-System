@@ -10,12 +10,15 @@
  * What is sent: the event name, an onboarding step id, the first visit's
  * utm_source / utm_campaign and referring site's host name, and a random
  * visitor id kept in this browser. Nothing a person types, no full URLs.
- * Browsers that send Do Not Track or Global Privacy Control send nothing.
+ * Nothing is sent, and no visitor id is made, until this browser says yes to
+ * counting (lib/consent.ts, the cookie banner); browsers that send Do Not
+ * Track or Global Privacy Control send nothing.
  * Every call is fire-and-forget: a failed or blocked request never affects
  * the page.
  */
 
 import { gaEvent } from '@/lib/analytics'
+import { countingAllowed } from '@/lib/consent'
 
 // Bump when onboarding changes enough that its numbers should be compared
 // separately (Riipen: "create a revised onboarding group"). riipen-2026-10 was
@@ -156,10 +159,10 @@ const AREA_DAYS_KEY = 'autinerary_area_days'
 const FIRST_TOUCH_KEY = 'autinerary_first_touch'
 const DAILY_OPEN_KEY = 'autinerary_last_open_day'
 
+// Nothing is counted, and no visitor ID is made, until this browser says yes (lib/consent.ts, the cookie banner);
+// never when it sends Global Privacy Control or Do Not Track.
 function optedOut(): boolean {
-  if (typeof navigator === 'undefined') return true
-  const nav = navigator as Navigator & { globalPrivacyControl?: boolean }
-  return nav.globalPrivacyControl === true || nav.doNotTrack === '1'
+  return !countingAllowed()
 }
 
 function visitorId(): string | null {
@@ -240,6 +243,7 @@ export function track(event: FunnelEvent, step?: string): void {
 
 /** One "feature_use" per area per calendar day per browser. */
 export function trackArea(pathname: string, search = ''): void {
+  if (optedOut()) return
   const area = areaFor(pathname, search)
   if (!area) return
   try {
@@ -256,6 +260,7 @@ export function trackArea(pathname: string, search = ''): void {
 
 /** One "app_open" per calendar day per browser, for the 7-day return measure. */
 export function trackDailyOpen(): void {
+  if (optedOut()) return
   try {
     const today = new Date().toISOString().slice(0, 10)
     if (localStorage.getItem(DAILY_OPEN_KEY) === today) return

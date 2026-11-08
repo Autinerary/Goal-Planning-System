@@ -40,6 +40,8 @@ export default function ShareModelForm({
   const [connections, setConnections] = useState<string[]>([])
   const [races, setRaces] = useState<RaceRow[]>([{ name: '', area: 'education', steps: '' }])
   const [people, setPeople] = useState('')
+  // Everyone credited agreed to be named, and nothing names anyone else (form consents, November 2026).
+  const [agreed, setAgreed] = useState(false)
   const [error, setError] = useState('')
   const [sending, setSending] = useState(false)
   const [done, setDone] = useState(false)
@@ -66,6 +68,10 @@ export default function ShareModelForm({
       setError('Add a name, a short description (10+ characters), at least one category and at least one race.')
       return
     }
+    if (!agreed) {
+      setError('Please confirm that everyone you credit agreed to be named.')
+      return
+    }
     setSending(true)
     try {
       const res = await fetch('/api/path-models', {
@@ -81,6 +87,7 @@ export default function ShareModelForm({
           connectionTypes: connections,
           races: raceList,
           people: people.split('\n').map((p) => p.trim()).filter(Boolean).map((role) => ({ role })),
+          creditsAgreed: true,
         }),
       })
       const j = await res.json().catch(() => ({}))
@@ -96,6 +103,7 @@ export default function ShareModelForm({
       setConnections([])
       setRaces([{ name: '', area: 'education', steps: '' }])
       setPeople('')
+      setAgreed(false)
       onShared()
     } finally {
       setSending(false)
@@ -217,6 +225,13 @@ export default function ShareModelForm({
               <textarea className={`${field} mt-1`} rows={2} value={people} onChange={(e) => setPeople(e.target.value)} />
             </label>
 
+            <label className="flex items-start gap-2 text-sm text-slate-900">
+              <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-0.5 h-4 w-4" required />
+              <span>
+                Everyone I credit agreed to be named, and nothing here says who anyone else is (people on the path are roles,
+                not names). It is shown to everyone once it is approved.
+              </span>
+            </label>
             <button type="submit" disabled={sending} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-800 disabled:opacity-50">
               {sending ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Send className="h-4 w-4" aria-hidden="true" />} Submit model
             </button>

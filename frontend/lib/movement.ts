@@ -71,6 +71,7 @@ export function loadMovement(): RouteVisit[] {
  * path) so the order list stays meaningful.
  */
 export function recordVisit(path: string): RouteVisit[] {
+  path = path.split(/[?#]/)[0] || '/'
   if (typeof window === 'undefined') return []
   const list = loadMovement()
   const base = path.split('?')[0]
@@ -128,7 +129,8 @@ export function syncMovement(delayMs = 4000): void {
   if (typeof window === 'undefined') return
   if (syncTimer) clearTimeout(syncTimer)
   syncTimer = setTimeout(() => {
-    const list = loadMovement()
+    // Paths only: visits kept before November 2026 could include a query string.
+    const list = loadMovement().map((v) => ({ ...v, path: v.path.split(/[?#]/)[0] || '/' }))
     if (list.length === 0) return
     fetch('/api/me/movement', {
       method: 'POST',

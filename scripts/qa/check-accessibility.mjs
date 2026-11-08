@@ -46,12 +46,15 @@ const SIGNED_OUT = [
   // Guides program, Help us rate, and a service page with the 2D/3D map
   // switch and the claim card (a checked listing with a map point).
   APP + '/pricing', APP + '/petition', APP + '/spot-guides', HUB + '/help-us-rate', HUB + '/resources/47d371eb-1a92-4df7-b1d6-acc0e286dc29',
+  // The compliance checklist, November 2026: who we are, cookies, refunds, deleting your data, credits, and the stop
+  // page of the daily reminder.
+  APP + '/about', APP + '/cookies', APP + '/refunds', APP + '/delete-my-data', APP + '/credits', APP + '/emails/stop?k=reminders',
 ]
 const ALL = process.env.ALL === '1'
 if (ALL) SIGNED_OUT.push(HUB + '/community', HUB + '/shop')
 const SIGNED_IN = (ALL
   ? ['/onboarding-confirmation', '/path', '/calendar', '/tasks', '/races', '/milestones', '/pit-stop', '/hare-world', '/reflection', '/stats',
-     '/tools', '/family', '/path-market', '/ideal-self', '/paths/compare', '/gamification', '/assistant', '/agents', '/reels', '/profile', '/profile/settings']
+     '/tools', '/family', '/path-market', '/ideal-self', '/paths/compare', '/assistant', '/agents', '/reels', '/profile', '/profile/settings']
   : ['/onboarding-confirmation', '/path', '/profile', '/profile/settings']).concat(['/billing', '/free-access', '/business', '/profile/accessibility',
     // The Tidbits round: the resources for each path, before choosing one.
     '/path-market',

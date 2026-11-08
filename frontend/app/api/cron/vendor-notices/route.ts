@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { cronAuthorized } from '@/lib/cronAuth'
 import { emailEnabled, sendEmail, vendorDiscountEventEmail } from '@/lib/email'
 import { postalAddress } from '@/lib/newsletter'
+import { oneClickHeaders, stopLinks, vendorEmailsOn } from '@/lib/emailStopLinks'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 120
@@ -15,8 +16,9 @@ const APP = (process.env.NEXT_PUBLIC_APP_URL || 'https://app.autinerary.ca').rep
  * Goal 10: "Give vendors notifications to their account + their email about
  * upcoming discounts & option to opt-in or out"), its notify_days_before
  * ahead. One notice per vendor and event, in their Resource Account; an
- * email too when email is set up (and only once). Off until the team turns
- * discounts on (NEXT_PUBLIC_SHOP_DISCOUNTS=on).
+ * email too when email is set up (and only once), unless they stopped these
+ * emails (lib/emailStopLinks.ts). Off until the team turns discounts on
+ * (NEXT_PUBLIC_SHOP_DISCOUNTS=on).
  */
 export async function GET(req: NextRequest) {
   if (!cronAuthorized(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -35,6 +37,12 @@ export async function GET(req: NextRequest) {
   const { data: claims } = await admin.from('listing_claims').select('user_id').eq('item_kind', 'product').eq('status', 'verified').limit(2000)
   const vendors = Array.from(new Set((claims || []).map((c) => c.user_id)))
   const postal = postalAddress()
+  // Vendors who stopped these emails still get the notice in their account.
+  const stopped = new Set<string>()
+  for (let i = 0; i < vendors.length; i += 200) {
+    const { data: rows } = await admin.from('profiles').select('id, preferences').in('id', vendors.slice(i, i + 200))
+    for (const r of rows || []) if (!vendorEmailsOn(r.preferences as Record<string, any> | null)) stopped.add(r.id as string)
+  }
   let notices = 0
   let emails = 0
   for (const e of due) {
@@ -55,11 +63,12 @@ export async function GET(req: NextRequest) {
         .select('id, emailed_at')
       if (!made?.length) continue
       notices += 1
-      if (!emailEnabled() || !postal) continue
+      if (!emailEnabled() || !postal || stopped.has(userId)) continue
       const { data: u } = await admin.auth.admin.getUserById(userId)
       const to = u?.user?.email
       if (!to) continue
-      const sent = await sendEmail({ to, ...vendorDiscountEventEmail({ name: e.name, starts: e.starts_on, ends: e.ends_on, percent: e.suggested_percent, link: `${APP}/business`, postal }), idempotencyKey: `vendor-event-${e.slug}-${userId}` })
+      const links = stopLinks(APP, 'vendor', userId)
+      const sent = await sendEmail({ to, ...vendorDiscountEventEmail({ name: e.name, starts: e.starts_on, ends: e.ends_on, percent: e.suggested_percent, link: `${APP}/business`, postal, stop: links.stop }), headers: oneClickHeaders(links.oneClick), idempotencyKey: `vendor-event-${e.slug}-${userId}` })
       if (sent.ok) {
         emails += 1
         await admin.from('vendor_notifications').update({ emailed_at: new Date().toISOString() }).eq('id', made[0].id)
