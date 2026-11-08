@@ -21,6 +21,12 @@ before paid plans start.
   - `lib/billing.test.mjs`: the policies stay open past the paywall.
 - `backend/tests/test_adapters.py`: the Llama naming rule.
 
+Checked on the live sites on 8 November 2026, after the deploy:
+
+- `check-compliance.mjs`: 41/41.
+- The accessibility checker: 130 page checks, signed out and signed in, with no serious or critical problems.
+- A signed-in account that accepted the old terms sees the notice saying what changed.
+
 ## The 20 items
 
 | # | Item | Status | Where |
@@ -212,7 +218,9 @@ mailing address (item 18).
 Unchanged, and consistent with the policies:
 
 - Someone must be 18 to make their own account; sign-up checks the date of birth.
-- A parent or guardian adds a child from Family and manages that account.
+- A parent or guardian adds a child from Family and manages that account. They must say whether they are the
+  child's legal parent or legal guardian, and tick that they are and approve the supervised account. The server
+  refuses the account without it (`/api/family/children`).
 - Children's accounts can't use Sign me up.
 - Moments from a Family account stay private.
 

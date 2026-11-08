@@ -157,24 +157,35 @@ try {
     await ctx.close()
   }
 
-  // 5. Stop links refuse bad signatures, and GET only opens the page (nothing is stopped by opening a link).
+  // 5. Stop links refuse bad signatures, and opening one only opens its page (nothing is stopped by opening a link).
+  // From inside the browser: the live app is behind Vercel's bot checkpoint, which a plain request from Node doesn't pass.
   {
+    const { ctx, page } = await fresh()
+    await go(page, APP + '/about')
     const u = '11111111-2222-3333-4444-555555555555'
-    let r = await fetch(`${APP}/api/emails/stop?k=reminders&u=${u}&t=bad`, { method: 'POST', body: 'List-Unsubscribe=One-Click' })
-    check('one-click stop: a bad signature is refused', r.status === 400, r.status)
-    r = await fetch(`${APP}/api/emails/stop?k=everything&u=${u}&t=bad`, { method: 'POST' })
-    check('one-click stop: an unknown kind is refused', r.status === 400, r.status)
-    r = await fetch(`${APP}/api/emails/stop?k=reminders&u=${u}&t=bad`, { redirect: 'manual' })
-    check('opening a stop link goes to its page, and stops nothing', r.status === 303 && (r.headers.get('location') || '').includes('/emails/stop?'), [r.status, r.headers.get('location')])
-    r = await fetch(`${APP}/api/checkin/stop?t=bad`, { method: 'POST', body: 'List-Unsubscribe=One-Click' })
-    check('check-in one-click stop: a bad token is refused', r.status === 400, r.status)
-  }
+    const status = (url, init) => page.evaluate(async (url, init) => (await fetch(url, init)).status, url, init)
+    check('one-click stop: a bad signature is refused', (await status(`/api/emails/stop?k=reminders&u=${u}&t=bad`, { method: 'POST', body: 'List-Unsubscribe=One-Click' })) === 400)
+    check('one-click stop: an unknown kind is refused', (await status(`/api/emails/stop?k=everything&u=${u}&t=bad`, { method: 'POST' })) === 400)
+    check('check-in one-click stop: a bad token is refused', (await status('/api/checkin/stop?t=bad', { method: 'POST', body: 'List-Unsubscribe=One-Click' })) === 400)
+    await go(page, `${APP}/api/emails/stop?k=reminders&u=${u}&t=bad`)
+    const at = new URL(page.url())
+    const button = await page.evaluate(() => [...document.querySelectorAll('button')].some((b) => b.textContent.trim() === 'Stop these emails'))
+    check('opening a stop link shows its page with the button, and stops nothing', at.pathname === '/emails/stop' && at.searchParams.get('k') === 'reminders' && button, at.href)
 
-  // 6. ResourceHub's policy and sign-up pages are the app's.
-  for (const path of ['/privacy', '/terms', '/cookies', '/refunds', '/about', '/delete-my-data', '/credits', '/signup']) {
-    const r = await fetch(HUB + path, { redirect: 'manual' })
-    const to = r.headers.get('location') || ''
-    check(`ResourceHub ${path} goes to the app's`, [301, 302, 307, 308].includes(r.status) && to.endsWith(path), [r.status, to])
+    // 6. ResourceHub's policy and sign-up pages are the app's: where its redirect points (a local ResourceHub may point
+    // at an app address that isn't running).
+    for (const path of ['/privacy', '/terms', '/cookies', '/refunds', '/about', '/delete-my-data', '/credits', '/signup']) {
+      let to = null
+      const seen = (r) => { if (r.url() === HUB + path && r.status() >= 300 && r.status() < 400) to = r.headers().location || null }
+      page.on('response', seen)
+      const res = await page.goto(HUB + path, { waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => null)
+      page.off('response', seen)
+      to ||= res?.request().redirectChain()[0]?.response()?.headers().location || null
+      const landed = new URL(page.url())
+      const ok = (landed.host === new URL(APP).host && landed.pathname === path) || (!!to && !to.startsWith(HUB) && new URL(to, HUB).pathname === path)
+      check(`ResourceHub ${path} goes to the app's`, ok, { to, landed: landed.href })
+    }
+    await ctx.close()
   }
 } finally {
   await browser.close()
