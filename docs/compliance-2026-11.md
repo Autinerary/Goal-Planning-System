@@ -37,11 +37,11 @@ Checked on the live sites on 8 November 2026, after the deploy:
 | 4 | Cookie policy | Done | `/cookies` |
 | 5 | Cookie consent banner | Done, both apps | `CookieConsent` in each app |
 | 6 | Check form consents | Done | sign-up, Path Market sharing |
-| 7 | No unnecessary data | Done; STEP 100 to apply | consent gating, movement log |
+| 7 | No unnecessary data | Done (STEP 100 applied) | consent gating, movement log |
 | 8 | Audit third-party SDKs | Done | below |
 | 9 | Remove dark patterns | Done | feedback form, banner |
 | 10 | Remove hidden fees | Done (nothing is charged in the beta) | `/refunds`, `/pricing`, `/terms#paid-plans` |
-| 11 | Remove fake reviews | STEP 99 to apply | `2026_public_ratings.sql` |
+| 11 | Remove fake reviews | Done (STEP 99 applied) | `2026_public_ratings.sql` |
 | 12 | Remove unsupported claims | Done | ResourceHub home and footer |
 | 13 | Accessibility alt text | Passing | the accessibility checker |
 | 14 | Fix color contrast | Passing | the accessibility checker |
@@ -135,7 +135,8 @@ the first visit:
   codes in links that work without signing in (check-in, stopping emails). Three changes:
   - The browser now keeps the address only, in `lib/movement.ts`.
   - The server keeps only the address, label and time of each visit, in `/api/me/movement`.
-  - **STEP 100** (`2026_movement_paths_only.sql`) strips the logs already saved.
+  - **STEP 100** (`2026_movement_paths_only.sql`) strips the logs already saved. Applied on 8 November 2026; checked
+    on the live database afterwards: no saved visit still carries a "?" or "#".
 - ResourceHub's map marker images came from cdnjs. They are now served by ResourceHub (`public/leaflet/`).
 
 ### 8. Third-party SDKs and services
@@ -187,6 +188,12 @@ STEP 99 (`2026_public_ratings.sql`) keeps every rating, in `ratings_all`, and sh
 applies to every reader: the apps, server code, crons and functions. Averages, search order, a service's standing,
 Users' Choice and wait times are worked out from real people's ratings only. Tested locally:
 `.qa-local/pgtest/step99_test.py`, 17/17.
+
+Applied on 8 November 2026. Checked on the live database afterwards: every rating is still kept in `ratings_all`, and a
+signed-out visitor, and the server, see only real people's ratings. On ResourceHub, a service with no real ratings says
+"No ratings yet". Few services have enough real ratings yet, so the home page's "Highest Ratings" sections (a service
+needs 5 real ratings, or 3 within a category) are hidden until some do, instead of showing a heading over nothing.
+`check-compliance.mjs` checks for that.
 
 ### 12. Unsupported claims
 
@@ -272,12 +279,11 @@ within 30 days. Deleting an account now also takes down the person's shared mode
 
 ## Open items
 
-1. **Apply STEP 99 and STEP 100** (`setup/all_migrations.sql`).
-   - STEP 99 uses a `security_invoker` view, which needs Postgres 15 or later. If it errors, send the error.
-   - STEP 100 does nothing where `profiles.movement` doesn't exist. On the live database the column was added by hand,
-     outside the runbook.
+1. **STEP 99 and STEP 100 are applied** (8 November 2026). Note for new databases: STEP 99 uses a `security_invoker`
+   view, which needs Postgres 15 or later, and STEP 100 does nothing where `profiles.movement` doesn't exist (on the
+   live database the column was added by hand, outside the runbook).
 2. **Page-order logs saved before people were asked.** They were kept for signed-in people without a yes, and the old
-   privacy page didn't describe them. STEP 100 strips them down to addresses. Clearing them entirely
+   privacy page didn't describe them. STEP 100 stripped them down to addresses. Clearing them entirely
    (`UPDATE public.profiles SET movement = NULL;`) would match "only after Allow" fully. The team decides.
 3. **Have a lawyer read** the privacy policy, the terms, the refund policy and the cookie policy before paid plans
    start, and before turning on teen sign-up.
