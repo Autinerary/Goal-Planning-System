@@ -34,7 +34,10 @@ problem would push away the people the app is for. So the check is light on purp
 
 Other places have their own checks, which this doesn't change:
 
-- **Setup's goals:** `core/guardrails.py`, which refuses some words.
+- **Setup's goals:** `core/guardrails.py`, which refuses some words. It refuses swearing in a goal on
+  purpose ("Please rephrase your goal without profanity"; decided 9 November 2026). A goal is what the
+  whole plan is built from, so it shouldn't have swearing in it. A chat is a conversation, so this
+  check lets swearing through there.
 - **Sharing an agent:** `api/routes/shared_agents.py`.
 - **Tidbits posts:** `servicehub-mvp/lib/community/moderation.ts`.
 - **Reports:** the Report buttons.
@@ -160,8 +163,6 @@ The team reads the counts at **/admin/ai-safety** (admins only, last 90 days).
   no counts for one group, no wording of its own, no local crisis line. The table can't be split by
   group, because it keeps no accounts. A group view would need the group recorded with each line,
   never the person.
-- **Setup.** Setup still refuses swearing in a goal ("Please rephrase your goal without profanity").
-  That is stricter than this check.
 - **Other providers.** On our own model, or another company's, only our rules run. The second look
   would need that model to do the checking.
 
