@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 // Where privacy questions and requests go (lib/contact.ts).
 const CONTACT = CONTACT_EMAIL
-const UPDATED = '8 November 2026'
+const UPDATED = '9 November 2026'
 
 // Sponsored listings (STEP 83; lib/sponsored.ts): what this page says changes when the team turns them on.
 const SPONSORED = process.env.NEXT_PUBLIC_SPONSORED === 'on'
@@ -32,6 +32,11 @@ const PROVIDERS: { name: string; does: string; gets: string }[] = [
     name: 'OpenAI (checking shared agents)',
     does: 'Checks an agent you share with other people for harmful instructions, after our own checks for personal details pass',
     gets: 'The agent’s name, purpose and instructions, never who made it',
+  },
+  {
+    name: 'OpenAI (the safety check)',
+    does: 'Checks what you write to the assistant, or to an agent on our cloud model, and the answer, before you see it; only when the answer comes from OpenAI anyway',
+    gets: 'Your message and the answer, with phone numbers, email addresses, ID numbers, passwords and your own address already hidden. Not saved by Autinerary',
   },
   { name: 'Resend', does: 'Sends our emails', gets: 'Your email address and the email itself' },
   {
@@ -404,6 +409,16 @@ export default function PrivacyPage() {
                 your browser, not in your account. When an agent runs in the cloud, what you ask it, and the parts of your plan
                 and profile you let it see, go through our server to OpenAI, and are not saved; your About me is never sent to
                 an agent. On your own model, they go to your device.
+              </li>
+              <li>
+                <strong>The safety check</strong> (on the assistant and on agents;{' '}
+                <Link href="/help#ai-safety" className="font-medium text-indigo-800 underline underline-offset-2">how it works</Link>). Before the AI reads what you write,
+                phone numbers, email addresses, ID numbers, passwords and your own address are hidden from it. When the answer
+                comes from OpenAI, your message and the answer are also read by OpenAI’s moderation service, and anything it
+                flags by a second OpenAI model, to tell real danger from a figure of speech; neither is saved by us. When the
+                AI runs on your own device, only our own rules run, and nothing leaves your device. We keep a count of what the
+                check found and what it did (for example “personal details hidden” or “crisis lines shown”), to the hour:
+                never your words, and not your account.
               </li>
               <li>
                 <strong>Tell Autinerary what you need.</strong> What you type goes to OpenAI (or your own model) to set up your

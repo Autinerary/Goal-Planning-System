@@ -9,10 +9,18 @@ import { usePreferences } from '../context/usePreferences'
 import { toLlmConfig } from '@/lib/modelPrefs'
 import { withOwnModel, wordsFor } from '@/lib/ownModelRoute'
 import { speak } from '@/lib/speech'
+import { hiddenNotice, readSafety, type Safety } from '@/lib/aiSafety'
+import AiNote from '../components/AiNote'
+import AiChatNotice from '../components/AiChatNotice'
+import CrisisLines from '../components/CrisisLines'
 
 interface Msg {
   role: 'user' | 'assistant'
   content: string
+  /** An answer a model wrote: its name and what the safety check did (backend core/moderation.py). */
+  ai?: { model: string | null; safety: Safety | null }
+  /** Someone may be at risk: the crisis lines go under this answer. */
+  care?: boolean
 }
 
 const INTRO: Msg = {
@@ -86,6 +94,8 @@ export default function AssistantPage() {
   const [sending, setSending] = useState(false)
   const [warmingUp, setWarmingUp] = useState(false)
   const [onDevice, setOnDevice] = useState(false)
+  // "We hid the phone number in your message from the AI": until the next message.
+  const [hidden, setHidden] = useState('')
   const [context, setContext] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -128,12 +138,13 @@ export default function AssistantPage() {
     const next = [...messages, { role: 'user' as const, content }]
     setMessages(next)
     setInput('')
+    setHidden('')
     setSending(true)
     // The backend sleeps when idle; if a reply is slow, reassure the user it's
     // waking up rather than broken.
     const warmTimer = setTimeout(() => setWarmingUp(true), 7000)
-    // Only real turns (drop the canned intro) go to the model.
-    const request = { messages: next.filter((m) => m !== INTRO), context }
+    // Only real turns (drop the canned intro) go to the model, as words only.
+    const request = { messages: next.filter((m) => m !== INTRO).map(({ role, content }) => ({ role, content })), context }
     try {
       // Answered by the person's own model when "Use my own model" is on (lib/ownModelRoute.ts); asked first if it
       // isn't ready. About me and "Words we use" are added from their own row either way.
@@ -146,7 +157,12 @@ export default function AssistantPage() {
         return res.json().catch(() => null)
       }, { ask: true, onDevice: () => setOnDevice(true) })
       const reply = data?.reply || "Sorry, I couldn't respond just now. Please try again."
-      setMessages((m) => [...m, { role: 'assistant', content: reply }])
+      const safety = readSafety(data?.safety)
+      const model = typeof data?.modelLabel === 'string' ? data.modelLabel : typeof data?.model === 'string' ? data.model : null
+      // Labelled as AI only when a model wrote it: the crisis answer given without one is ours.
+      setMessages((m) => [...m, { role: 'assistant', content: reply, care: !!safety?.care,
+        ai: data?.reply && model ? { model, safety } : undefined }])
+      setHidden(hiddenNotice(safety?.hidden ?? []))
     } catch (e) {
       setMessages((m) => [...m, { role: 'assistant', content: wordsFor(e, 'Something went wrong. Please try again.') }])
     } finally {
@@ -180,8 +196,9 @@ export default function AssistantPage() {
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
         <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
+          <AiChatNotice />
           {messages.map((m, i) => (
-            <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div key={i} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
               <div
                 className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap leading-relaxed ${
                   m.role === 'user'
@@ -191,6 +208,8 @@ export default function AssistantPage() {
               >
                 {m.content}
               </div>
+              {m.ai && <AiNote source={{ model: m.ai.model }} safety={m.ai.safety} className="max-w-[85%] px-1" />}
+              {m.care && <CrisisLines heading="Talk to someone now" headingLevel={3} className="mt-2 max-w-[85%]" />}
             </div>
           ))}
 
@@ -228,6 +247,12 @@ export default function AssistantPage() {
 
       {/* Composer */}
       <div className="sticky bottom-0 border-t border-slate-200 surface-chrome">
+        {hidden && (
+          <p role="status" className="max-w-2xl mx-auto px-4 pt-2 text-xs text-slate-700">
+            {hidden}{' '}
+            <button type="button" onClick={() => setHidden('')} className="font-medium text-indigo-800 underline underline-offset-2">OK</button>
+          </p>
+        )}
         <form
           onSubmit={(e) => {
             e.preventDefault()

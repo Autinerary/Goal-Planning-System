@@ -125,6 +125,21 @@ assert.deepEqual(posted[0].body.agent, { name: a.name, purpose: a.purpose, instr
 assert.equal(posted[0].body.context, 'Norms they navigate: ADHD')
 assert.deepEqual(posted[0].body.llm_config, { model: 'gpt-4o-mini' })
 assert.ok(!('system' in posted[0].body) && posted[0].body.messages.every((m) => m.role !== 'system'), 'the server writes the system prompt, not the browser')
+// What the safety check did reaches the answer's label (lib/aiSafety.ts): from the server for the cloud, and from the
+// browser's own check on the device, where someone who may be at risk is answered with care.
+const infos = []
+const checked = cloudRunner(a, '', null, fakeFetch({ configured: true, reply: 'r', modelLabel: 'GPT-4o mini', safety: { by: 'openai', care: false, hidden: ['phone'] } }))
+await checked([{ role: 'user', content: 'call me at [PHONE]' }], { onAnswer: (i) => infos.push(i) })
+assert.deepEqual(infos[0], { safety: { by: 'openai', care: false, hidden: ['phone'], rewritten: false, dropped: false }, model: 'GPT-4o mini', onDevice: false })
+const carefully = []
+const onDevice = deviceRunner(a, '', { enabled: true }, async (settings, ask) => { carefully.push(ask); return 'here for you' })
+await onDevice([{ role: 'user', content: 'I don’t want to be alive anymore' }], { onAnswer: (i) => infos.push(i) })
+assert.match(carefully[0].messages[0].content, /9-8-8/, 'the device model is asked to answer with care')
+assert.deepEqual(infos[1], { safety: { by: 'rules', care: true }, model: null, onDevice: true })
+await onDevice([{ role: 'user', content: 'this deadline is killing me' }], { onAnswer: (i) => infos.push(i) })
+assert.doesNotMatch(carefully[1].messages[0].content, /9-8-8/)
+assert.equal(infos[2].safety.care, false)
+
 await assert.rejects(cloudRunner(a, '', null, fakeFetch({ reply: 'You have reached the usage limit.', rateLimited: true, failed: true }))([{ role: 'user', content: 'hi' }], {}), /usage limit/)
 await assert.rejects(cloudRunner(a, '', null, fakeFetch({ configured: false, reply: 'not set up' }))([{ role: 'user', content: 'hi' }], {}), /isn’t set up/)
 

@@ -4,10 +4,13 @@ import { useRef, useState } from 'react'
 import Link from 'next/link'
 import { Send, Sparkles } from 'lucide-react'
 import { FEEDBACK_EMAIL, feedbackMailto } from '@/lib/feedback'
+import CrisisLines from './CrisisLines'
 
 interface Message {
   role: 'user' | 'assistant'
   content: string
+  /** Someone may be in danger: the crisis lines go under this answer (app/api/help/chat, lib/aiSafety.ts). */
+  crisis?: boolean
 }
 
 const STARTERS = ['How do I rate a service?', 'How do I delete my account?', 'Is Autinerary free?', 'How do I claim my listing?']
@@ -31,9 +34,10 @@ export default function HelpChat() {
     setMessages(next)
     setText('')
     setBusy(true)
-    const res = await fetch('/api/help/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: next }) }).catch(() => null)
+    const words = next.map(({ role, content }) => ({ role, content }))
+    const res = await fetch('/api/help/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: words }) }).catch(() => null)
     const d = await res?.json().catch(() => ({}))
-    setMessages([...next, { role: 'assistant', content: d?.reply || d?.error || `I can’t answer just now. Please email ${FEEDBACK_EMAIL}.` }])
+    setMessages([...next, { role: 'assistant', content: d?.reply || d?.error || `I can’t answer just now. Please email ${FEEDBACK_EMAIL}.`, crisis: d?.crisis === true }])
     setBusy(false)
     input.current?.focus()
   }
@@ -52,10 +56,13 @@ export default function HelpChat() {
       </p>
       <div className="mt-4 space-y-3" aria-live="polite">
         {messages.map((m, i) => (
-          <p key={i} className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-2 text-slate-900 ${m.role === 'user' ? 'ml-auto bg-indigo-50' : 'bg-slate-100'}`}>
-            <span className="sr-only">{m.role === 'user' ? 'You: ' : 'Help chat: '}</span>
-            {m.content}
-          </p>
+          <div key={i}>
+            <p className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-2 text-slate-900 ${m.role === 'user' ? 'ml-auto bg-indigo-50' : 'bg-slate-100'}`}>
+              <span className="sr-only">{m.role === 'user' ? 'You: ' : 'Help chat: '}</span>
+              {m.content}
+            </p>
+            {m.crisis && <CrisisLines heading="Talk to someone now" headingLevel={3} className="mt-2 max-w-[85%]" />}
+          </div>
         ))}
         {busy && <p className="text-sm text-slate-700">Thinking…</p>}
       </div>

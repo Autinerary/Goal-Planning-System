@@ -12,6 +12,7 @@
  */
 import { COMMUNITY_TAGS, tagLabel } from './sharedModels'
 import type { Ask, OwnModelSettings } from './localModel'
+import { CARE_STEERING, crisisIn, readSafety, type Safety } from './aiSafety'
 
 export type AgentScope = 'norms' | 'goals' | 'plan' | 'step'
 export type AgentRuntime = 'device' | 'cloud'
@@ -310,26 +311,34 @@ export function readPlanReview(text: string, steps: Step[]): PlanNote[] {
 // ---- Running it ------------------------------------------------------------------------------------------------------
 
 export type Turn = { role: 'user' | 'assistant'; content: string }
+/** Where an answer came from and what the safety check did (lib/aiSafety.ts), for its label (app/components/AiNote). */
+export type AnswerInfo = { safety: Safety | null; model: string | null; onDevice: boolean }
 /** One answer from wherever the agent runs, for the conversation so far (the last turn is the person's). */
-export type Runner = (turns: Turn[], opts: { json?: boolean; maxTokens?: number }) => Promise<string>
+export type Runner = (turns: Turn[], opts: { json?: boolean; maxTokens?: number; onAnswer?: (info: AnswerInfo) => void }) => Promise<string>
 
-/** On this device, with the person's own model (Ollama, or the model in this browser). */
+/** On this device, with the person's own model (Ollama, or the model in this browser). Nothing reaches our server, so
+ *  the one check is here: if they may be at risk, the model is asked to answer with care, and the crisis lines show. */
 export function deviceRunner(agent: Agent, context: string, settings: OwnModelSettings,
                              ask?: (settings: OwnModelSettings, ask: Ask) => Promise<string>): Runner {
   return async (turns, opts) => {
     const askModel = ask ?? (await import('./localModel')).askOwnModel
-    return askModel(settings, {
-      messages: [{ role: 'system', content: systemFor(agent, context) }, ...turns.slice(-12)],
+    const last = turns[turns.length - 1]
+    const care = last?.role === 'user' && crisisIn(last.content)
+    const answer = await askModel(settings, {
+      messages: [{ role: 'system', content: systemFor(agent, context) + (care ? CARE_STEERING : '') }, ...turns.slice(-12)],
       temperature: 0.4, max_tokens: opts.maxTokens ?? 700, json: !!opts.json, agent: 'my_agent', think: false,
     })
+    opts.onAnswer?.({ safety: { by: 'rules', care }, model: null, onDevice: true })
+    return answer
   }
 }
 
 type FetchFn = (input: string, init?: RequestInit) => Promise<Response>
 
-/** On our cloud model: the server puts our rules first, then the agent's (backend api/routes/assistant.py). */
+/** On our cloud model: the server puts our rules first, then the agent's, and checks both ways (backend
+ *  api/routes/assistant.py, core/moderation.py). */
 export function cloudRunner(agent: Agent, context: string, llmConfig: unknown = null, fetchFn: FetchFn = fetch): Runner {
-  return async (turns) => {
+  return async (turns, opts) => {
     // The app's own route (app/api/assistant/chat) signs the request in from the cookie and passes it on.
     const res = await fetchFn('/api/assistant/chat', {
       method: 'POST',
@@ -342,6 +351,7 @@ export function cloudRunner(agent: Agent, context: string, llmConfig: unknown = 
     // A limit reached, or the server unreachable: said as it is, never shown as the agent's answer.
     if (out?.failed) throw new Error(typeof out?.reply === 'string' ? out.reply : 'The cloud model didn’t answer. Please try again.')
     if (out?.configured === false || typeof out?.reply !== 'string') throw new Error('The cloud model isn’t set up yet.')
+    opts?.onAnswer?.({ safety: readSafety(out.safety), model: typeof out.modelLabel === 'string' ? out.modelLabel : null, onDevice: false })
     return out.reply
   }
 }

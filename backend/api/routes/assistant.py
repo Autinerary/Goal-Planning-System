@@ -10,7 +10,12 @@ POST /api/assistant/chat
           "agent": optional { "name", "purpose", "instructions", "lens": [str] }: one of the person's own agents
                    (frontend app/agents, lib/agents.ts). Our rules come first; its instructions follow them and
                    never override them. }
-  Returns: { "configured": bool, "reply": str, "model": str|None }
+  Returns: { "configured": bool, "reply": str, "model": str|None, "modelLabel": str|None,
+             "safety": { "by", "care", "hidden", "rewritten", "dropped" } | None }
+
+What the person writes, and the reply, go through the safety check first (core/moderation.py, docs/ai-moderation.md):
+contact details hidden from the AI, a risky message answered with a note to the AI, the crisis lines whenever someone
+may be at risk (even when no model answers), and a reply that fails the check written again once or left out.
 """
 from typing import Any, Dict, List, Optional
 
@@ -18,7 +23,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from api.auth_guard import optional_user_id
-from core import budget, llm
+from core import budget, llm, moderation
 
 router = APIRouter()
 
@@ -93,7 +98,16 @@ async def chat(req: ChatRequest, actor: Optional[str] = Depends(optional_user_id
     if not history:
         raise HTTPException(status_code=400, detail="Say something first.")
 
+    checking = moderation.enabled()
+    said = history[-1]["content"] if history[-1]["role"] == "user" else ""
+    # The crisis lines never wait on a model: not when none is set up, not at a limit, not when it fails.
+    care_only = {"configured": True, "reply": moderation.CARE_REPLY, "model": None, "modelLabel": None,
+                 "safety": {"by": "rules", "care": True, "hidden": [], "rewritten": False, "dropped": False}}
+    in_danger = checking and bool(moderation.crisis_in(said))
+
     if not llm.is_enabled():
+        if in_danger:
+            return care_only
         return {
             "configured": False,
             "reply": (
@@ -113,18 +127,50 @@ async def chat(req: ChatRequest, actor: Optional[str] = Depends(optional_user_id
         )
 
     selection = llm.parse_selection(req.llm_config)
+    asked = replied = outcome = None
+    surface = "agent" if req.agent else "assistant"
     try:
         with llm.use_selection(selection, actor=actor, verified=actor is not None,
                                language_style=req.language_style):
-            reply = await llm.complete_chat(
-                [{"role": "system", "content": system}] + history,
-                max_tokens=700,
-            )
+            where = moderation.where_words_go() if checking else "none"
+            if checking and said and where != "none":
+                asked = await moderation.check_message(said, where)
+                if where != "device":
+                    # Earlier turns too: what was hidden then stays hidden.
+                    history = [dict(m, content=moderation.hide(m["content"])[0]) if m["role"] == "user" else m
+                               for m in history]
+            note = moderation.steering(asked)
+            messages = [{"role": "system", "content": system + note}] + history
+            reply = await llm.complete_chat(messages, max_tokens=700)
             used_model = llm.active_model_id()
+            if reply and asked is not None:
+                replied = await moderation.check_reply(reply, where)
+                if replied.action == "rewrite":
+                    again = await llm.complete_chat(
+                        [{"role": "system", "content": system + note + moderation.reply_steering(replied)}] + history,
+                        max_tokens=700)
+                    recheck = await moderation.check_reply(again, where) if again else None
+                    if again and recheck is not None and recheck.action == "show":
+                        reply, outcome = again, "rewritten"
+                    else:
+                        # Someone who may be at risk is never told only that there's no answer.
+                        care_now = asked.action == "care"
+                        reply, outcome = (moderation.CARE_REPLY if care_now else moderation.DROPPED_REPLY), "dropped"
     except budget.LimitExceeded as e:
+        if in_danger or (asked is not None and asked.action == "care"):
+            await moderation.record(surface, asked, None, None)
+            return care_only
         raise HTTPException(status_code=429, detail=e.message)
 
+    await moderation.record(surface, asked, replied, outcome)
+    care = asked is not None and asked.action == "care"
     if not reply:
+        if care:
+            return care_only
         return {"reply": "Sorry — I couldn't respond just now. Please try again."}
 
-    return {"configured": True, "reply": reply, "model": used_model}
+    # A reply left out is replaced by our own words, so it carries no model and no AI label.
+    by_ai = outcome != "dropped"
+    return {"configured": True, "reply": reply, "model": used_model if by_ai else None,
+            "modelLabel": moderation.model_label(used_model) if by_ai else None,
+            "safety": moderation.for_screen(asked, replied, outcome) if asked is not None else None}

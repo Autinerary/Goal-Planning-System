@@ -115,9 +115,14 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await res.json().catch(() => null)
+    // The model's name and what the safety check did (backend core/moderation.py): the answer's AI label and the
+    // crisis lines (app/components/AiNote.tsx, lib/aiSafety.ts).
     return NextResponse.json({
       configured: data?.configured ?? true,
       reply: data?.reply || "I'm not sure how to answer that — could you tell me a bit more?",
+      model: typeof data?.model === 'string' ? data.model : null,
+      modelLabel: typeof data?.modelLabel === 'string' ? data.modelLabel : null,
+      safety: data?.safety && typeof data.safety === 'object' ? data.safety : null,
     })
   } catch (err) {
     console.error('[assistant] proxy failed:', err)

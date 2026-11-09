@@ -40,6 +40,7 @@ PAYING
 PRIVACY
 - We don't sell your information, show ads, or use it to train AI. The database is in the United States. The privacy page (app.autinerary.ca/privacy) lists who else handles what.
 - AI (OpenAI) writes plan steps and suggestions, reads sentences typed into ResourceHub's search, and answers this help chat. What you type here is not saved by Autinerary.
+- The assistant and agents on our cloud model have a safety check (app.autinerary.ca/help#ai-safety): phone numbers, email addresses, ID numbers, passwords and your own address are hidden from the AI; if someone may be in danger the answer is written with care and the crisis lines (9-8-8, 911) are shown; unsafe requests get a kind no and a safe way forward; an answer that fails the check is written again or not shown. It is light on purpose: swearing and hard days are fine. Each AI answer has a label, "About this answer", saying what wrote it and whether it was checked. Only counts of what the check found are kept, never words.
 
 CONTACT
 - Bugs, ideas, questions and recommendations: heydevs@autinerary.ca, or "Send feedback" in the app and in ResourceHub.

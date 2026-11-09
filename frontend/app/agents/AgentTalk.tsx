@@ -3,7 +3,11 @@
 /** Talking with one of the person's agents, and its review of their whole plan (lib/agents.ts). */
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Agent, PLAN_REVIEW, PersonData, PlanNote, Turn, contextFor, readPlanReview } from '@/lib/agents'
+import { Agent, AnswerInfo, PLAN_REVIEW, PersonData, PlanNote, Turn, contextFor, readPlanReview } from '@/lib/agents'
+import { hiddenNotice } from '@/lib/aiSafety'
+import AiNote from '../components/AiNote'
+import AiChatNotice from '../components/AiChatNotice'
+import CrisisLines from '../components/CrisisLines'
 import { runnerFor, whereItRuns } from './run'
 
 function useWhere(agent: Agent) {
@@ -19,9 +23,12 @@ function useWhere(agent: Agent) {
 export function AgentTalk({ agent, data }: { agent: Agent; data: PersonData }) {
   const where = useWhere(agent)
   const [turns, setTurns] = useState<Turn[]>([])
+  // Each answer's label: its model and what the safety check did (lib/aiSafety.ts), by the answer's place in turns.
+  const [answers, setAnswers] = useState<Record<number, AnswerInfo>>({})
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [hidden, setHidden] = useState('')
 
   const send = async () => {
     const text = input.trim()
@@ -31,9 +38,16 @@ export function AgentTalk({ agent, data }: { agent: Agent; data: PersonData }) {
     setInput('')
     setBusy(true)
     setError(null)
+    setHidden('')
     try {
-      const reply = await runnerFor(agent, contextFor(agent, data))(next, {})
+      let info: AnswerInfo | null = null
+      const reply = await runnerFor(agent, contextFor(agent, data))(next, { onAnswer: (i) => { info = i } })
       setTurns([...next, { role: 'assistant', content: reply.trim() }])
+      const got = info as AnswerInfo | null
+      if (got) {
+        setAnswers((a) => ({ ...a, [next.length]: got }))
+        setHidden(hiddenNotice(got.safety?.hidden ?? []))
+      }
     } catch (e: any) {
       setError(e?.message || String(e))
     } finally {
@@ -44,16 +58,25 @@ export function AgentTalk({ agent, data }: { agent: Agent; data: PersonData }) {
   return (
     <section aria-label={`Talk with ${agent.name}`} className="rounded-xl border border-slate-200 p-4 space-y-3">
       <p className={`text-xs ${where?.ready === false ? 'text-amber-800' : 'text-slate-500'}`} role="status">{where?.words ?? 'Checking where it runs…'}</p>
+      <AiChatNotice />
       <ol className="space-y-2" aria-live="polite">
         {turns.map((t, i) => (
-          <li key={i} className={`rounded-lg px-3 py-2 text-sm whitespace-pre-wrap ${t.role === 'user' ? 'bg-slate-100 text-slate-900 ml-8' : 'bg-indigo-50 text-slate-900 mr-8'}`}>
-            <span className="block text-xs text-slate-500 mb-1">{t.role === 'user' ? 'You' : `${agent.name} (AI)`}</span>
-            {t.content}
+          <li key={i} className={t.role === 'user' ? 'ml-8' : 'mr-8'}>
+            <div className={`rounded-lg px-3 py-2 text-sm whitespace-pre-wrap ${t.role === 'user' ? 'bg-slate-100 text-slate-900' : 'bg-indigo-50 text-slate-900'}`}>
+              <span className="block text-xs text-slate-500 mb-1">{t.role === 'user' ? 'You' : `${agent.name} (AI)`}</span>
+              {t.content}
+            </div>
+            {/* An answer left out by the check is replaced by our own words: no AI label on those. */}
+            {answers[i] && !answers[i].safety?.dropped && (
+              <AiNote source={{ model: answers[i].model, agent: agent.name, onDevice: answers[i].onDevice }} safety={answers[i].safety} />
+            )}
+            {answers[i]?.safety?.care && <CrisisLines heading="Talk to someone now" headingLevel={3} className="mt-2" />}
           </li>
         ))}
         {busy && <li className="text-sm text-slate-500">{agent.name} is thinking…</li>}
       </ol>
       {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
+      {hidden && <p role="status" className="text-xs text-slate-700">{hidden}</p>}
       <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); send() }}>
         <label className="sr-only" htmlFor={`talk-${agent.id}`}>Write to {agent.name}</label>
         <input id={`talk-${agent.id}`} value={input} onChange={(e) => setInput(e.target.value)} maxLength={4000}

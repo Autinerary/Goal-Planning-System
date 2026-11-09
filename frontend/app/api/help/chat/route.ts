@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { HELP_SYSTEM } from '@/lib/helpKnowledge'
 import { ipHash } from '@/lib/newsletter'
+import { HELP_CARE_REPLY, crisisIn } from '@/lib/aiSafety'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,6 +31,8 @@ export async function POST(req: NextRequest) {
     .slice(-8)
     .map((m: any) => ({ role: m.role, content: String(m.content).slice(0, 1500) }))
   if (!messages.length || messages[messages.length - 1].role !== 'user') return NextResponse.json({ error: 'Ask a question first.' }, { status: 400 })
+  // Someone who may be in danger gets the crisis lines at once, and no AI (as in setup; lib/aiSafety.ts).
+  if (crisisIn(messages[messages.length - 1].content)) return NextResponse.json({ reply: HELP_CARE_REPLY, crisis: true })
 
   try {
     const res = await fetch('https://api.openai.com/v1/chat/completions', {

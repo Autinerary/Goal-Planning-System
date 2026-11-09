@@ -277,17 +277,22 @@ def _known_name_pattern(known_names: Sequence[str]) -> Optional[re.Pattern]:
     return re.compile(rf"(?<![\w@])(?:{'|'.join(alternatives)})(?![\w])")
 
 
-def _spans(text: str, known_names: Sequence[str], use_ner: Optional[bool]) -> List[Tuple[int, int, str]]:
+def _spans(text: str, known_names: Sequence[str], use_ner: Optional[bool],
+           kinds: Optional[Iterable[str]] = None) -> List[Tuple[int, int, str]]:
+    only = set(kinds) if kinds is not None else None
     found: List[Tuple[int, int, str]] = []
     for kind, pattern, group in _PATTERNS:
+        if only is not None and kind not in only:
+            continue
         for m in pattern.finditer(text):
             start, end = m.span(group)
             if end > start:
                 found.append((start, end, kind))
     known = _known_name_pattern(known_names)
-    if known is not None:
+    if known is not None and (only is None or "name" in only):
         found.extend((m.start(), m.end(), "name") for m in known.finditer(text))
-    nlp = _ner() if use_ner is not False else None
+    # The recogniser only for a whole scrub: a few kinds by shape (core/moderation.py) don't need it.
+    nlp = _ner() if use_ner is not False and only is None else None
     if nlp is not None:
         for ent in nlp(text).ents:
             if len(ent) == 1 and ent.text.lower() in _EVERYDAY_WORDS:
@@ -320,13 +325,16 @@ def _choose(text: str, spans: List[Tuple[int, int, str]], protected: List[Tuple[
     return sorted(taken)
 
 
-def scrub(text: str, known_names: Sequence[str] = (), use_ner: Optional[bool] = None) -> ScrubResult:
-    """`text` with everything found replaced by its placeholder, and how many of each kind were replaced."""
+def scrub(text: str, known_names: Sequence[str] = (), use_ner: Optional[bool] = None,
+          kinds: Optional[Iterable[str]] = None) -> ScrubResult:
+    """`text` with everything found replaced by its placeholder, and how many of each kind were replaced. `kinds`
+    limits it to those kinds (by pattern only), as the assistant's safety check does for contact details and ID
+    numbers."""
     text = str(text or "")[:MAX_TEXT_CHARS]
     if not text.strip():
         return ScrubResult(text=text, found={})
     protected = [(m.start(), m.end()) for m in _PLACEHOLDER.finditer(text)]
-    chosen = _choose(text, _spans(text, known_names, use_ner), protected)
+    chosen = _choose(text, _spans(text, known_names, use_ner, kinds), protected)
     out: List[str] = []
     found: Dict[str, int] = {}
     cursor = 0
