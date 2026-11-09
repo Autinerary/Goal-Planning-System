@@ -74,8 +74,11 @@ class GoalHelperTests(unittest.TestCase):
         for text in ("I want to kill myself", "honestly I don't want to live anymore", "I feel suicidal"):
             result, fake = self.ask(text, {"picks": [0]})
             self.assertEqual(result["suggestions"], [])
-            self.assertIn("9-8-8", result["crisis"]["lines"][0]["how"])
-            self.assertIn("911", result["crisis"]["lines"][2]["how"])
+            lines = result["crisis"]["lines"]
+            self.assertIn("9-8-8", lines[0]["how"])
+            self.assertTrue(lines[0]["how"].startswith("Text"), "text first, for anyone who finds a call hard")
+            self.assertTrue(any("911" in line["how"] for line in lines))
+            self.assertTrue(any(line["name"].startswith("Good2Talk") for line in lines), "the students' line")
             self.assertEqual(fake.calls, [])
 
     def test_guardrails_run_before_any_ai(self):

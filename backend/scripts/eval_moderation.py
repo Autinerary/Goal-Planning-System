@@ -5,7 +5,8 @@ docs/ai-moderation.md).
     python -m scripts.eval_moderation           # our rules, OpenAI's moderation service (free) and the checker
                                                  # (GPT-4o mini, for what the service flags: a fraction of a cent)
     python -m scripts.eval_moderation --rules   # our rules only: no network
-    python -m scripts.eval_moderation --set holdout   # the held-out cases (tests/moderation_holdout.json), not tuned on
+    python -m scripts.eval_moderation --set holdout   # the first held-out cases (tests/moderation_holdout.json)
+    python -m scripts.eval_moderation --set holdout2  # the second (tests/moderation_holdout2.json)
 
 Over-moderating counts as a failure as much as missing something: "over" is a case that should have gone through and
 didn't, "missed" one that should have been acted on and wasn't. Run it after changing the definitions, the context rules
@@ -31,7 +32,7 @@ import json  # noqa: E402
 
 from core import moderation  # noqa: E402
 
-SETS = {"cases": "moderation_cases.json", "holdout": "moderation_holdout.json"}
+SETS = {"cases": "moderation_cases.json", "holdout": "moderation_holdout.json", "holdout2": "moderation_holdout2.json"}
 ACTED = {"person": {"steer", "care"}, "reply": {"rewrite"}}
 
 

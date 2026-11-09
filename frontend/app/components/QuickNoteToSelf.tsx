@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react'
 import { StickyNote, Trash2 } from 'lucide-react'
 import { noteKindLabel, type FutureNote } from '@/lib/moments'
 import { playPageTurnSound } from '@/lib/taskSound'
+import { crisisIn } from '@/lib/aiSafety'
+import CrisisLines from './CrisisLines'
+import { useGroupLines } from './useGroupLines'
 
 /**
  * Quick Note to Self, in the Journal (the team's notes, October 2026: "Move
@@ -19,6 +22,9 @@ export default function QuickNoteToSelf() {
   const [later, setLater] = useState(true)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
+  // A note that sounds like they may be at risk shows the crisis lines (lib/aiSafety.ts; no AI reads notes).
+  const [care, setCare] = useState(false)
+  const groupLines = useGroupLines()
 
   const load = () =>
     fetch('/api/future-notes', { credentials: 'include', cache: 'no-store' })
@@ -37,6 +43,7 @@ export default function QuickNoteToSelf() {
     if (!text.trim() || busy) return
     setBusy(true)
     setMessage('')
+    setCare(crisisIn(text))
     try {
       const res = await fetch('/api/future-notes', {
         method: 'POST',
@@ -104,6 +111,7 @@ export default function QuickNoteToSelf() {
             {message}
           </p>
         )}
+        {care && <CrisisLines heading="Talk to someone now" headingLevel={3} className="mt-3" groups={groupLines} reachOut />}
       </div>
 
       <div id="quick-note-where" className="rounded-xl border border-indigo-200 bg-indigo-50 p-4 text-sm text-slate-900">

@@ -13,6 +13,7 @@ import { useAgentPath } from '../context/AgentPathContext'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from '../components/Toaster'
 import { chooseRoute, withOwnModelOrRules } from '@/lib/ownModelRoute'
+import { crisisIn } from '@/lib/aiSafety'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -156,7 +157,10 @@ function ReflectionContent() {
       // Read by the person's own model when "Use my own model" is on (lib/ownModelRoute.ts); when it isn't ready the
       // entry is still saved, read only by the agents' rules, and nothing goes to a cloud model.
       const where = await chooseRoute({ ask: false })
-      await withOwnModelOrRules(where, 'reflection', body, () => post(), () => post({ aiReading: false }))
+      const result: any = await withOwnModelOrRules(where, 'reflection', body, () => post(), () => post({ aiReading: false }))
+      // The safety check (backend api/routes/reflections.py), and the browser's own, which needs nothing to answer: an
+      // entry that sounds like they may be at risk shows the crisis lines with their entries (lib/aiSafety.ts).
+      const care = crisisIn(body.freeFormText) || !!(result?.data?.safety?.care ?? result?.safety?.care)
       // Paper/page-turn cue once the entry is saved (Liam: "for every
       // submission ... a page turning/paper sound to signify it processed").
       playPageTurnSound()
@@ -165,7 +169,7 @@ function ReflectionContent() {
         : 'Reflection saved.')
       // All Entries takes the form's place, so Back from there goes to where
       // the Journal was opened from, not to an empty form or the Path.
-      router.replace('/reflection/history?saved=1')
+      router.replace(`/reflection/history?saved=1${care ? '&care=1' : ''}`)
     } catch (error: any) {
       console.error('Error:', error)
       toast.error(error?.ownModel

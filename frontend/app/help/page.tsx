@@ -204,7 +204,7 @@ const SEARCH_ENTRIES: HelpEntry[] = [
     text: typeof t.body === 'string' ? t.body : t.plain || '',
   }))),
   { id: 'ai', term: 'AI', section: 'Where AI is used', text: 'AI writes your plan from your goal, the goal helper, Dream Self pictures and journal notes. Starter resources, energy levels and crisis lines are not AI. Suggestions for each step are linked from your next step on the Path.' },
-  { id: 'ai-safety', term: 'Safety check', section: 'Where AI is used', text: 'What you write to the assistant or an agent, and the answer, are checked first: personal details hidden from the AI, crisis lines when someone may be in danger, unsafe answers written again. Light on purpose.' },
+  { id: 'ai-safety', term: 'Safety check', section: 'Where AI is used', text: 'What you write to the assistant or an agent, and the answer, are checked first: personal details hidden from the AI, crisis lines when someone may be in danger (in the journal too), unsafe answers written again. Light on purpose.' },
   { id: 'tell-us', term: 'Feedback', section: 'It’s in beta', text: 'Tell us what is hard, missing or too much, at any time.' },
   { id: 'talk-now', term: 'Crisis lines', section: 'Talk to someone now', text: '9-8-8 Suicide Crisis Helpline, Kids Help Phone, 988 Lifeline, emergency 911.' },
 ]
@@ -330,16 +330,23 @@ export default function HelpPage() {
             </p>
             <ul className="list-disc space-y-1.5 pl-6">
               <li>Phone numbers, email addresses, ID numbers, passwords and your own address are hidden from the AI first. You’re told when that happens, and the rest of your message is answered.</li>
-              <li>If what you write sounds like you, or someone you’re worried about, may be in danger, the answer is written with care and the crisis lines are shown. This never depends on the AI: you get the lines even if it can’t answer.</li>
+              <li>If what you write sounds like you, or someone you’re worried about, may be in danger, the answer is written with care and the crisis lines are shown. This never depends on the AI: you get the lines even if it can’t answer. The same goes for a journal entry, after you save it.</li>
+              <li>The crisis lines put texting first, for anyone who finds a call hard, and there are words ready to send to someone you trust, from your own phone or email. We don’t send them or keep them.</li>
               <li>If you ask for something unsafe, like help hurting someone or a scam, the AI says what it can’t help with and offers a safe way forward. If something looks like a scam, it names the warning signs.</li>
               <li>If an answer doesn’t pass the check, for example one telling you to change a medicine’s dose, it is written again. If that one doesn’t pass either, you’re told, instead of seeing it.</li>
             </ul>
             <p>
-              Our own rules run first, on our server. Then, when the answer comes from an OpenAI model, OpenAI’s moderation service
-              reads your message and the answer, with your personal details already hidden, and anything it flags gets a second
-              look so that a figure of speech isn’t taken as danger. When an agent or the assistant runs on your own device, only
-              our rules run, and nothing leaves your device. The label under each answer says which. We keep a count of what the
-              check found and did, to see that it works: never your words, and not who wrote them.
+              Our own rules run first, on our server. Then, when the answer comes from an OpenAI model, a second AI reads your
+              message against rules written for the people who use Autinerary, so a figure of speech or a hard day isn’t taken
+              as danger, and OpenAI’s moderation service reads it too; both see it with your personal details already hidden.
+              When an agent or the assistant runs on your own device, only our rules run, and nothing leaves your device. The
+              label under each answer says which. We keep a count of what the check found and did, to see that it works: never
+              your words, and not who wrote them.
+            </p>
+            <p>
+              If you’re in a <Link href="/groups" className={linkClass}>group</Link>, such as your university’s student group,
+              its own crisis lines show too, and its leaders see the same counts for the group, week by week: never your words or
+              who, only once the group has 10 members, and with 1s and 2s hidden.
             </p>
           </div>
         </Section>

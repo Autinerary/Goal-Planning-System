@@ -68,7 +68,7 @@ export function crisisIn(text: string): boolean {
 export const CARE_STEERING =
   '\n\nA note for this reply only, from Autinerary\'s safety check (the person doesn\'t see it): they may be at risk. ' +
   'Reply warmly and briefly: thank them for telling you, say it matters, and that they can talk to someone right now: ' +
-  'call or text 9-8-8 (the Suicide Crisis Helpline, any time), or call 911 if they or someone else is in danger now. If ' +
+  'text or call 9-8-8 (the Suicide Crisis Helpline, any time), or call 911 if they or someone else is in danger now. If ' +
   'it\'s about someone else, help them support that person and share the same lines. Don\'t ask probing questions, ' +
   'don\'t diagnose, don\'t lecture, and don\'t promise what you can\'t do. If they asked for something else too, help ' +
   'with it simply. Say you\'re here to keep going whenever they\'re ready.'
@@ -76,7 +76,7 @@ export const CARE_STEERING =
 /** The help chat's answer when someone may be in danger: the crisis lines, and no AI (as setup does). */
 export const HELP_CARE_REPLY =
   'It sounds like things may be really hard right now, and that matters. You don’t have to work this out alone: you ' +
-  'can call or text 9-8-8 any time to talk to someone, or call 911 if you or someone else is in danger now. The lines ' +
+  'can text or call 9-8-8 any time to talk to someone, or call 911 if you or someone else is in danger now. The lines ' +
   'are below.'
 
 // ---- The words on an AI answer --------------------------------------------------------------------------------------

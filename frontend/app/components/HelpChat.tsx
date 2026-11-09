@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Send, Sparkles } from 'lucide-react'
 import { FEEDBACK_EMAIL, feedbackMailto } from '@/lib/feedback'
 import CrisisLines from './CrisisLines'
+import { useGroupLines } from './useGroupLines'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -26,6 +27,7 @@ export default function HelpChat() {
   const [text, setText] = useState('')
   const [busy, setBusy] = useState(false)
   const input = useRef<HTMLInputElement>(null)
+  const groupLines = useGroupLines()
 
   const ask = async (q: string) => {
     const question = q.trim()
@@ -61,7 +63,7 @@ export default function HelpChat() {
               <span className="sr-only">{m.role === 'user' ? 'You: ' : 'Help chat: '}</span>
               {m.content}
             </p>
-            {m.crisis && <CrisisLines heading="Talk to someone now" headingLevel={3} className="mt-2 max-w-[85%]" />}
+            {m.crisis && <CrisisLines heading="Talk to someone now" headingLevel={3} className="mt-2 max-w-[85%]" groups={groupLines} reachOut />}
           </div>
         ))}
         {busy && <p className="text-sm text-slate-700">Thinking…</p>}

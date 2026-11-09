@@ -486,6 +486,7 @@ export default function ProfilePage() {
             {[
               { href: '/hare-world', title: 'Your people', body: 'Friends, mentors and role models, in Hare World' },
               { href: '/about-me', title: 'About me', body: 'You, in your own words. Only you see it, and the assistant if you say so' },
+              { href: '/groups', title: 'Groups', body: 'A student group or a service you use Autinerary with: join with its code' },
               { href: '/ideal-self', title: 'Your Dream Self', body: 'Your character, and your Dream Self’s goals' },
               { href: '/profile/settings', title: 'Settings', body: 'How the app looks, language, reminders and emails, back-ups' },
               { href: '/profile/accessibility', title: 'Accessibility', body: 'Text size, contrast, motion and reading aloud' },

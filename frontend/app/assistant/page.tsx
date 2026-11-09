@@ -13,6 +13,7 @@ import { hiddenNotice, readSafety, type Safety } from '@/lib/aiSafety'
 import AiNote from '../components/AiNote'
 import AiChatNotice from '../components/AiChatNotice'
 import CrisisLines from '../components/CrisisLines'
+import { useGroupLines } from '../components/useGroupLines'
 
 interface Msg {
   role: 'user' | 'assistant'
@@ -94,6 +95,8 @@ export default function AssistantPage() {
   const [sending, setSending] = useState(false)
   const [warmingUp, setWarmingUp] = useState(false)
   const [onDevice, setOnDevice] = useState(false)
+  // A group's own crisis lines, for the crisis card (STEP 102).
+  const groupLines = useGroupLines()
   // "We hid the phone number in your message from the AI": until the next message.
   const [hidden, setHidden] = useState('')
   const [context, setContext] = useState('')
@@ -209,7 +212,7 @@ export default function AssistantPage() {
                 {m.content}
               </div>
               {m.ai && <AiNote source={{ model: m.ai.model }} safety={m.ai.safety} className="max-w-[85%] px-1" />}
-              {m.care && <CrisisLines heading="Talk to someone now" headingLevel={3} className="mt-2 max-w-[85%]" />}
+              {m.care && <CrisisLines heading="Talk to someone now" headingLevel={3} className="mt-2 max-w-[85%]" groups={groupLines} reachOut />}
             </div>
           ))}
 

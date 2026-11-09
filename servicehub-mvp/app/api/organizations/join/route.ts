@@ -25,10 +25,11 @@ export async function POST(request: NextRequest) {
     .maybeSingle()
   if (!org) return NextResponse.json({ error: 'That code is not valid.' }, { status: 404 })
 
-  // Joining never grants leader — leaders are appointed, not self-selected.
+  // Joining never grants leader — leaders are appointed, not self-selected. And joining again changes nothing: a
+  // leader who uses the code stays a leader (it used to make them a member again).
   const { error } = await admin
     .from('organization_members')
-    .upsert({ org_id: org.id, user_id: user.id, role: 'member' }, { onConflict: 'org_id,user_id' })
+    .upsert({ org_id: org.id, user_id: user.id, role: 'member' }, { onConflict: 'org_id,user_id', ignoreDuplicates: true })
   if (error) {
     console.error('[org] join failed:', error.message)
     return NextResponse.json({ error: 'Could not join.' }, { status: 500 })

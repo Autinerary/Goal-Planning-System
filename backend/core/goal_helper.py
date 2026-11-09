@@ -76,9 +76,13 @@ CRISIS = {
         "It sounds like things may be really hard right now. You don't have to "
         "work this out alone, and you can talk to someone now."
     ),
+    # Text first where a line takes texts: many autistic people find a call the hardest way to reach out. The same
+    # lines as the app's crisis card (frontend lib/crisis.ts).
     "lines": [
-        {"name": "9-8-8 Suicide Crisis Helpline (Canada)", "how": "Call or text 9-8-8, any time"},
-        {"name": "988 Suicide & Crisis Lifeline (US)", "how": "Call or text 988, any time"},
+        {"name": "9-8-8 Suicide Crisis Helpline (Canada)", "how": "Text or call 9-8-8, any time"},
+        {"name": "Good2Talk, for college and university students in Ontario",
+         "how": "Text GOOD2TALKON to 686868, or call 1-866-925-5454, any time"},
+        {"name": "988 Suicide & Crisis Lifeline (US)", "how": "Text or call 988, any time"},
         {"name": "Emergency services", "how": "Call 911 if you or someone else is in danger now"},
     ],
     "after": "You can add a goal whenever you're ready, or leave it for now.",

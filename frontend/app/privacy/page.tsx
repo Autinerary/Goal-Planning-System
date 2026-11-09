@@ -35,8 +35,8 @@ const PROVIDERS: { name: string; does: string; gets: string }[] = [
   },
   {
     name: 'OpenAI (the safety check)',
-    does: 'Checks what you write to the assistant, or to an agent on our cloud model, and the answer, before you see it; only when the answer comes from OpenAI anyway',
-    gets: 'Your message and the answer, with phone numbers, email addresses, ID numbers, passwords and your own address already hidden. Not saved by Autinerary',
+    does: 'Checks what you write to the assistant, or to an agent on our cloud model, and the answer, before you see it, and a journal entry for signs of danger; only when an OpenAI model reads it anyway',
+    gets: 'Your message and the answer, or the entry, with phone numbers, email addresses, ID numbers, passwords and your own address already hidden. Not saved by Autinerary',
   },
   { name: 'Resend', does: 'Sends our emails', gets: 'Your email address and the email itself' },
   {
@@ -414,11 +414,20 @@ export default function PrivacyPage() {
                 <strong>The safety check</strong> (on the assistant and on agents;{' '}
                 <Link href="/help#ai-safety" className="font-medium text-indigo-800 underline underline-offset-2">how it works</Link>). Before the AI reads what you write,
                 phone numbers, email addresses, ID numbers, passwords and your own address are hidden from it. When the answer
-                comes from OpenAI, your message and the answer are also read by OpenAI’s moderation service, and anything it
-                flags by a second OpenAI model, to tell real danger from a figure of speech; neither is saved by us. When the
-                AI runs on your own device, only our own rules run, and nothing leaves your device. We keep a count of what the
-                check found and what it did (for example “personal details hidden” or “crisis lines shown”), to the hour:
+                comes from OpenAI, your message is also read by a second OpenAI model, to tell real danger from a figure of
+                speech, and by OpenAI’s moderation service, which reads the answer too; neither is saved by us. A journal entry
+                is read the same way for signs of danger, when an OpenAI model reads it anyway. When the AI runs on your own
+                device, only our own rules run, and nothing leaves your device. We keep a count of what the check found and what
+                it did (for example “personal details hidden” or “crisis lines shown”), to the hour, with the groups you’re in:
                 never your words, and not your account.
+              </li>
+              <li>
+                <strong>Groups</strong> (<Link href="/groups" className="font-medium text-indigo-800 underline underline-offset-2">Groups</Link>):
+                a student group or a service you join with its code. We keep that you’re a member, and whether you lead it. Its
+                leaders can see that you’re a member, with your name, and, in ResourceHub, the norms on your profile, so they
+                can vouch for them. They also see the safety check’s counts for the group, week by week: never words, never
+                who, only once the group has 10 members, and with counts of 1 or 2 hidden. Your group’s own crisis lines show on
+                your crisis card. Leave at any time; deleting your account leaves every group.
               </li>
               <li>
                 <strong>Tell Autinerary what you need.</strong> What you type goes to OpenAI (or your own model) to set up your

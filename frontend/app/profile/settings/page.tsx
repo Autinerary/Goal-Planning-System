@@ -150,6 +150,12 @@ export default function ProfileSettingsPage() {
         >
           AI models →
         </button>
+        <button
+          onClick={() => router.push('/groups')}
+          className="mb-4 ml-2 inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-50 shadow-sm"
+        >
+          Groups →
+        </button>
         <FeedbackButton className="mb-4 ml-2 inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-50 shadow-sm" />
 
         <HereForSetting />

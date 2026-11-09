@@ -38,7 +38,7 @@ from pydantic import BaseModel, Field
 
 from api.auth_guard import current_user_id, require_self_or_guardian
 from core.orchestrator import Orchestrator
-from core import learning, llm
+from core import learning, llm, moderation
 from database.supabase_client import get_supabase
 
 router = APIRouter()
@@ -116,6 +116,9 @@ class ReflectionResponse(BaseModel):
     adaptations: Optional[dict] = None
     reward: float
     learning: dict
+    # The safety check on the entry (core/moderation.py): {"care": true, "by": ...} when it sounds like they, or
+    # someone they're worried about, may be in danger, so the journal shows the crisis lines. None when it didn't run.
+    safety: Optional[dict] = None
 
 
 # ---------------------------------------------------------------------------
@@ -151,12 +154,37 @@ async def create_reflection(
     #    the existing LangGraph adaptation_graph. This is the same graph the
     #    orchestrator was wired with — we just hadn't been calling it from
     #    this route before.
-    with contextlib.nullcontext() if request.aiReading else llm.without_a_model():
-        pipeline = await orchestrator.adapt_path(
-            user_id=user_id,
-            path_id=request.contextId or "default",
-            reflection_data=reflection_data,
-        )
+    async def adapt() -> Dict[str, Any]:
+        with contextlib.nullcontext() if request.aiReading else llm.without_a_model():
+            return await orchestrator.adapt_path(
+                user_id=user_id,
+                path_id=request.contextId or "default",
+                reflection_data=reflection_data,
+            )
+
+    # The safety check on the entry, alongside (9 November 2026): the journal is where people write how things are
+    # going, so a sign of danger there shows the crisis lines. Our rules always; the checker as well when an OpenAI
+    # model reads the entry anyway. Not for imported old entries: one from months ago isn't a sign of danger now.
+    verified = _verified_user_id(authorization)
+    entry = ((request.freeFormText or "").strip()
+             or "\n".join(str((q or {}).get("answer") or "") for q in request.questions).strip())
+
+    async def check() -> Optional["moderation.Verdict"]:
+        if not moderation.enabled() or not entry or request.contextType == "imported":
+            return None
+        try:
+            with llm.use_selection(None, actor=verified, verified=verified is not None):
+                where = moderation.where_words_go() if request.aiReading else "none"
+                return await moderation.check_message(entry[:4000], where)
+        except Exception as e:
+            print(f"[reflections] safety check skipped: {type(e).__name__}")
+            return None
+
+    pipeline, entry_check = await asyncio.gather(adapt(), check())
+    care = entry_check is not None and entry_check.action == "care"
+    if care:
+        # Only crisis moments are counted for the journal: nothing is hidden from or steered in its reading.
+        await moderation.record("journal", entry_check, None, None, actor=verified)
 
     agent_responses = pipeline.get("agentResponses", [])
     reflection_response: Dict[str, Any] = {}
@@ -317,6 +345,7 @@ async def create_reflection(
         del _in_memory_reflections[_IN_MEMORY_MAX:]
 
     return ReflectionResponse(
+        safety={"care": care, "by": entry_check.by} if entry_check is not None else None,
         reflectionId=reflection_id or "in-memory",
         insights=reflection_response.get("insights", {}) or {
             "sentiment": (reflection_response.get("sentiment") or {}).get("label"),

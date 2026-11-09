@@ -158,11 +158,11 @@ async def chat(req: ChatRequest, actor: Optional[str] = Depends(optional_user_id
                         reply, outcome = (moderation.CARE_REPLY if care_now else moderation.DROPPED_REPLY), "dropped"
     except budget.LimitExceeded as e:
         if in_danger or (asked is not None and asked.action == "care"):
-            await moderation.record(surface, asked, None, None)
+            await moderation.record(surface, asked, None, None, actor=actor)
             return care_only
         raise HTTPException(status_code=429, detail=e.message)
 
-    await moderation.record(surface, asked, replied, outcome)
+    await moderation.record(surface, asked, replied, outcome, actor=actor)
     care = asked is not None and asked.action == "care"
     if not reply:
         if care:

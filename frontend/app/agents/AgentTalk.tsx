@@ -8,6 +8,7 @@ import { hiddenNotice } from '@/lib/aiSafety'
 import AiNote from '../components/AiNote'
 import AiChatNotice from '../components/AiChatNotice'
 import CrisisLines from '../components/CrisisLines'
+import { useGroupLines } from '../components/useGroupLines'
 import { runnerFor, whereItRuns } from './run'
 
 function useWhere(agent: Agent) {
@@ -22,6 +23,7 @@ function useWhere(agent: Agent) {
 
 export function AgentTalk({ agent, data }: { agent: Agent; data: PersonData }) {
   const where = useWhere(agent)
+  const groupLines = useGroupLines()
   const [turns, setTurns] = useState<Turn[]>([])
   // Each answer's label: its model and what the safety check did (lib/aiSafety.ts), by the answer's place in turns.
   const [answers, setAnswers] = useState<Record<number, AnswerInfo>>({})
@@ -70,7 +72,7 @@ export function AgentTalk({ agent, data }: { agent: Agent; data: PersonData }) {
             {answers[i] && !answers[i].safety?.dropped && (
               <AiNote source={{ model: answers[i].model, agent: agent.name, onDevice: answers[i].onDevice }} safety={answers[i].safety} />
             )}
-            {answers[i]?.safety?.care && <CrisisLines heading="Talk to someone now" headingLevel={3} className="mt-2" />}
+            {answers[i]?.safety?.care && <CrisisLines heading="Talk to someone now" headingLevel={3} className="mt-2" groups={groupLines} reachOut />}
           </li>
         ))}
         {busy && <li className="text-sm text-slate-500">{agent.name} is thinking…</li>}

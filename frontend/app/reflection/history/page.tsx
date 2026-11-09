@@ -9,6 +9,8 @@ import { buildMotivationReport, MOTIVATION_META } from '@/lib/motivation'
 import { detectPatterns, MIN_ENTRIES_FOR_PATTERNS, type DetectedPattern } from '@/lib/reflection-patterns'
 import { createClient } from '@/lib/supabase/client'
 import { chooseRoute, withOwnModelOrRules } from '@/lib/ownModelRoute'
+import CrisisLines from '../../components/CrisisLines'
+import { useGroupLines } from '../../components/useGroupLines'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -39,10 +41,15 @@ const contextTypeColors: Record<string, string> = {
 
 export default function JournalHistory() {
   const [journals, setJournals] = useState<Journal[]>([])
-  // Back from saving an entry (the Journal sends ?saved=1).
+  // Back from saving an entry (the Journal sends ?saved=1, and &care=1 when the safety check thinks they may be at
+  // risk: backend api/routes/reflections.py, lib/aiSafety.ts).
   const [justSaved, setJustSaved] = useState(false)
+  const [care, setCare] = useState(false)
+  const groupLines = useGroupLines()
   useEffect(() => {
-    setJustSaved(new URLSearchParams(window.location.search).get('saved') === '1')
+    const params = new URLSearchParams(window.location.search)
+    setJustSaved(params.get('saved') === '1')
+    setCare(params.get('care') === '1')
   }, [])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -192,9 +199,19 @@ export default function JournalHistory() {
     negative: journals.filter(j => j.sentiment === 'negative').length,
   }
 
+  // After an entry that sounds like they may be at risk: shown at once, whether the entries are loading, couldn't
+  // load, or are here (the backend can take a minute to wake).
+  const careCard = care ? (
+    <div className="mb-6">
+      <p className="mb-2 font-medium text-slate-900">What you wrote sounds really hard. Thank you for writing it down.</p>
+      <CrisisLines heading="Talk to someone now" groups={groupLines} reachOut />
+    </div>
+  ) : null
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center surface-veil">
+      <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-4 surface-veil">
+        {careCard && <div className="w-full max-w-2xl">{careCard}</div>}
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-slate-600" />
           <p className="text-slate-600">Loading journals...</p>
@@ -206,6 +223,7 @@ export default function JournalHistory() {
   if (error) {
     return (
       <div className="min-h-screen p-8 surface-veil">
+        {careCard}
         <div className="flex items-center gap-4 mb-6">
           <Link href="/reflection" aria-label="Back to the journal" className="p-2 border-2 border-black rounded hover:bg-gray-100">
             <ChevronLeft className="w-5 h-5" />
@@ -262,6 +280,7 @@ export default function JournalHistory() {
             Your entry is saved. It&apos;s the newest one below.
           </p>
         )}
+        {careCard}
 
         {/* Import panel — bring in journals kept elsewhere (Notes app, files, etc.) */}
         {showImport && (
