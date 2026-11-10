@@ -80,7 +80,9 @@ function relayOnDevice<T>(options: DeviceRunOptions, relay: Relay): Promise<T> {
         // One at a time, in order.
         queue = queue.then(async () => {
           try {
-            const content = await ask(options.settings, {
+            // The server's safety check on this device (backend core/moderation.py) runs on the checker model.
+            const settings = message.agent === 'safety_check' ? (await import('./localModel')).checkerSettings(options.settings) : options.settings
+            const content = await ask(settings, {
               messages: message.messages, temperature: message.temperature, max_tokens: message.max_tokens, json: !!message.json,
               agent: typeof message.agent === 'string' ? message.agent : null, think: message.think === true,
             })

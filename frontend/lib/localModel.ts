@@ -29,6 +29,26 @@ export type OwnModelSettings = {
   thinking: 'main' | 'off'
   /** Whether the model can think first, as the last status check found. */
   thinks: boolean
+  /** The model the safety check runs on, when it isn't theirs (CHECKER_MODEL, if Ollama has it). Found by a status
+   *  check, never saved. */
+  checker?: string
+}
+
+/** The safety check's model on someone's own computer (lib/deviceSafety.ts): Llama 3.2 3B, the best of the models
+ *  people run at it (110 of 114 test messages and 16 of 16 answers right, nothing over-moderated, 9 November 2026; Qwen3
+ *  4B missed 19, Llama 3.2 1B over-moderated 6). Used whenever Ollama has it, whatever model answers; otherwise their
+ *  own model checks. */
+export const CHECKER_MODEL = 'llama3.2:3b'
+
+/** The checker for these settings, from a status check: CHECKER_MODEL when Ollama has it. */
+export function checkerFrom(settings: OwnModelSettings, ping: Ping): string | undefined {
+  if (settings.runtime !== 'ollama' || !ping.ok || ping.runtime === 'browser') return undefined
+  return ping.models.some((m) => m === CHECKER_MODEL || m === `${CHECKER_MODEL}:latest`) ? CHECKER_MODEL : undefined
+}
+
+/** The settings a safety check is asked with: the checker model when there is one, and never thinking first. */
+export function checkerSettings(settings: OwnModelSettings): OwnModelSettings {
+  return settings.checker ? { ...settings, model: settings.checker, thinks: false } : settings
 }
 
 export const DEFAULT_OWN_MODEL: OwnModelSettings = {

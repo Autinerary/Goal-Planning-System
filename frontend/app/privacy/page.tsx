@@ -417,7 +417,9 @@ export default function PrivacyPage() {
                 comes from OpenAI, your message is also read by a second OpenAI model, to tell real danger from a figure of
                 speech, and by OpenAI’s moderation service, which reads the answer too; neither is saved by us. A journal entry
                 is read the same way for signs of danger, when an OpenAI model reads it anyway. When the AI runs on your own
-                device, only our own rules run, and nothing leaves your device. We keep a count of what the check found and what
+                device, the whole check runs there, on your own model, and nothing leaves your device. When you build a training
+                set, each item is checked on your device, never by a company. When you share a model you tuned, it first takes a
+                safety test on your computer, and only its result (how many answers passed) goes with it. We keep a count of what the check found and what
                 it did (for example “personal details hidden” or “crisis lines shown”), to the hour, with the groups you’re in:
                 never your words, and not your account.
               </li>

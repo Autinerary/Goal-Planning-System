@@ -339,8 +339,11 @@ export default function HelpPage() {
               Our own rules run first, on our server. Then, when the answer comes from an OpenAI model, a second AI reads your
               message against rules written for the people who use Autinerary, so a figure of speech or a hard day isn’t taken
               as danger, and OpenAI’s moderation service reads it too; both see it with your personal details already hidden.
-              When an agent or the assistant runs on your own device, only our rules run, and nothing leaves your device. The
-              label under each answer says which. We keep a count of what the check found and did, to see that it works: never
+              When the AI runs on your own device, the check runs there too: our rules, then your own model reading every message
+              and every answer (Llama 3.2 3B, if Ollama has it), and nothing leaves your device. The label under each answer says
+              which. Before you train your own model, each item is checked on your device, and anything about someone at risk, or
+              asking for something harmful, is left out unless you put it back. Before a model you tuned can be shared, it has to
+              pass a safety test on your computer: in a crisis, it points to help, and nothing it says is harmful. We keep a count of what the check found and did, to see that it works: never
               your words, and not who wrote them.
             </p>
             <p>

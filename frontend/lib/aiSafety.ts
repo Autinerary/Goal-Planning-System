@@ -4,14 +4,17 @@
  * The server checks what goes to a cloud model and says what it did in each answer's `safety`. Here: the words for
  * the label on every AI answer (app/components/AiNote.tsx), and the one check the browser runs itself, for an agent on
  * the person's own device and for the help chat, where nothing reaches our server's check: a sign that someone may be
- * in danger, so the crisis lines are shown and the model is asked to answer with care. Plain data, no imports.
+ * in danger, so the crisis lines are shown and the model is asked to answer with care. Plain data; the rules' patterns
+ * are the server's (lib/checkerPolicy.ts).
  */
+import { CHECKER_POLICY } from './checkerPolicy'
 
 /** What the server's check did for one answer (backend core/moderation.py, for_screen). */
 export type Safety = {
-  /** "openai": OpenAI's moderation service and our rules; "rules": our rules only (the person's own model, or ours);
-   *  "unavailable": OpenAI's service didn't answer, so our rules only. */
-  by: 'openai' | 'rules' | 'unavailable'
+  /** "openai": our checker and OpenAI's moderation service, and our rules; "device": the checker on the person's own
+   *  model, on their device, and our rules; "rules": our rules only; "unavailable": OpenAI didn't answer, so our rules
+   *  only. */
+  by: 'openai' | 'device' | 'rules' | 'unavailable'
   /** Someone may be at risk: show the crisis lines. */
   care?: boolean
   /** Kinds of personal details hidden from the AI: email, phone, id_number, address, password. */
@@ -23,7 +26,7 @@ export type Safety = {
 export function readSafety(raw: unknown): Safety | null {
   if (!raw || typeof raw !== 'object') return null
   const s = raw as Record<string, unknown>
-  const by = s.by === 'openai' || s.by === 'rules' || s.by === 'unavailable' ? s.by : null
+  const by = s.by === 'openai' || s.by === 'device' || s.by === 'rules' || s.by === 'unavailable' ? s.by : null
   if (!by) return null
   return {
     by,
@@ -34,34 +37,30 @@ export function readSafety(raw: unknown): Safety | null {
   }
 }
 
-// ---- Danger, in the person's own words ------------------------------------------------------------------------------
+// ---- Our rules, in the person's own words --------------------------------------------------------------------------
 
-// The same phrases as the server's (backend core/moderation.py, CRISIS), held to one list in
-// backend/tests/crisis_phrases.json. "This is killing me" and "I want to die of embarrassment" are not here.
-const RELATIONS = '(?:partner|boyfriend|girlfriend|husband|wife|ex|dad|father|mom|mum|mother|parent|parents|' +
-  'step-?(?:dad|mom|mum|father|mother)|brother|sister|roommate|caregiver|support\\s+worker|landlord|boss|guardian|uncle|' +
-  'aunt|grandpa|grandma)'
-const CRISIS: RegExp[] = [
-  /\b(?:kill(?:ing)?|hurt(?:ing)?|harm(?:ing)?|cut(?:ting)?|hang(?:ing)?|shoot(?:ing)?|starv(?:e|ing)|burn(?:ing)?)\s+myself\b/i,
-  /\b(?:end|take|ending|taking)\s+my\s+(?:own\s+)?life\b|\bcommit(?:ting)?\s+suicide\b|\bsuicidal\b/i,
-  /\bwant(?:ed)?\s+to\s+die\b(?!\s+(?:of|from|laughing|with|in\s+peace))/i,
-  /\b(?:do\s*n[o']?t|don't|dont)\s+want\s+to\s+(?:live|be\s+alive|exist|wake\s+up|be\s+here\s+any\s*more)/i,
-  /\bbetter\s+off\s+(?:dead|without\s+me)\b|\bno\s+reason\s+to\s+(?:live|keep\s+going|go\s+on)\b|\bend\s+it\s+all\b|\bwish\s+i\s+(?:was|were)\s+dead\b/i,
-  /\bi(?:'m|\s+am|'ve\s+been|\s+have\s+been)?\s+(?:been\s+)?self[\s-]?harm(?:ing)?\b/i,
-  /\b(?:took|take|taking|taken)\s+an?\s+overdose\b|\boverdos(?:e|ed|ing)\s+on\s+purpose\b/i,
-  new RegExp(`\\b(?:my\\s+)?${RELATIONS}\\s+(?:hits|hit|hurts|beats|beat|chokes|choked|kicks|slaps|punches|threatens\\s+to\\s+(?:hurt|kill))\\s+me\\b`, 'i'),
-  new RegExp(`\\b(?:my\\s+)?${RELATIONS}\\s+(?:takes|took|keeps|steals|stole)\\s+(?:all\\s+)?my\\s+(?:money|odsp|cheque|check|paycheque|paycheck|benefits?|bank\\s+card)\\b`, 'i'),
-  /\b(?:scared|afraid|terrified)\s+to\s+go\s+home\b|\bnot\s+safe\s+at\s+home\b/i,
-  /\b(?:nobody|no\s?one)\s+would\s+(?:care|notice|miss\s+me)\s+if\s+i\b/i,
-  /\bi(?:'ve|\s+have)?\s+(?:already\s+|just\s+)?(?:wrote|written|writing|write)\s+(?:my\s+|a\s+|some\s+)?(?:goodbye|good-bye|suicide)\s+(?:letters?|notes?)\b/i,
-  // Someone they're worried about: the answer helps them support that person, with the same lines.
-  /\b(?:she|he|they|my\s+\w+)\s+(?:wants?|wanted|is\s+going|was\s+going|plans?|planning|tried|is\s+trying|talks?\s+about\s+wanting|keeps?\s+saying\s+(?:she|he|they)\s+wants?)\s+to\s+(?:kill\s+(?:herself|himself|themselves|themself)|end\s+(?:her|his|their)\s+(?:own\s+)?life)\b/i,
-]
+// The server's own patterns (backend core/moderation.py: CRISIS, SETS_RULES_ASIDE, SCAM), generated into
+// lib/checkerPolicy.ts, so the two can't drift; held to the same phrases (backend/tests/crisis_phrases.json and
+// rule_phrases.json). "This is killing me" and "I want to die of embarrassment" are not crises.
+const CRISIS: RegExp[] = CHECKER_POLICY.rules.crisis.map((p) => new RegExp(p, 'i'))
+const SETS_RULES_ASIDE = new RegExp(CHECKER_POLICY.rules.setsRulesAside, 'i')
+const SCAM = new RegExp(CHECKER_POLICY.rules.scam, 'i')
 
-/** True when the words sound like someone may be in danger. Phones type curly apostrophes ("don’t"). */
+/** Phones type curly apostrophes ("don’t"): read them as straight ones. */
+const plain = (text: string) => String(text ?? '').replace(/[’‘ʼ]/g, "'")
+
+/** True when the words sound like someone may be in danger. */
 export function crisisIn(text: string): boolean {
-  const words = String(text ?? '').replace(/[’‘ʼ]/g, "'")
+  const words = plain(text)
   return CRISIS.some((re) => re.test(words))
+}
+
+/** Something to answer carefully: the AI asked to set its rules aside, or the shape of a scam. */
+export function steerIn(text: string): 'jailbreak' | 'exploitation' | null {
+  const words = plain(text)
+  if (SETS_RULES_ASIDE.test(words)) return 'jailbreak'
+  if (SCAM.test(words)) return 'exploitation'
+  return null
 }
 
 /** Added to an agent's rules on the person's own device when they may be at risk (the server's words, steering). */
@@ -116,8 +115,10 @@ export function aboutAnswer(source: AnswerSource, safety: Safety | null): string
   lines.push(source.agent
     ? `Written by AI${model} for your agent “${source.agent}”, from its instructions and what you wrote.`
     : `Written by AI${model}, from what you wrote${source.onDevice ? '' : ' and what you chose to share'}.`)
-  if (source.onDevice) {
-    lines.push('It ran on your own device, so your words didn’t go to our safety check or anywhere else. If a message sounds like you may be in danger, the crisis lines are still shown.')
+  if (safety?.by === 'device') {
+    lines.push('It was checked for safety before you saw it, on your own device, by your own model: your words didn’t go anywhere else. A model on a phone or laptop catches a little less than our check in the cloud.')
+  } else if (source.onDevice) {
+    lines.push('It ran on your own device, and only our own rules checked it there: your words didn’t go anywhere else. If a message sounds like you may be in danger, the crisis lines are still shown.')
   } else if (safety?.by === 'openai') {
     lines.push('It was checked for safety before you saw it.')
   } else if (safety?.by === 'rules') {

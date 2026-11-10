@@ -22,7 +22,7 @@ export async function whereItRuns(agent: Agent): Promise<{ ready: boolean; words
   const ping = await pingOwnModel(settings)
   if (ping.ok && ping.hasModel) {
     const model = settings.runtime === 'browser' ? (browserModelInfo(settings.browserModel)?.label ?? settings.browserModel) + ' in this browser' : `${settings.model} in Ollama`
-    return { ready: true, words: `Runs on your device (${model}). Nothing it reads or writes leaves this device.` }
+    return { ready: true, words: `Runs on your device (${model}), with the safety check here too. Nothing it reads or writes leaves this device.` }
   }
   return { ready: false, words: `Your own model isn’t ready: ${pingMessage(ping)} Set it up in Settings, Models, Use my own model, or let this agent use our cloud model.` }
 }

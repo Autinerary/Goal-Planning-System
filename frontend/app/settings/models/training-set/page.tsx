@@ -33,10 +33,38 @@ import { hasWebGPU } from '@/lib/browserModel'
 import { loadOwnModel, saveOwnModel } from '@/lib/localModel'
 import { SharedStart, TuneHandle, TunedModel, forgetTunedModel, tuneInThisBrowser, tunedLabel } from '@/lib/tunedModels'
 import type { Progress } from '@/lib/tune/run'
+import { crisisIn, steerIn } from '@/lib/aiSafety'
+import { checkMessageOnDevice, type AskChecker } from '@/lib/deviceSafety'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
-type Review = ScrubbedItem & { edited: boolean; checking: boolean; note?: string }
+type Review = ScrubbedItem & {
+  edited: boolean
+  checking: boolean
+  note?: string
+  /** What the safety check found (lib/deviceSafety.ts): someone at risk, or a request for something harmful. */
+  safety?: { flag: 'care' | 'harmful'; by: 'device' | 'rules' }
+  /** Left out because of it, until the person puts it back. */
+  leftOut?: boolean
+}
+
+/** The safety check on this device for the items (9 November 2026: nothing checked what goes into training). Their own
+ *  model, or Llama 3.2 3B when Ollama has it; null when neither is ready, so our rules check alone. The items are
+ *  private: they never go to a checker in the cloud. */
+async function itemChecker(): Promise<AskChecker | null> {
+  const local = await import('@/lib/localModel')
+  const own = local.loadOwnModel()
+  const settings = own.enabled ? own : { ...own, runtime: 'ollama' as const }
+  const ping = await local.pingOwnModel(settings).catch(() => null)
+  if (!ping?.ok) return null
+  const checker = local.checkerFrom(settings, ping)
+  if (!checker && !(own.enabled && ping.hasModel)) return null
+  const asked = local.checkerSettings({ ...settings, checker })
+  return (system, user) => local.askOwnModel(asked, {
+    messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
+    temperature: 0, max_tokens: 200, json: true, agent: 'safety_check', think: false,
+  })
+}
 
 /** Where tuning is, in words. */
 function progressWords(p: Progress): string {
@@ -77,6 +105,8 @@ export default function TrainingSetPage() {
   const [scrubbing, setScrubbing] = useState(false)
   const [review, setReview] = useState<Review[] | null>(null)
   const [version, setVersion] = useState('')
+  // The safety check of the items: how far it is, and what checked them.
+  const [safetyRun, setSafetyRun] = useState<{ done: number; total: number; by: 'device' | 'rules' } | null>(null)
   const [namesByRecogniser, setNamesByRecogniser] = useState(true)
   const [confirmed, setConfirmed] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -139,11 +169,33 @@ export default function TrainingSetPage() {
       const out = await scrubItems(API_URL, token, items.filter((item) => chosen.has(itemKey(item))))
       setVersion(out.version)
       setNamesByRecogniser(out.names)
-      setReview(out.items.map((item) => ({ ...item, edited: false, checking: false })))
+      const scrubbed: Review[] = out.items.map((item) => ({ ...item, edited: false, checking: false }))
+      setReview(scrubbed)
+      void checkItems(scrubbed)
     } catch (e: any) {
       setError(e.message)
     } finally {
       setScrubbing(false)
+    }
+  }
+
+  // Each item, on this device: our rules, then the checker when their model is ready. One that sounds like someone is at
+  // risk, or asks for help with something harmful, is left out until they put it back.
+  const checkItems = async (items: Review[]) => {
+    const ask = await itemChecker()
+    setSafetyRun({ done: 0, total: items.length, by: ask ? 'device' : 'rules' })
+    for (const [i, item] of items.entries()) {
+      let flag: 'care' | 'harmful' | null = null
+      let by: 'device' | 'rules' = 'rules'
+      if (ask) {
+        const check = await checkMessageOnDevice(item.after, ask)
+        flag = check.action === 'care' ? 'care' : check.action === 'steer' ? 'harmful' : null
+        by = check.by
+      } else {
+        flag = crisisIn(item.after) ? 'care' : steerIn(item.after) ? 'harmful' : null
+      }
+      if (flag) update(itemKey(item), { safety: { flag, by }, leftOut: true })
+      setSafetyRun({ done: i + 1, total: items.length, by: ask ? 'device' : 'rules' })
     }
   }
 
@@ -170,7 +222,7 @@ export default function TrainingSetPage() {
     }
   }
 
-  const kept = (review || []).filter((item) => item.after.trim())
+  const kept = (review || []).filter((item) => item.after.trim() && !item.leftOut)
   const unchecked = (review || []).some((item) => item.edited || item.checking)
 
   /** Your approval recorded (which items, when, with which scrubber; never their text), then the file or the tuning. */
@@ -353,6 +405,15 @@ export default function TrainingSetPage() {
               ← Change what I chose
             </button>
           </div>
+          {safetyRun && (
+            <p role="status" className="text-sm text-slate-700">
+              {safetyRun.done < safetyRun.total
+                ? `Checking each item for safety ${safetyRun.by === 'device' ? 'on your device' : 'with our rules'}: ${safetyRun.done} of ${safetyRun.total}…`
+                : safetyRun.by === 'device'
+                  ? 'Each item was checked for safety on your device, by your own model: nothing left this device.'
+                  : 'Each item was checked by our own rules only. For a fuller check on your device, turn on Use my own model in Models, or install Llama 3.2 3B in Ollama.'}
+            </p>
+          )}
           {review.length === 0 && <p className="text-sm text-slate-600">Nothing left to check.</p>}
           <ul className="space-y-4">
             {review.map((item) => {
@@ -390,6 +451,19 @@ export default function TrainingSetPage() {
                     {item.checking ? 'Checking your edit…' : item.note || foundSummary(item.found)}
                     {!item.after.trim() && ' Empty, so it’s left out.'}
                   </p>
+                  {item.safety && (
+                    <div className="rounded-lg border border-amber-300 bg-amber-50 p-2 text-sm text-slate-900">
+                      <p>
+                        {item.safety.flag === 'care'
+                          ? 'The safety check left this out: it talks about someone being at risk. It’s usually best not to train a model on that, especially one you’ll share.'
+                          : 'The safety check left this out: it asks for help with something harmful. A model trained on it may learn to help with it.'}
+                        {item.safety.flag === 'care' && <> If it’s about you and things are hard right now, <Link href="/help#talk-now" className="font-medium text-indigo-800 underline underline-offset-2">talk to someone now</Link>.</>}
+                      </p>
+                      <button type="button" onClick={() => update(key, { leftOut: !item.leftOut })} className="mt-1 font-medium text-indigo-800 underline underline-offset-2">
+                        {item.leftOut ? 'Put it back in my set' : 'Leave it out'}
+                      </button>
+                    </div>
+                  )}
                 </li>
               )
             })}

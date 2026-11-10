@@ -282,7 +282,7 @@ export type SharedAdapter = {
 
 /** One of the server's checks. `applies: false`: it doesn't apply to this share (say, the crowd for a model shared by link). */
 export type Check = { passed: boolean; why?: string; applies?: boolean; [key: string]: unknown }
-export type Checks = Record<'scrub_review' | 'memorization' | 'metadata' | 'crowd' | 'audience' | 'lineage' | 'files', Check | undefined>
+export type Checks = Record<'scrub_review' | 'memorization' | 'metadata' | 'crowd' | 'audience' | 'lineage' | 'files' | 'safety', Check | undefined>
 
 export type ShareRequest = {
   title: string
@@ -291,6 +291,8 @@ export type ShareRequest = {
   baseModel: string
   consentId: string
   memoryCheck: MemoryReport
+  /** The safety test on the owner's computer (lib/modelSafetyTest.ts); the server refuses a model without a pass. */
+  safetyTest?: { model: string; probes: number; failed: string[]; checkedBy: 'checker' | 'rules' } | null
   visibility: Visibility
   people: string[]
   builtOn: string | null

@@ -42,11 +42,13 @@ export async function chooseRoute(opts: { ask: boolean }, deps?: RouteDeps): Pro
   const d = deps ?? await browserDeps()
   const settings = d.settings()
   if (!settings.enabled) return { route: 'cloud' }
-  const [{ planRoute, cloudFallbackQuestion }] = await Promise.all([import('./localModel')])
+  const [{ planRoute, cloudFallbackQuestion, checkerFrom }] = await Promise.all([import('./localModel')])
   const token = await d.token()
   const ping = await d.ping(settings)
   const route = planRoute(ping, !!token)
-  if (route.route === 'device' && token) return { route: 'device', token, settings: { ...settings, thinks: ping.ok && !!ping.thinks } }
+  if (route.route === 'device' && token) {
+    return { route: 'device', token, settings: { ...settings, thinks: ping.ok && !!ping.thinks, checker: checkerFrom(settings, ping) } }
+  }
   const why = route.route === 'ask' ? route.why : 'you need to be signed in to use it.'
   if (opts.ask && d.confirm(cloudFallbackQuestion(why, d.cloudModel(), false))) return { route: 'cloud' }
   return { route: 'none', why }

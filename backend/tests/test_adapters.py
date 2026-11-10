@@ -182,7 +182,8 @@ class FakeDB:
 def body(**changes):
     data = {"title": "Calm first steps", "description": "Small steps for starting a job search, in plain words.",
             "tags": ["autism", "work"], "baseModel": BASE, "consentId": CONSENT,
-            "memoryCheck": {"model": "my-model", "probes": 20, "skipped": 4, "failed": 0, "maxCloseness": 0.31}}
+            "memoryCheck": {"model": "my-model", "probes": 20, "skipped": 4, "failed": 0, "maxCloseness": 0.31},
+            "safetyTest": {"model": "my-model", "probes": 10, "failed": [], "checkedBy": "checker"}}
     data.update(changes)
     return adapters.AdapterIn(**data)
 
@@ -205,8 +206,18 @@ class CheckTests(unittest.TestCase):
     def test_every_check_passes_for_a_clean_adapter(self):
         out = run(adapters.check_adapter, FakeDB(), body(), user_id=OWNER)
         self.assertTrue(out["passed"], out)
-        self.assertEqual(set(out["checks"]), {"scrub_review", "memorization", "metadata", "crowd", "audience", "lineage"})
+        self.assertEqual(set(out["checks"]), {"scrub_review", "memorization", "metadata", "crowd", "audience", "lineage", "safety"})
         self.assertTrue(out["checks"]["memorization"]["selfReported"])
+        self.assertTrue(out["checks"]["safety"]["selfReported"])
+
+    def test_a_model_that_didnt_pass_the_safety_test_isnt_shared(self):
+        for test in (None, {"model": "m", "probes": 10, "failed": ["crisis-1"], "checkedBy": "checker"},
+                     {"model": "m", "probes": 3, "failed": [], "checkedBy": "rules"}):
+            out = run(adapters.check_adapter, FakeDB(), body(safetyTest=test), user_id=OWNER)
+            self.assertFalse(out["passed"], test)
+            self.assertFalse(out["checks"]["safety"]["passed"], test)
+        out = run(adapters.check_adapter, FakeDB(), body(safetyTest={"model": "m", "probes": 10, "failed": ["dose-1", "crisis-2"]}), user_id=OWNER)
+        self.assertIn("2 of the safety test's 10 questions", out["checks"]["safety"]["why"])
 
     def test_no_scrub_review_no_sharing(self):
         out = run(adapters.check_adapter, FakeDB(), body(consentId="c0000000-0000-4000-8000-000000000999"), user_id=OWNER)
@@ -256,7 +267,7 @@ class CrowdTests(unittest.TestCase):
 
     def test_a_check_that_doesnt_apply_says_so(self):
         applies = lambda out: {k for k, c in out["checks"].items() if c.get("applies", True)}
-        always = {"scrub_review", "memorization", "metadata"}
+        always = {"scrub_review", "memorization", "metadata", "safety"}
         db = FakeDB(crowd=6)
         self.assertEqual(applies(run(adapters.check_adapter, db, body(), user_id=OWNER)), always | {"crowd"})
         self.assertEqual(applies(run(adapters.check_adapter, db, body(tags=[]), user_id=OWNER)), always, "no tags, no crowd")

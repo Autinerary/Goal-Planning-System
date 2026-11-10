@@ -12,7 +12,8 @@
  */
 import { COMMUNITY_TAGS, tagLabel } from './sharedModels'
 import type { Ask, OwnModelSettings } from './localModel'
-import { CARE_STEERING, crisisIn, readSafety, type Safety } from './aiSafety'
+import { readSafety, type Safety } from './aiSafety'
+import { answerSafely } from './deviceSafety'
 
 export type AgentScope = 'norms' | 'goals' | 'plan' | 'step'
 export type AgentRuntime = 'device' | 'cloud'
@@ -317,20 +318,42 @@ export type AnswerInfo = { safety: Safety | null; model: string | null; onDevice
 export type Runner = (turns: Turn[], opts: { json?: boolean; maxTokens?: number; onAnswer?: (info: AnswerInfo) => void }) => Promise<string>
 
 /** On this device, with the person's own model (Ollama, or the model in this browser). Nothing reaches our server, so
- *  the one check is here: if they may be at risk, the model is asked to answer with care, and the crisis lines show. */
+ *  the whole safety check runs here (lib/deviceSafety.ts): our rules, then the checker on their own device for every
+ *  message and every answer, an answer that fails written again once or left out, and the crisis lines when they may be
+ *  at risk. The checker is Llama 3.2 3B when Ollama has it, otherwise their own model. */
 export function deviceRunner(agent: Agent, context: string, settings: OwnModelSettings,
                              ask?: (settings: OwnModelSettings, ask: Ask) => Promise<string>): Runner {
   return async (turns, opts) => {
-    const askModel = ask ?? (await import('./localModel')).askOwnModel
+    const local = ask ? null : await import('./localModel')
+    const askModel = ask ?? local!.askOwnModel
+    const checking = local ? local.checkerSettings(await checkerFor(settings, local)) : settings
     const last = turns[turns.length - 1]
-    const care = last?.role === 'user' && crisisIn(last.content)
-    const answer = await askModel(settings, {
-      messages: [{ role: 'system', content: systemFor(agent, context) + (care ? CARE_STEERING : '') }, ...turns.slice(-12)],
-      temperature: 0.4, max_tokens: opts.maxTokens ?? 700, json: !!opts.json, agent: 'my_agent', think: false,
+    const { answer, safety } = await answerSafely({
+      text: last?.role === 'user' ? last.content : '',
+      json: !!opts.json,
+      ask: (system, user) => askModel(checking, {
+        messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
+        temperature: 0, max_tokens: 200, json: true, agent: 'safety_check', think: false,
+      }),
+      answer: (note) => askModel(settings, {
+        messages: [{ role: 'system', content: systemFor(agent, context) + note }, ...turns.slice(-12)],
+        temperature: 0.4, max_tokens: opts.maxTokens ?? 700, json: !!opts.json, agent: 'my_agent', think: false,
+      }),
     })
-    opts.onAnswer?.({ safety: { by: 'rules', care }, model: null, onDevice: true })
+    opts.onAnswer?.({ safety, model: null, onDevice: true })
     return answer
   }
+}
+
+// Whether Ollama has the checker model, found once per address.
+let checkerFound: { base: string; checker?: string } | null = null
+async function checkerFor(settings: OwnModelSettings, local: typeof import('./localModel')): Promise<OwnModelSettings> {
+  if (settings.runtime !== 'ollama') return settings
+  if (checkerFound?.base !== settings.baseUrl) {
+    const ping = await local.pingOwnModel(settings).catch(() => null)
+    checkerFound = { base: settings.baseUrl, checker: ping ? local.checkerFrom(settings, ping) : undefined }
+  }
+  return { ...settings, checker: checkerFound.checker }
 }
 
 type FetchFn = (input: string, init?: RequestInit) => Promise<Response>

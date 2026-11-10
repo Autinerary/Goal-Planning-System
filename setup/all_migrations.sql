@@ -13596,3 +13596,17 @@ COMMENT ON COLUMN public.ai_safety_events.org_ids IS
 COMMIT;
 
 NOTIFY pgrst, 'reload schema';
+
+-- ============================================================================
+-- STEP 103 — backend/database/migrations/2026_device_safety_checks.sql
+-- The safety check's counts can say the check ran on the person's own device (checked_by 'device'). Safe to run twice.
+-- ============================================================================
+BEGIN;
+
+ALTER TABLE public.ai_safety_events DROP CONSTRAINT IF EXISTS ai_safety_events_checked_by_check;
+ALTER TABLE public.ai_safety_events ADD CONSTRAINT ai_safety_events_checked_by_check
+  CHECK (checked_by IN ('openai', 'device', 'rules', 'unavailable'));
+
+COMMIT;
+
+NOTIFY pgrst, 'reload schema';

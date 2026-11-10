@@ -5,11 +5,22 @@
 // label on an AI answer says what it is, whether it was checked, and what was hidden.
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { aboutAnswer, crisisIn, hiddenNotice, hiddenWords, readSafety, summarise } from './aiSafety.ts'
+import { register } from 'node:module'
 
+// lib/aiSafety.ts imports its neighbours without ".ts", as the app does; Node needs the extension, so add it here.
+register('data:text/javascript,' + encodeURIComponent(
+  'export async function resolve(s, c, next) { try { return await next(s, c) } catch (e) { ' +
+  'if (s.startsWith(".") && !/\\.[a-z]+$/.test(s)) return next(s + ".ts", c); throw e } }'))
+const { aboutAnswer, crisisIn, hiddenNotice, hiddenWords, readSafety, steerIn, summarise } = await import('./aiSafety.ts')
+
+// The server's own patterns, in JavaScript, on the server's own phrase lists.
 const phrases = JSON.parse(readFileSync(new URL('../../backend/tests/crisis_phrases.json', import.meta.url), 'utf8'))
 for (const text of phrases.care) assert.ok(crisisIn(text), `caught, as on the server: ${text}`)
 for (const text of phrases.not_care) assert.ok(!crisisIn(text), `not a crisis: ${text}`)
+const rules = JSON.parse(readFileSync(new URL('../../backend/tests/rule_phrases.json', import.meta.url), 'utf8'))
+for (const text of rules.sets_rules_aside.match) assert.equal(steerIn(text), 'jailbreak', text)
+for (const text of rules.scam.match) assert.equal(steerIn(text), 'exploitation', text)
+for (const text of [...rules.sets_rules_aside.no_match, ...rules.scam.no_match]) assert.equal(steerIn(text), null, text)
 
 // Read safely: only what the server can say.
 assert.equal(readSafety(null), null)

@@ -131,14 +131,23 @@ const infos = []
 const checked = cloudRunner(a, '', null, fakeFetch({ configured: true, reply: 'r', modelLabel: 'GPT-4o mini', safety: { by: 'openai', care: false, hidden: ['phone'] } }))
 await checked([{ role: 'user', content: 'call me at [PHONE]' }], { onAnswer: (i) => infos.push(i) })
 assert.deepEqual(infos[0], { safety: { by: 'openai', care: false, hidden: ['phone'], rewritten: false, dropped: false }, model: 'GPT-4o mini', onDevice: false })
+// On the device, the whole check runs there (lib/deviceSafety.ts): the checker is asked as agent "safety_check" about
+// the message and the answer; the agent itself as "my_agent", with care when they may be at risk.
 const carefully = []
-const onDevice = deviceRunner(a, '', { enabled: true }, async (settings, ask) => { carefully.push(ask); return 'here for you' })
+const onDevice = deviceRunner(a, '', { enabled: true }, async (settings, ask) => {
+  carefully.push(ask)
+  return ask.agent === 'safety_check' ? '{"severity": 0, "category": "none"}' : 'here for you'
+})
 await onDevice([{ role: 'user', content: 'I don’t want to be alive anymore' }], { onAnswer: (i) => infos.push(i) })
-assert.match(carefully[0].messages[0].content, /9-8-8/, 'the device model is asked to answer with care')
-assert.deepEqual(infos[1], { safety: { by: 'rules', care: true }, model: null, onDevice: true })
+const agentCalls = () => carefully.filter((x) => x.agent === 'my_agent')
+assert.match(agentCalls()[0].messages[0].content, /9-8-8/, 'the device model is asked to answer with care')
+assert.deepEqual(infos[1], { safety: { by: 'device', care: true, hidden: [], rewritten: false, dropped: false }, model: null, onDevice: true })
+assert.deepEqual(carefully.map((x) => x.agent), ['my_agent', 'safety_check'], 'a crisis phrase decides at once; the answer is checked')
 await onDevice([{ role: 'user', content: 'this deadline is killing me' }], { onAnswer: (i) => infos.push(i) })
-assert.doesNotMatch(carefully[1].messages[0].content, /9-8-8/)
+assert.doesNotMatch(agentCalls()[1].messages[0].content, /9-8-8/)
 assert.equal(infos[2].safety.care, false)
+assert.deepEqual(carefully.slice(2).map((x) => x.agent), ['safety_check', 'my_agent', 'safety_check'], 'every message and every answer')
+assert.ok(carefully.filter((x) => x.agent === 'safety_check').every((x) => x.json && x.temperature === 0 && x.think === false))
 
 await assert.rejects(cloudRunner(a, '', null, fakeFetch({ reply: 'You have reached the usage limit.', rateLimited: true, failed: true }))([{ role: 'user', content: 'hi' }], {}), /usage limit/)
 await assert.rejects(cloudRunner(a, '', null, fakeFetch({ configured: false, reply: 'not set up' }))([{ role: 'user', content: 'hi' }], {}), /isn’t set up/)

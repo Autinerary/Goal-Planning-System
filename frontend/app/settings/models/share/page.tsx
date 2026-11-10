@@ -15,6 +15,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { loadOwnModel } from '@/lib/localModel'
+import { failedWords, safetyTest, type SafetyReport } from '@/lib/modelSafetyTest'
 import { listConsents, type ConsentRecord } from '@/lib/trainingSet'
 import { tuneInThisBrowser, tunedFiles, tunedLabel, tunedModels, type TuneHandle, type TunedModel } from '@/lib/tunedModels'
 import type { Progress } from '@/lib/tune/run'
@@ -23,6 +24,7 @@ import {
   COMMUNITY_TAGS,
   MAX_TAGS,
   MEMORY_THRESHOLD,
+  ollamaNativeBase,
   type CleanConfig,
   type Checks,
   type MemoryReport,
@@ -98,6 +100,8 @@ export default function ShareModelPage() {
   const [progress, setProgress] = useState<string | null>(null)
   const [memory, setMemory] = useState<MemoryReport | null>(null)
   const [memoryError, setMemoryError] = useState<string | null>(null)
+  // The safety test, run after the memory check passes (lib/modelSafetyTest.ts).
+  const [safety, setSafety] = useState<SafetyReport | null>(null)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [tags, setTags] = useState<string[]>([])
@@ -170,7 +174,7 @@ export default function ShareModelPage() {
 
   const chooseConfig = async (file: File | null) => {
     setChecks(null)
-    setMemory(null)
+    setMemory(null); setSafety(null)
     setConfig(file ? cleanConfig(await file.text()) : null)
   }
 
@@ -180,7 +184,7 @@ export default function ShareModelPage() {
     setSource('browser')
     setTunedId(m.id)
     setChecks(null)
-    setMemory(null)
+    setMemory(null); setSafety(null)
     setMemoryError(null)
     const files = await tunedFiles(m.id)
     if (!files) {
@@ -227,14 +231,37 @@ export default function ShareModelPage() {
     setWeightsIssue(null)
     setConfig(null)
     setSetText(null)
-    setMemory(null)
+    setMemory(null); setSafety(null)
     setChecks(null)
   }
 
   const family = config?.config ? BASE_FAMILIES[config.config.model] ?? 'llama3' : null
 
+  // The model being tested, in Ollama on this computer, asked with a whole prompt in its own format.
+  const ollamaGenerate = (model: string) => async (prompt: string) => {
+    const base = ollamaNativeBase(loadOwnModel().baseUrl)
+    if (!base) throw new Error('The address in Use my own model must be on this computer.')
+    const res = await fetch(`${base}/api/generate`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model, prompt, raw: true, stream: false, options: { temperature: 0, num_predict: 200 } }) })
+    if (!res.ok) throw new Error(`Ollama answered with HTTP ${res.status}.`)
+    return String((await res.json())?.response || '')
+  }
+
+  // The safety checker for the test: Llama 3.2 3B when this computer's Ollama has it, never the model being tested.
+  const testChecker = async (tested: string) => {
+    const local = await import('@/lib/localModel')
+    const settings = { ...local.loadOwnModel(), runtime: 'ollama' as const }
+    const ping = await local.pingOwnModel(settings).catch(() => null)
+    const checker = ping ? local.checkerFrom(settings, ping) : undefined
+    if (!checker || checker === tested) return null
+    return (system: string, user: string) => local.askOwnModel({ ...settings, model: checker, thinks: false }, {
+      messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
+      temperature: 0, max_tokens: 200, json: true, agent: 'safety_check', think: false,
+    })
+  }
+
   const runMemoryCheck = async () => {
-    setMemory(null)
+    setMemory(null); setSafety(null)
     setMemoryError(null)
     setChecks(null)
     try {
@@ -251,6 +278,14 @@ export default function ShareModelPage() {
         onProgress: (done, total) => setProgress(`Checked ${done} of ${total} answers…`),
       })
       setMemory(report)
+      // Then the safety test, with the same model asked the same way, and longer answers (lib/modelSafetyTest.ts).
+      if (report.failed === 0 && report.maxCloseness < MEMORY_THRESHOLD) {
+        const generate = complete ? (prompt: string) => complete(tunedId, prompt, 200) : ollamaGenerate(modelName.trim())
+        setSafety(await safetyTest({
+          generate, family: family ?? 'llama3', model: inBrowser ? tunedId : modelName.trim(), ask: await testChecker(inBrowser ? '' : modelName.trim()),
+          onProgress: (done, total) => setProgress(`Safety test: answer ${done} of ${total}…`),
+        }))
+      }
     } catch (e: any) {
       setMemoryError(e?.message || String(e))
     } finally {
@@ -261,9 +296,9 @@ export default function ShareModelPage() {
   const request = (): ShareRequest | null =>
     config?.config && memory
       ? { title: title.trim(), description: description.trim(), tags, baseModel: config.config.model, consentId, memoryCheck: memory,
-          visibility, people: visibility === 'people' ? picked : [], builtOn: config.builtOn }
+          safetyTest: safety, visibility, people: visibility === 'people' ? picked : [], builtOn: config.builtOn }
       : null
-  const ready = !!(request() && consentId && weights && !weightsIssue && title.trim().length >= 3 && (visibility !== 'people' || picked.length))
+  const ready = !!(request() && safety && !safety.failed.length && consentId && weights && !weightsIssue && title.trim().length >= 3 && (visibility !== 'people' || picked.length))
 
   const check = async () => {
     const token = await freshToken()
@@ -454,7 +489,7 @@ export default function ShareModelPage() {
               <>
                 <label className="block space-y-1">
                   <span className="font-medium">Your training set file (my-training-set-….jsonl)</span>
-                  <input type="file" accept=".jsonl,application/jsonl" onChange={async (e) => { const f = e.target.files?.[0]; setSetText(f ? await f.text() : null); setMemory(null) }} className="block" />
+                  <input type="file" accept=".jsonl,application/jsonl" onChange={async (e) => { const f = e.target.files?.[0]; setSetText(f ? await f.text() : null); setMemory(null); setSafety(null) }} className="block" />
                 </label>
                 <label className="block space-y-1">
                   <span className="font-medium">Your model&apos;s name in Ollama</span>
@@ -480,6 +515,18 @@ export default function ShareModelPage() {
                     ? 'Tune it again with more items, and items less like each other (Build my training set), then check again.'
                     : 'Train it again with EPOCHS=1, or with more items, then check again.'}`}
                 {memory.skipped > 0 && <span className="block text-slate-600">{memory.skipped} answers were too short to check.</span>}
+              </p>
+            )}
+            {safety && (
+              <p className={safety.failed.length ? 'text-red-700' : 'text-emerald-800'}>
+                {safety.failed.length
+                  ? `✗ The safety test: its answers to ${safety.failed.length} of ${safety.probes} messages weren't safe (${failedWords(safety.failed)}), so it can't be shared. Tune it on different items, then check again.`
+                  : `✓ Passed the safety test: all ${safety.probes} answers were safe, and each crisis message was pointed to help.`}
+                <span className="block text-slate-600">
+                  {safety.checkedBy === 'checker'
+                    ? 'Judged on this computer by Llama 3.2 3B in Ollama, never by the model being tested.'
+                    : 'Judged by our fixed rules only: with Llama 3.2 3B in Ollama (ollama pull llama3.2:3b), each answer is read by the safety checker too.'}
+                </span>
               </p>
             )}
             {memory && !(memory.failed === 0 && memory.maxCloseness < MEMORY_THRESHOLD) && source === 'browser' && !tunedHere.find((m) => m.id === tunedId)?.light && (
