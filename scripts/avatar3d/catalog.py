@@ -65,9 +65,11 @@ BROWS = [
 
 # Outfits: each is one or more clothes pieces worn together. (id, label, [src])
 # "basics" is what Attire: Basics shows (the screenshot's "Smallclothes"):
-# a plain tee and shorts, so the character is never shown in underwear.
+# a plain tee and trousers, so the character is never shown in underwear.
+# It was the tee with cortu_jeans_shorts, which were very short ("jorts", the
+# team's testing, 15 November 2026): the plain wool trousers are calmer.
 OUTFITS = [
-    ("basics", "Basics", ["toigo_basic_tucked_t-shirt", "cortu_jeans_shorts"]),
+    ("basics", "Basics", ["toigo_basic_tucked_t-shirt", "toigo_wool_pants"]),
     ("tee-jeans", "T-shirt and jeans", ["male_casualsuit06", "shoes06"]),
     ("denim", "Denim shirt", ["male_casualsuit01", "shoes02"]),
     ("jacket", "Jacket and jeans", ["male_casualsuit05", "culturalibre_male_boots"]),

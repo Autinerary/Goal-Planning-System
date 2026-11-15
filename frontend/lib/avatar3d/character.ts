@@ -197,7 +197,7 @@ export interface Character3D {
   glasses: string
   /** Outfit id (OUTFITS). */
   outfit: string
-  /** What's worn: the outfit, or Basics (a plain tee and shorts). */
+  /** What's worn: the outfit, or Basics (a plain tee and trousers). */
   attire: 'outfit' | 'basics'
   /** Face sliders, -1..1 (0 is MakeHuman's average). */
   face: Record<string, number>
@@ -397,7 +397,7 @@ export function describe(c: Character3D): string {
   if (c.tattoo !== 'none') parts.push(`a ${lower(labelOf(TATTOOS, c.tattoo))} tattoo`)
   if (c.glasses !== 'none') parts.push(`${lower(labelOf(GLASSES, c.glasses))} glasses`)
   if (c.smile) parts.push('a smile')
-  const outfit = c.attire === 'basics' ? 'Basics (a plain tee and shorts)' : labelOf(OUTFITS, c.outfit)
+  const outfit = c.attire === 'basics' ? 'Basics (a plain tee and trousers)' : labelOf(OUTFITS, c.outfit)
   return `Your character: ${listWords(parts)}. Outfit: ${outfit}. Pose: ${lower(labelOf(POSES, c.pose))}. Backdrop: ${lower(labelOf(ENVIRONMENTS, c.environment))}.`
 }
 

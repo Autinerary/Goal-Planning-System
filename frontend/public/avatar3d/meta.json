@@ -1,6 +1,6 @@
 {
  "version": 1,
- "built": "2026-10-21",
+ "built": "2026-11-15",
  "height": 1.6594,
  "outfitBits": {
   "basics": 0,
@@ -4997,13 +4997,14 @@
    "muscle_down",
    "muscle_up"
   ],
-  "outfit__basics__cortu_jeans_shorts": [
+  "outfit__basics__toigo_wool_pants": [
    "age_down",
    "age_up",
    "bodyShape_down",
    "bodyShape_up",
    "build_down",
    "build_up",
+   "chinWidth_down",
    "earSize_down",
    "earSize_up",
    "faceLength_down",

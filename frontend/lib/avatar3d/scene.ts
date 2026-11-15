@@ -377,10 +377,15 @@ export class CharacterScene {
         delta.set(bone, v)
       }
     }
+    // meta.json names joints as Blender does ("upperarm01.L"). three.js's glTF loader takes the dot out of node names
+    // ("upperarm01L") and keeps the original in userData.name, so look them up by that: by b.name, nothing matched and
+    // the joints never moved, so a reshaped body still bent at the middle body's joints (fingers curled like claws at one
+    // end of Body shape and folded at the other; Liam, 15 November 2026).
+    const jointName = (o: THREE.Object3D) => (typeof o.userData?.name === 'string' ? o.userData.name : o.name)
     for (const b of this.boneList) {
       const r = this.rest.get(b)!
-      const own = delta.get(b.name) || ZERO
-      const parent = b.parent && (b.parent as THREE.Bone).isBone ? delta.get(b.parent.name) || ZERO : ZERO
+      const own = delta.get(jointName(b)) || ZERO
+      const parent = b.parent && (b.parent as THREE.Bone).isBone ? delta.get(jointName(b.parent)) || ZERO : ZERO
       b.position.copy(r.p).add(own.clone().sub(parent).applyQuaternion(r.parentQInv))
     }
     this.holder.position.y = -ground
