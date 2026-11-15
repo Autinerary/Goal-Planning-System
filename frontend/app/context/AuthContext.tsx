@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect, useCallback, useMemo, u
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { hubReturnHref } from '@/lib/serviceHub'
+import { isHalloween } from '@/lib/achievements'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 import { trackArea, trackDailyOpen } from '@/lib/funnel'
 import { markSeenToday } from '@/lib/checkin'
@@ -112,6 +113,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       headers,
     })
   }, [])
+
+  // Achievements (lib/achievements.ts): Spooky Season is opening Autinerary on Halloween, signed in, in the person's
+  // own time zone. Most people stay signed in, so this goes by a visit, not by typing a password. It asks the server
+  // only on 31 October, once per signed-in visit; every other day of the year it does nothing.
+  const halloweenAsked = useRef<string | null>(null)
+  useEffect(() => {
+    const id = supabaseUser?.id
+    if (!id || halloweenAsked.current === id) return
+    let timeZone: string | undefined
+    try { timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone } catch {}
+    if (!isHalloween(timeZone)) return
+    halloweenAsked.current = id
+    void fetchWithAuth('/api/achievements/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ timeZone }),
+    }).catch(() => {})
+  }, [supabaseUser?.id, fetchWithAuth])
 
   useEffect(() => {
     // The placeholder backend login stored "mock_token" here. It is not a
@@ -283,18 +302,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('app_user', JSON.stringify(userProfile))
       setSupabaseUser(data.user)
       setUser(userProfile)
-      const token = data.session?.access_token
-      if (token) {
-        void fetch('/api/achievements/login', {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
-        }).then(async response => {
-          if (!response.ok) {
-            const result = await response.json().catch(() => ({}))
-            console.error('Could not record login achievement:', result.error || response.statusText)
-          }
-        }).catch(error => console.error('Could not record login achievement:', error))
-      }
       return { success: true }
     } catch (err: any) {
       console.error('Login error:', err)

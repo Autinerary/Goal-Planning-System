@@ -56,13 +56,15 @@ export const PATH_MENUS: { id: string; label: string; info: string; items: PathM
   {
     id: 'fun',
     label: 'Fun',
-    info: 'Your reel, your journal, About me, your Dream Self and your stats',
+    info: 'Your reel, your journal, About me, your Dream Self, your stats and your achievements',
     items: [
       { label: 'Reels', href: '/reels' },
       { label: 'Journal', href: '/reflection' },
       { label: 'About me', href: '/about-me' },
       { label: 'Your Dream Self', href: '/ideal-self' },
       { label: 'Life Stats', href: '/stats' },
+      // A place, so it is here, not in the top bar (Riipen Labs, Groups 32 and 33; app/components/Navigation.tsx).
+      { label: 'Achievements', href: '/achievements' },
     ],
   },
   {

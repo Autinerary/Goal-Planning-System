@@ -13610,3 +13610,35 @@ ALTER TABLE public.ai_safety_events ADD CONSTRAINT ai_safety_events_checked_by_c
 COMMIT;
 
 NOTIFY pgrst, 'reload schema';
+
+-- ============================================================================
+-- STEP 104 — backend/database/migrations/2026_achievement_unlocks.sql
+-- Achievements each person has earned, and when (pull request #3). Already in production since 30 October 2026.
+-- Safe to run twice.
+-- ============================================================================
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS public.achievement_unlocks (
+  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  achievement_id text NOT NULL,
+  unlocked_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, achievement_id)
+);
+
+ALTER TABLE public.achievement_unlocks ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can read their own achievement unlocks" ON public.achievement_unlocks;
+CREATE POLICY "Users can read their own achievement unlocks"
+  ON public.achievement_unlocks
+  FOR SELECT
+  USING (auth.uid() = user_id);
+
+REVOKE ALL ON public.achievement_unlocks FROM anon, authenticated;
+GRANT SELECT ON public.achievement_unlocks TO authenticated;
+
+COMMENT ON TABLE public.achievement_unlocks IS
+  'STEP 104: the achievements each person has earned (frontend/lib/achievements.ts), and when. Written by the server only.';
+
+COMMIT;
+
+NOTIFY pgrst, 'reload schema';

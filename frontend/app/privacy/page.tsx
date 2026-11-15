@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 // Where privacy questions and requests go (lib/contact.ts).
 const CONTACT = CONTACT_EMAIL
-const UPDATED = '9 November 2026'
+const UPDATED = '14 November 2026'
 
 // Sponsored listings (STEP 83; lib/sponsored.ts): what this page says changes when the team turns them on.
 const SPONSORED = process.env.NEXT_PUBLIC_SPONSORED === 'on'
@@ -164,6 +164,10 @@ export default function PrivacyPage() {
                 Dream Self choices, spirit animals, and display and accessibility settings.
               </li>
               <li>Your plan and progress: milestones, races, calendar tasks, Life Stats check-ins and reflections.</li>
+              <li>
+                Your achievements: which ones you’ve earned and when, so they stay earned. They come from how many friends
+                you’re connected with and the date, and only you see them.
+              </li>
               <li>
                 For the Calendar’s Analysis: the day and hour you tick each plan task, the energy level you choose each day, and
                 any Sunny Day or Grey Day you choose. Only you see them; the hours and energy levels are kept for six months.

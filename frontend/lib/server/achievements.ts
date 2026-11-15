@@ -1,7 +1,7 @@
 import 'server-only'
 
 import { createAdminClient } from '@/lib/supabase/admin'
-import type { AchievementUnlock } from '@/lib/achievements'
+import { isHalloween, type AchievementUnlock } from '@/lib/achievements'
 
 const FRIEND_MILESTONES = [
   { achievementId: 'friends_1', threshold: 1 },
@@ -68,8 +68,9 @@ export async function listAchievementUnlocks(userId: string): Promise<Achievemen
   return data || []
 }
 
-export async function recordHalloweenLogin(userId: string, now = new Date()): Promise<boolean> {
-  if (now.getUTCMonth() !== 9 || now.getUTCDate() !== 31) return false
+/** On 31 October in the person's own time zone (lib/achievements.ts, isHalloween), records Spooky Season. */
+export async function recordHalloweenLogin(userId: string, timeZone?: unknown, now = new Date()): Promise<boolean> {
+  if (!isHalloween(timeZone, now)) return false
 
   const admin = createAdminClient()
   const { error } = await admin

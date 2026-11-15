@@ -21,7 +21,9 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const recorded = await recordHalloweenLogin(user.id)
+    // The person's time zone, so Halloween is their own 31 October (lib/achievements.ts, isHalloween).
+    const body = await req.json().catch(() => ({}))
+    const recorded = await recordHalloweenLogin(user.id, body?.timeZone)
     return NextResponse.json({ recorded })
   } catch (error) {
     console.error('POST /api/achievements/login error:', error)
