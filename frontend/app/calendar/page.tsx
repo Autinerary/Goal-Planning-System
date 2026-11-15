@@ -1312,7 +1312,8 @@ function CalendarDayIdentity({ value, date: selectedDate, weekday, fallbackTheme
   const animal = animalForDay(value, date, pace)
   const theme = themeForDate(value, date) || fallbackTheme
   return <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs font-normal text-blue-700">
-    {animal && <img src={`/spirit-animals/${animal.type}.png`} alt={`${weekday}: ${animal.color} ${animal.type}`} width={32} height={32} style={{ maxWidth: '100%', filter: `hue-rotate(${ANIMAL_COLORS[animal.color]}deg)` }} />}
+    {/* keep-colors: the tint is an inline filter, which overrides dark mode's turn-back for pictures (globals.css) */}
+    {animal && <span className="keep-colors inline-flex max-w-full"><img src={`/spirit-animals/${animal.type}.png`} alt={`${weekday}: ${animal.color} ${animal.type}`} width={32} height={32} style={{ maxWidth: '100%', filter: `hue-rotate(${ANIMAL_COLORS[animal.color]}deg)` }} /></span>}
     {theme && <span className="min-w-0 max-w-full [overflow-wrap:anywhere]">{theme}</span>}
   </div>
 }

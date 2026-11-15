@@ -40,7 +40,9 @@ export default function AvatarEditor({ title, value, onChange, full = false, hin
         <div key={group.key} role="group" aria-label={group.label}>
           <p className="mb-2 text-sm">{group.label}</p>
           <div className="flex flex-wrap gap-2">
-            {group.options.map(color => <button key={color.id} type="button" aria-label={`${group.label}: ${color.label}`} title={color.label} aria-pressed={value[group.key] === color.id} onClick={() => onChange({ ...value, [group.key]: color.id })} style={{ backgroundColor: `#${color.id}` }} className={`h-9 w-9 rounded-full border-2 ${value[group.key] === color.id ? 'ring-2 ring-cyan-600 ring-offset-2' : 'border-slate-300'}`} />)}
+            {/* The colour is in keep-colors (globals.css): dark mode turns the page's colours over, and the avatar is
+                turned back, so a swatch that wasn't showed the opposite shade (the deepest skin tone looked fairest). */}
+            {group.options.map(color => <button key={color.id} type="button" aria-label={`${group.label}: ${color.label}`} title={color.label} aria-pressed={value[group.key] === color.id} onClick={() => onChange({ ...value, [group.key]: color.id })} className={`h-9 w-9 rounded-full border-2 p-0 ${value[group.key] === color.id ? 'ring-2 ring-cyan-600 ring-offset-2' : 'border-slate-300'}`}><span aria-hidden="true" className="keep-colors block h-full w-full rounded-full" style={{ backgroundColor: `#${color.id}` }} /></button>)}
           </div>
         </div>
       ))}

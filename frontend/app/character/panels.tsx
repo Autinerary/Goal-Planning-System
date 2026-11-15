@@ -70,7 +70,7 @@ function MaskIcon({ src, color }: { src: string; color: string }) {
     WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat',
     WebkitMaskPosition: 'center', maskPosition: 'center',
   }
-  return <span aria-hidden="true" className="absolute inset-0" style={style} />
+  return <span aria-hidden="true" className="keep-colors absolute inset-0" style={style} />
 }
 
 export function Swatches({ label, swatches, chosen, onChoose, custom = true }: {
@@ -100,8 +100,9 @@ export function Swatches({ label, swatches, chosen, onChoose, custom = true }: {
               className={`relative flex h-11 w-11 items-center justify-center rounded-full border-2 transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300 ${
                 on ? 'scale-110 border-amber-300' : 'border-white/30 hover:border-white/70'
               }`}
-              style={isColour ? { backgroundColor: s.id } : undefined}
             >
+              {/* keep-colors (globals.css): in dark mode the 3D view keeps its colours, so the swatch must too */}
+              {isColour && <span aria-hidden="true" className="keep-colors absolute inset-0 rounded-full" style={{ backgroundColor: s.id }} />}
               {!isColour && <span aria-hidden="true" className="text-[10px] font-semibold leading-none text-slate-100">{s.label}</span>}
               {on && <Check aria-hidden="true" className="absolute -right-1 -top-1 h-5 w-5 rounded-full bg-amber-300 p-0.5 text-slate-950" strokeWidth={3} />}
             </button>
@@ -114,7 +115,7 @@ export function Swatches({ label, swatches, chosen, onChoose, custom = true }: {
             type="color"
             value={chosen.startsWith('#') ? chosen : '#888888'}
             onChange={(e) => onChoose(e.target.value.toLowerCase())}
-            className="h-11 w-14 cursor-pointer rounded-lg border-2 border-white/30 bg-transparent"
+            className="keep-colors h-11 w-14 cursor-pointer rounded-lg border-2 border-white/30 bg-transparent"
           />
           <span>
             Any colour{!known && chosen.startsWith('#') ? <span className="text-slate-300"> (chosen: {chosen})</span> : null}

@@ -245,7 +245,8 @@ export default function TaskCompanions({
         >
           <GripVertical className="w-4 h-4" aria-hidden="true" />
         </button>
-        <div className={energized ? 'companion-hop-fast' : 'companion-hop'}>
+        {/* keep-colors: the tint is an inline filter, which overrides dark mode's turn-back for pictures (globals.css) */}
+        <div className={`keep-colors ${energized ? 'companion-hop-fast' : 'companion-hop'}`}>
           {image ? (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img src={image} alt={`Your ${animal?.color || ''} ${animal?.type || ''}`.replace(/\s+/g, ' ').trim()} width={44} height={44} style={{ filter: tint }} />

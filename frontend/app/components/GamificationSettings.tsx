@@ -53,9 +53,10 @@ export default function GamificationSettings() {
         const setSlot = (change: Partial<typeof animal>) => patch({ animals: Array.from({ length: Math.max(value.animals.length, index + 1) }, (_, position) => position === index ? { ...animal, ...change } : value.animals[position] || { type: '', color: 'orange' }) })
         return <fieldset key={`${value.mode}-${index}`} className="flex min-w-0 flex-wrap items-center gap-2 border-b pb-3">
           <legend className="mb-1 text-sm font-medium">{label}</legend>
-          {animal.type && <img src={`/spirit-animals/${animal.type}.png`} alt="" width={40} height={40} style={{ filter: `hue-rotate(${ANIMAL_COLORS[animal.color]}deg)` }} />}
+          {/* keep-colors on the picture and on each swatch: in dark mode both show the real colour, so they match */}
+          {animal.type && <span className="keep-colors inline-flex"><img src={`/spirit-animals/${animal.type}.png`} alt="" width={40} height={40} style={{ filter: `hue-rotate(${ANIMAL_COLORS[animal.color]}deg)` }} /></span>}
           <select aria-label={label} value={animal.type} onChange={event => setSlot({ type: event.target.value })} className="max-w-full rounded border p-2 text-sm"><option value="">Not chosen yet</option>{ANIMAL_TYPES.map(type => <option key={type} value={type}>{type}</option>)}</select>
-          <div role="group" aria-label={`${label}: colour`} className="flex flex-wrap gap-2">{Object.keys(ANIMAL_COLORS).map(color => <button key={color} type="button" title={color} aria-label={`${label}: ${color}`} aria-pressed={animal.color === color} onClick={() => setSlot({ color })} className={`h-6 w-6 rounded-full border-2 ${animal.color === color ? 'border-slate-900 ring-2 ring-offset-2 ring-slate-600' : 'border-slate-300'}`} style={{ backgroundColor: color }} />)}</div>
+          <div role="group" aria-label={`${label}: colour`} className="flex flex-wrap gap-2">{Object.keys(ANIMAL_COLORS).map(color => <button key={color} type="button" title={color} aria-label={`${label}: ${color}`} aria-pressed={animal.color === color} onClick={() => setSlot({ color })} className={`h-6 w-6 rounded-full border-2 ${animal.color === color ? 'border-slate-900 ring-2 ring-offset-2 ring-slate-600' : 'border-slate-300'} p-0`}><span aria-hidden="true" className="keep-colors block h-full w-full rounded-full" style={{ backgroundColor: color }} /></button>)}</div>
         </fieldset>
       })}
     </div>
