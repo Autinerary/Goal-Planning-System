@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { evaluateFriendAchievements } from '@/lib/server/achievements'
 import { publicProfilesByIds, step64Missing } from '@/lib/publicProfiles'
 import { tryPushToUser } from '@/lib/push'
 
@@ -26,7 +27,7 @@ async function getAuthenticatedUser(req: NextRequest) {
     const token = authHeader.split(' ')[1]
     const { data: { user: tokenUser }, error } = await supabase.auth.getUser(token)
     if (!error && tokenUser) {
-      return { user: tokenUser, supabase }
+      return { user: tokenUser, supabase: createServerSupabase(token) }
     }
   }
 
@@ -232,6 +233,17 @@ export async function POST(req: NextRequest) {
     }
     console.error('POST /api/connections error:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  if (insertRow.category === 'friends' && insertRow.status === 'connected' && insertRow.target_user_id) {
+    try {
+      await Promise.all([
+        evaluateFriendAchievements(user.id),
+        evaluateFriendAchievements(insertRow.target_user_id),
+      ])
+    } catch (error) {
+      console.error('POST /api/connections achievement evaluation error:', error)
+    }
   }
 
   // Requests were only visible on Pit Stop's Hare World tab, so people never

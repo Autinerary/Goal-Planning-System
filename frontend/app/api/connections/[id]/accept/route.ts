@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { evaluateFriendAchievements } from '@/lib/server/achievements'
 
 export const dynamic = 'force-dynamic'
 
@@ -50,6 +51,17 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   if (!data) return NextResponse.json({ error: 'Request not found or already actioned' }, { status: 404 })
+
+  if (data.category === 'friends') {
+    try {
+      await Promise.all([
+        evaluateFriendAchievements(user.id),
+        evaluateFriendAchievements(data.owner_id),
+      ])
+    } catch (error) {
+      console.error('POST /api/connections/[id]/accept achievement evaluation error:', error)
+    }
+  }
 
   return NextResponse.json({ connection: data })
 }

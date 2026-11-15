@@ -5,7 +5,7 @@ import { useRef } from 'react'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '../context/AuthContext'
 import { useTranslation } from '../context/LanguageContext'
-import { LogOut, User, ExternalLink, Settings, PlayCircle } from 'lucide-react'
+import { LogOut, User, ExternalLink, Settings, PlayCircle, Trophy } from 'lucide-react'
 import InfoModeButton from './InfoModeButton'
 import VoiceNavigation from './VoiceNavigation'
 import NotificationBell from './NotificationBell'
@@ -103,6 +103,15 @@ export default function Navigation() {
             </button>
 
             <NotificationBell />
+
+            <Link
+              href="/achievements"
+              className="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-white/40 rounded-lg transition-all"
+              title="Achievements"
+            >
+              <Trophy className="w-4 h-4" />
+              <span className="hidden lg:inline">Achievements</span>
+            </Link>
 
             {/* Family and Reels were here too, as icons only below 1024 pixels,
                 and pushed the bar to three rows on a phone (Riipen Labs, Group

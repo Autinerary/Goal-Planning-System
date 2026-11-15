@@ -283,6 +283,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('app_user', JSON.stringify(userProfile))
       setSupabaseUser(data.user)
       setUser(userProfile)
+      const token = data.session?.access_token
+      if (token) {
+        void fetch('/api/achievements/login', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        }).then(async response => {
+          if (!response.ok) {
+            const result = await response.json().catch(() => ({}))
+            console.error('Could not record login achievement:', result.error || response.statusText)
+          }
+        }).catch(error => console.error('Could not record login achievement:', error))
+      }
       return { success: true }
     } catch (err: any) {
       console.error('Login error:', err)
