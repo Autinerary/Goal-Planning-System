@@ -111,7 +111,38 @@ function TaskViewContent() {
     updatePreferences(patch)
     if (done) playTaskCompleteSound()
   }
-  const isDone = completed || completedTasks.has(taskId)
+
+  // Your own tasks (added in the Calendar, imported, or one week of a plan task
+  // moved on its own) are done in the Calendar's list (calendar_tasks), as its
+  // tick does; plan tasks are ticked for the week (lib/planTaskDone.ts). "I've
+  // done it" only did the second, so your own task never showed as done (bug
+  // audit, 17 November 2026).
+  const ownTaskRead = useRef<{ id: string; promise: Promise<{ completed: boolean } | null> } | null>(null)
+  const [ownTask, setOwnTask] = useState<{ completed: boolean } | null>(null)
+  const readOwnTask = () => {
+    if (ownTaskRead.current?.id !== taskId) {
+      ownTaskRead.current = {
+        id: taskId,
+        promise: fetch('/api/me/calendar', { cache: 'no-store', credentials: 'include' })
+          .then((r) => (r.ok ? r.json() : null))
+          .then((j) => {
+            const row = Array.isArray(j?.tasks) ? j.tasks.find((t: any) => t?.client_id === taskId) : null
+            return row ? { completed: Boolean(row.completed) } : null
+          })
+          .catch(() => null),
+      }
+    }
+    return ownTaskRead.current.promise
+  }
+  useEffect(() => {
+    let cancelled = false
+    readOwnTask().then((t) => { if (!cancelled) setOwnTask(t) })
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [taskId])
+  const [marking, setMarking] = useState(false)
+  const [doneError, setDoneError] = useState('')
+  const isDone = completed || completedTasks.has(taskId) || Boolean(ownTask?.completed)
 
   const handleMusicUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -132,13 +163,37 @@ function TaskViewContent() {
     setIsPlaying(!isPlaying)
   }
 
-  const handleDone = () => {
-    setCompleted(true)
-    const current = loadPreferences()
-    if (!doneThisWeek(current.planTaskDone).has(taskId)) {
-      const { planTaskDone, doneHours, planTaskAt } = tickPlanTask(current, taskId)
-      updatePreferences({ planTaskDone, doneHours, planTaskAt })
+  const handleDone = async () => {
+    if (marking) return
+    setMarking(true)
+    setDoneError('')
+    try {
+      const own = await readOwnTask()
+      if (own) {
+        if (!own.completed) {
+          const saved = await fetch(`/api/me/calendar/${encodeURIComponent(taskId)}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ completed: true }),
+          }).then((r) => r.ok, () => false)
+          if (!saved) {
+            setDoneError('That couldn’t be saved just now. Please try again.')
+            return
+          }
+          setOwnTask({ completed: true })
+        }
+      } else {
+        const current = loadPreferences()
+        if (!doneThisWeek(current.planTaskDone).has(taskId)) {
+          const { planTaskDone, doneHours, planTaskAt } = tickPlanTask(current, taskId)
+          updatePreferences({ planTaskDone, doneHours, planTaskAt })
+        }
+      }
+    } finally {
+      setMarking(false)
     }
+    setCompleted(true)
     setIsDoneDancing(true)
     playCelebrationMusic()
     // Streak: completing a task marks today active.
@@ -275,11 +330,12 @@ function TaskViewContent() {
               <button
                 type="button"
                 onClick={handleDone}
-                disabled={isDone}
+                disabled={isDone || marking}
                 className={`w-full rounded-2xl px-6 py-4 text-xl font-bold shadow-lg transition-all ${isDone ? 'bg-emerald-600 text-white' : 'bg-indigo-700 text-white hover:bg-indigo-800'}`}
               >
                 {isDone ? '✓ Done!' : 'I’ve done it'}
               </button>
+              {doneError && <p role="alert" className="text-sm text-red-700">{doneError}</p>}
               {!isDone && social && (
                 <button
                   type="button"

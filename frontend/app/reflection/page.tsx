@@ -4,6 +4,7 @@ import { useState, Suspense, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import axios from 'axios'
+import { BACKEND_TIMEOUT_MS, isTimeout } from '@/lib/backendTimeout'
 import { Sparkles, Send, BookOpen, Lightbulb, Target, Brain, Heart, Sun, Moon, Palette, StickyNote } from 'lucide-react'
 import BackButton from '../components/BackButton'
 import QuickNoteToSelf from '../components/QuickNoteToSelf'
@@ -153,6 +154,9 @@ function ReflectionContent() {
         headers: session?.access_token
           ? { Authorization: `Bearer ${session.access_token}` }
           : undefined,
+        // Bounded: the backend can take over a minute to wake, and the button
+        // used to spin with no end (lib/backendTimeout.ts).
+        timeout: BACKEND_TIMEOUT_MS,
       })
       // Read by the person's own model when "Use my own model" is on (lib/ownModelRoute.ts); when it isn't ready the
       // entry is still saved, read only by the agents' rules, and nothing goes to a cloud model.
@@ -174,7 +178,10 @@ function ReflectionContent() {
       console.error('Error:', error)
       toast.error(error?.ownModel
         ? `${error.message} Your reflection wasn’t saved, and your text is still here.`
-        : 'Could not save your reflection. Your text is still here. Try again.')
+        : isTimeout(error)
+          // It may still arrive: look before sending it again, so it isn't saved twice.
+          ? 'Saving is taking longer than usual. Your text is still here. In a minute, look in All Entries: if it isn’t there, try again.'
+          : 'Could not save your reflection. Your text is still here. Try again.')
     } finally {
       setLoading(false)
     }

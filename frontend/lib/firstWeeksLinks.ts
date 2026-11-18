@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from 'crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { safeNextPath } from './safeNext'
 
 /**
  * The links in the first two weeks' emails (lib/firstWeeks.ts). Server-only.
@@ -34,9 +35,7 @@ export function firstWeeksSignatureMatches(userId: string, signature: string): b
 
 /** A page of this app to go to after a link: a path on this site, never another site. */
 export function safeAppPath(to: unknown): string {
-  const path = typeof to === 'string' ? to : ''
-  if (!path.startsWith('/') || path.startsWith('//') || path.includes('\\') || path.length > 300) return '/path'
-  return path
+  return safeNextPath(to, 300) ?? '/path'
 }
 
 export function firstWeeksLinks(appUrl: string, userId: string, day: number): { open: (to: string) => string; stop: string; oneClick: string } {

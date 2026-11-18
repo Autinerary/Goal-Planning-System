@@ -43,13 +43,16 @@ export async function POST(req: NextRequest) {
   const at = lookedUpAt(r)
   if (at && Date.now() - new Date(at).getTime() < AGAIN_AFTER_DAYS * 24 * 3600 * 1000) return NextResponse.json({ how: 'none', found: null, lookedUp: at })
 
-  // Ten a person a day (each costs a little).
-  const { data: prof } = await admin.from('profiles').select('preferences').eq('id', user.id).maybeSingle()
-  const prefs = (prof?.preferences as Record<string, any>) || {}
+  // Ten a person a day (each costs a little). Counted in the account's app_metadata, which only the server can
+  // write: it used to sit in profiles.preferences, which the person can rewrite (/api/me/preferences), so
+  // setting it back to nothing reopened the paid look-ups.
+  const { data: fresh } = await admin.auth.admin.getUserById(user.id)
+  const meta = (fresh?.user?.app_metadata as Record<string, any>) || {}
   const today = new Date().toISOString().slice(0, 10)
-  const used = prefs.lookups?.day === today ? Number(prefs.lookups.count) || 0 : 0
+  const used = meta.lookups?.day === today ? Number(meta.lookups.count) || 0 : 0
   if (used >= DAILY) return NextResponse.json({ error: 'That’s the most look-ups for one day. Try again tomorrow.' }, { status: 429 })
-  await admin.from('profiles').update({ preferences: { ...prefs, lookups: { day: today, count: used + 1 } } }).eq('id', user.id)
+  const { error: countError } = await admin.auth.admin.updateUserById(user.id, { app_metadata: { lookups: { day: today, count: used + 1 } } })
+  if (countError) return NextResponse.json({ error: 'Could not look that up just now. Try again in a minute.' }, { status: 503 })
 
   const found = await lookUpContact(r)
   if (!found.asked) return NextResponse.json({ error: 'Looking for contact details isn’t set up yet.' }, { status: 503 })

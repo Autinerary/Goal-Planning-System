@@ -4,6 +4,8 @@ import { aboutMeForAssistant } from '@/lib/aboutMe'
 
 // Proxies at request time (never prerendered).
 export const dynamic = 'force-dynamic'
+// Long enough for the backend to wake from sleep (it can take over a minute) and then answer.
+export const maxDuration = 150
 
 /**
  * POST /api/assistant/chat — proxies the chat to the FastAPI backend's
@@ -88,9 +90,9 @@ export async function POST(request: NextRequest) {
         language_style: languageStyle,
         ...(agent ? { agent } : {}),
       }),
-      // Render free tier sleeps when idle; the first request can take ~40s+ to
-      // wake the service, so allow generous headroom before giving up.
-      signal: AbortSignal.timeout(75000),
+      // The backend sleeps when idle, and waking it took over 60 s on 17 Nov 2026, before the model and the two
+      // safety checks run. 75 s gave up on cold first messages that the backend then finished (and billed).
+      signal: AbortSignal.timeout(140_000),
     })
 
     if (!res.ok) {

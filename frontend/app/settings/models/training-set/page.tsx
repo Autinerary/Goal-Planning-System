@@ -10,7 +10,7 @@
  * made here (lib/trainingSet.ts) and trained on their laptop (public/own-model/).
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -107,6 +107,11 @@ export default function TrainingSetPage() {
   const [version, setVersion] = useState('')
   // The safety check of the items: how far it is, and what checked them.
   const [safetyRun, setSafetyRun] = useState<{ done: number; total: number; by: 'device' | 'rules' } | null>(null)
+  // True from the moment the items are shown until every one has been checked: Approve waits for it. It didn't, so
+  // an item the check was about to leave out could go into the set (bug audit, 17 November 2026).
+  const [checkingSafety, setCheckingSafety] = useState(false)
+  // Which check counts: choosing again starts a new one, and the old one's answers are dropped.
+  const safetyCheck = useRef(0)
   const [namesByRecogniser, setNamesByRecogniser] = useState(true)
   const [confirmed, setConfirmed] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -182,20 +187,34 @@ export default function TrainingSetPage() {
   // Each item, on this device: our rules, then the checker when their model is ready. One that sounds like someone is at
   // risk, or asks for help with something harmful, is left out until they put it back.
   const checkItems = async (items: Review[]) => {
-    const ask = await itemChecker()
-    setSafetyRun({ done: 0, total: items.length, by: ask ? 'device' : 'rules' })
-    for (const [i, item] of items.entries()) {
-      let flag: 'care' | 'harmful' | null = null
-      let by: 'device' | 'rules' = 'rules'
-      if (ask) {
-        const check = await checkMessageOnDevice(item.after, ask)
-        flag = check.action === 'care' ? 'care' : check.action === 'steer' ? 'harmful' : null
-        by = check.by
-      } else {
-        flag = crisisIn(item.after) ? 'care' : steerIn(item.after) ? 'harmful' : null
+    const run = ++safetyCheck.current
+    setCheckingSafety(true)
+    try {
+      const ask = await itemChecker().catch(() => null)
+      if (safetyCheck.current !== run) return
+      setSafetyRun({ done: 0, total: items.length, by: ask ? 'device' : 'rules' })
+      for (const [i, item] of items.entries()) {
+        let flag: 'care' | 'harmful' | null = null
+        let by: 'device' | 'rules' = 'rules'
+        const byRules = () => (crisisIn(item.after) ? 'care' : steerIn(item.after) ? 'harmful' : null)
+        if (ask) {
+          try {
+            const check = await checkMessageOnDevice(item.after, ask)
+            flag = check.action === 'care' ? 'care' : check.action === 'steer' ? 'harmful' : null
+            by = check.by
+          } catch {
+            // The model on the device stopped answering: our rules check this one.
+            flag = byRules()
+          }
+        } else {
+          flag = byRules()
+        }
+        if (safetyCheck.current !== run) return
+        if (flag) update(itemKey(item), { safety: { flag, by }, leftOut: true })
+        setSafetyRun({ done: i + 1, total: items.length, by: ask ? 'device' : 'rules' })
       }
-      if (flag) update(itemKey(item), { safety: { flag, by }, leftOut: true })
-      setSafetyRun({ done: i + 1, total: items.length, by: ask ? 'device' : 'rules' })
+    } finally {
+      if (safetyCheck.current === run) setCheckingSafety(false)
     }
   }
 
@@ -228,7 +247,7 @@ export default function TrainingSetPage() {
   /** Your approval recorded (which items, when, with which scrubber; never their text), then the file or the tuning. */
   const approve = async (then: 'download' | 'tune') => {
     const token = await freshToken()
-    if (!token || !review || !kept.length || unchecked || !confirmed) return
+    if (!token || !review || !kept.length || unchecked || checkingSafety || !confirmed) return
     setSaving(true)
     setError(null)
     setTuneNote(null)
@@ -491,7 +510,7 @@ export default function TrainingSetPage() {
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                disabled={!confirmed || !kept.length || unchecked || saving || !!tuning || !canTune}
+                disabled={!confirmed || !kept.length || unchecked || checkingSafety || saving || !!tuning || !canTune}
                 onClick={() => approve('tune')}
                 className="rounded-lg bg-indigo-700 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-800 disabled:opacity-50"
               >
@@ -499,7 +518,7 @@ export default function TrainingSetPage() {
               </button>
               <button
                 type="button"
-                disabled={!confirmed || !kept.length || unchecked || saving || !!tuning}
+                disabled={!confirmed || !kept.length || unchecked || checkingSafety || saving || !!tuning}
                 onClick={() => approve('download')}
                 className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 disabled:opacity-50"
               >
@@ -513,6 +532,7 @@ export default function TrainingSetPage() {
               </p>
             )}
             {unchecked && <p className="text-xs text-slate-600">Click outside the box you edited, so your edit can be checked first.</p>}
+            {checkingSafety && <p className="text-xs text-slate-600">Approve is ready once every item has been checked for safety (above).</p>}
             {tuning && (
               <div className="space-y-2" role="status" aria-live="polite">
                 <p className="text-sm text-slate-800">{progress ? progressWords(progress) : 'Starting…'}</p>

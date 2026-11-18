@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { loadAndComputeForUser } from '@/lib/life-stats/loader'
 
@@ -9,7 +9,7 @@ import { loadAndComputeForUser } from '@/lib/life-stats/loader'
  * the last 7 days of activity, upserts today's snapshot, and returns the
  * trend arrow against the snapshot from 7 days ago.
  */
-export async function GET() {
+export async function GET(req: NextRequest) {
   const supabase = createServerSupabase()
   const {
     data: { user },
@@ -20,7 +20,9 @@ export async function GET() {
   }
 
   try {
-    const payload = await loadAndComputeForUser(supabase, user.id, new Date())
+    // ?tz= is the browser's time zone, for "today"; without it, the one saved with their reminders, or Eastern.
+    const tz = req.nextUrl.searchParams.get('tz') || undefined
+    const payload = await loadAndComputeForUser(supabase, user.id, new Date(), tz)
     return NextResponse.json(payload)
   } catch (err: any) {
     console.error('GET /api/me/life-stats failed:', err?.message ?? err)

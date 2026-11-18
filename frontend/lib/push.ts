@@ -28,6 +28,29 @@ export interface PushDevice {
   auth: string
 }
 
+/**
+ * Push services browsers actually use: Chrome, Edge-on-Android, Samsung and Opera (FCM), Firefox (Mozilla),
+ * Safari (Apple) and Edge on Windows (WNS). A "device" anywhere else is refused: an endpoint on a server that
+ * never answers would make every send to that account hang, and the people messaging it would wait too.
+ */
+const PUSH_HOSTS = ['fcm.googleapis.com', 'android.googleapis.com', 'push.services.mozilla.com', 'push.apple.com', 'notify.windows.com']
+
+export function knownPushEndpoint(endpoint: unknown): endpoint is string {
+  if (typeof endpoint !== 'string' || endpoint.length > 1000) return false
+  try {
+    const url = new URL(endpoint)
+    if (url.protocol !== 'https:') return false
+    const host = url.hostname.toLowerCase()
+    return PUSH_HOSTS.some((h) => host === h || host.endsWith(`.${h}`))
+  } catch {
+    return false
+  }
+}
+
+/** One device gets this long to answer; the whole send to a person gets PUSH_TOTAL_MS. */
+const PUSH_TIMEOUT_MS = 5_000
+const PUSH_TOTAL_MS = 6_000
+
 export function pushEnabled(): boolean {
   return Boolean(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY && process.env.VAPID_SUBJECT)
 }
@@ -52,13 +75,15 @@ export interface PushResult {
 
 export async function sendPush(device: PushDevice, message: PushMessage): Promise<PushResult> {
   if (!pushEnabled()) return { result: 'failed' }
+  // Saved before the list of push services existed: forget it rather than wait on it.
+  if (!knownPushEndpoint(device.endpoint)) return { result: 'gone' }
   configure()
   try {
     const res = await webpush.sendNotification(
       { endpoint: device.endpoint, keys: { p256dh: device.p256dh, auth: device.auth } },
       JSON.stringify(message),
       // Kept for a day if the device is offline; a check-in is not urgent.
-      { TTL: 86_400, urgency: 'normal' }
+      { TTL: 86_400, urgency: 'normal', timeout: PUSH_TIMEOUT_MS }
     )
     return { result: 'sent', status: res.statusCode }
   } catch (error: any) {
@@ -87,17 +112,19 @@ export async function pushToUser(admin: SupabaseClient, userId: string, message:
     .select('endpoint, p256dh, auth')
     .eq('user_id', userId)
   if (error || !devices?.length) return 0
-  let sent = 0
-  for (const device of devices) {
-    const { result } = await sendPush(device as PushDevice, message)
-    if (result === 'sent') {
-      sent++
-      await admin.from('push_subscriptions').update({ last_sent_at: new Date().toISOString() }).eq('endpoint', device.endpoint)
-    } else if (result === 'gone') {
-      await admin.from('push_subscriptions').delete().eq('endpoint', device.endpoint)
-    }
-  }
-  return sent
+  // All of a person's devices at once, so one slow device doesn't hold up the others.
+  const results = await Promise.all(
+    devices.map(async (device) => {
+      const { result } = await sendPush(device as PushDevice, message)
+      if (result === 'sent') {
+        await admin.from('push_subscriptions').update({ last_sent_at: new Date().toISOString() }).eq('endpoint', device.endpoint)
+      } else if (result === 'gone') {
+        await admin.from('push_subscriptions').delete().eq('endpoint', device.endpoint)
+      }
+      return result === 'sent'
+    })
+  )
+  return results.filter(Boolean).length
 }
 
 /**
@@ -108,7 +135,17 @@ export async function pushToUser(admin: SupabaseClient, userId: string, message:
 export async function tryPushToUser(userId: string, message: PushMessage): Promise<number> {
   try {
     const { createAdminClient } = await import('@/lib/supabase/admin')
-    return await pushToUser(createAdminClient(), userId, message)
+    // The request that asked (a message, a friend request, a call) answers within a few seconds whatever the
+    // push services do.
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const cap = new Promise<number>((resolve) => {
+      timer = setTimeout(() => resolve(0), PUSH_TOTAL_MS)
+    })
+    try {
+      return await Promise.race([pushToUser(createAdminClient(), userId, message), cap])
+    } finally {
+      if (timer) clearTimeout(timer)
+    }
   } catch {
     return 0
   }

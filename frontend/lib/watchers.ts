@@ -27,14 +27,24 @@ export async function notifyWatchers(userId: string): Promise<number> {
   if (!watchers.size) return 0
   const { data: me } = await admin.from('profiles').select('display_name').eq('id', userId).maybeSingle()
   const name = (me?.display_name || 'Someone you watch').slice(0, 60)
-  let told = 0
-  for (const watcher of watchers) {
-    told += await pushToUser(admin, watcher, {
-      title: `${name} finished a milestone`,
-      body: 'Send them a note of support?',
-      url: `/friend/${userId}`,
-      tag: `watch-${userId}`,
-    }).catch(() => 0)
+  // Everyone at once, and never more than a few seconds: the person who just finished a milestone is waiting.
+  const sends = Promise.all(
+    Array.from(watchers, (watcher) =>
+      pushToUser(admin, watcher, {
+        title: `${name} finished a milestone`,
+        body: 'Send them a note of support?',
+        url: `/friend/${userId}`,
+        tag: `watch-${userId}`,
+      }).catch(() => 0)
+    )
+  ).then((counts) => counts.reduce((a, b) => a + b, 0))
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const cap = new Promise<number>((resolve) => {
+    timer = setTimeout(() => resolve(0), 6_000)
+  })
+  try {
+    return await Promise.race([sends, cap])
+  } finally {
+    if (timer) clearTimeout(timer)
   }
-  return told
 }

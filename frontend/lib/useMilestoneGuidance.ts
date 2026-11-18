@@ -5,6 +5,7 @@ import { backendAuthHeaders } from '@/lib/backendAuth'
 import { loadPreferences } from '@/lib/preferences'
 import { guidanceComplete } from '@/lib/guidanceData'
 import { withOwnModel } from '@/lib/ownModelRoute'
+import { TAKING_LONGER, fetchWithTimeout, isTimeout } from '@/lib/backendTimeout'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -48,7 +49,8 @@ export function useMilestoneGuidance(
           // On the person's own model when "Use my own model" is on (lib/ownModelRoute.ts): in the background, so
           // nothing is asked, and if their model isn't ready it isn't written, and the page says why.
           const j: any = await withOwnModel('guidance', body, async () => {
-            const res = await fetch(`${API_URL}/api/paths/me/guidance`, {
+            // Bounded: the backend can take over a minute to wake, and "Loading" never ended (lib/backendTimeout.ts).
+            const res = await fetchWithTimeout(`${API_URL}/api/paths/me/guidance`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', ...auth },
               body: JSON.stringify(body),
@@ -58,6 +60,7 @@ export function useMilestoneGuidance(
           return j?.guidance && typeof j.guidance === 'object' ? (j.guidance as Record<string, unknown>) : null
         } catch (e: any) {
           if (e?.ownModel) whyNot.set(key, String(e.message))
+          else if (isTimeout(e)) whyNot.set(key, TAKING_LONGER)
           return null
         }
       })()

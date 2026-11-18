@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { AlertTriangle } from 'lucide-react'
+import { fetchWithTimeout } from '@/lib/backendTimeout'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -30,7 +31,8 @@ export default function CommonMistakes({ milestoneId }: { milestoneId: string })
 
   useEffect(() => {
     let cancelled = false
-    fetch(`${API_URL}/api/paths/milestones/${encodeURIComponent(milestoneId)}/common-mistakes`)
+    // Bounded: the backend can take over a minute to wake (lib/backendTimeout.ts). Nothing shows until it answers.
+    fetchWithTimeout(`${API_URL}/api/paths/milestones/${encodeURIComponent(milestoneId)}/common-mistakes`)
       .then((r) => (r.ok ? r.json() : null))
       .then((j) => { if (!cancelled && Array.isArray(j?.mistakes)) setMistakes(j.mistakes) })
       .catch(() => {})

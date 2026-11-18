@@ -14,7 +14,7 @@ import { ABOUT_ME_MAX, ABOUT_ME_SECTIONS, type AboutMe, type AboutMeSection } fr
  * STEP 64, so the page waits for STEP 64 (lib/aboutMe.ts).
  */
 export default function AboutMePage() {
-  const { prefs, update } = usePreferences()
+  const { prefs, update, synced } = usePreferences()
   const [ready, setReady] = useState<null | boolean>(null)
   const [draft, setDraft] = useState<AboutMe>({ sections: {}, shareWithAssistant: false })
   const [loaded, setLoaded] = useState(false)
@@ -29,12 +29,16 @@ export default function AboutMePage() {
     return () => { cancelled = true }
   }, [])
 
-  // Start from what is saved, once it has arrived from the account.
+  // Start from what is saved, once the account's copy has been read (synced).
+  // It started from this device's copy, which shows first and can be older:
+  // text written on another device was then saved over with it (bug audit, 17
+  // November 2026). The account's copy wins when the two are read together
+  // (usePreferences); this device's is used only when the account has none.
   useEffect(() => {
-    if (loaded || !prefs.aboutMe) return
+    if (loaded || !synced || !prefs.aboutMe) return
     setDraft({ sections: { ...(prefs.aboutMe.sections || {}) }, shareWithAssistant: Boolean(prefs.aboutMe.shareWithAssistant) })
     setLoaded(true)
-  }, [prefs.aboutMe, loaded])
+  }, [prefs.aboutMe, loaded, synced])
 
   const setSection = (id: AboutMeSection, text: string) => {
     setDraft((d) => ({ ...d, sections: { ...d.sections, [id]: text.slice(0, ABOUT_ME_MAX) } }))
@@ -65,7 +69,7 @@ export default function AboutMePage() {
           </p>
         </div>
 
-        {ready === null && (
+        {(ready === null || (ready && !synced)) && (
           <p className="flex items-center gap-2 text-slate-600"><Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Loading…</p>
         )}
 
@@ -76,7 +80,7 @@ export default function AboutMePage() {
           </p>
         )}
 
-        {ready && (
+        {ready && synced && (
           <>
             <section aria-labelledby="share-heading" className="rounded-2xl border border-indigo-200 bg-white p-6 shadow-sm">
               <div className="flex items-start justify-between gap-4">

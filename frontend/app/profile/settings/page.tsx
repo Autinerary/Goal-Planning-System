@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChevronLeft, ChevronRight, Loader2, Download, Upload, RotateCcw, Trash2, AlertTriangle, Route, ShieldCheck } from 'lucide-react'
 import { loadMovement, movementSummary, exportMovement, clearMovement, type RouteVisit } from '@/lib/movement'
@@ -10,6 +10,18 @@ import HereForSetting from '../../components/HereForSetting'
 import GamificationSettings from '../../components/GamificationSettings'
 import { usePreferences } from '../../context/usePreferences'
 import FeedbackButton from '../../components/FeedbackButton'
+
+// The parts of a backup, in words (app/api/me/data names them by table).
+const PART_NAMES: Record<string, string> = {
+  race_progress: 'steps you finished and hearted',
+  calendar_tasks: 'your calendar',
+  life_stats_snapshots: 'your stats history',
+  life_stats_checkins: 'your mood check-ins',
+  ideal_self_portraits: 'your Dream Self picture',
+  user_paths: 'your plan',
+  user_diagnostic_profiles: 'your Condition & Support Profile',
+}
+const partNames = (tables: string[]) => tables.map((t) => PART_NAMES[t] || t.replace(/_/g, ' ')).join(', ')
 
 export default function ProfileSettingsPage() {
   const router = useRouter()
@@ -20,7 +32,39 @@ export default function ProfileSettingsPage() {
   const { update: updatePreferences } = usePreferences()
   const [dataMsg, setDataMsg] = useState<string | null>(null)
   const [dataErr, setDataErr] = useState<string | null>(null)
+  // A restore that left parts out: the page waits, with a button to reload, so the list can be read.
+  const [restoredPartly, setRestoredPartly] = useState(false)
   const [confirm, setConfirm] = useState<null | 'progress' | 'all'>(null)
+  // The confirmation is a real dialog: its title and text are read out, focus starts on Cancel (the safe choice) and
+  // stays inside it, Escape closes it, and focus goes back to the button that opened it.
+  const dialogRef = useRef<HTMLDivElement | null>(null)
+  const cancelRef = useRef<HTMLButtonElement | null>(null)
+  const openerRef = useRef<HTMLElement | null>(null)
+  const askToConfirm = (scope: 'progress' | 'all') => {
+    openerRef.current = document.activeElement as HTMLElement | null
+    setConfirm(scope)
+  }
+  const closeConfirm = () => {
+    setConfirm(null)
+    setTimeout(() => openerRef.current?.focus(), 0)
+  }
+  useEffect(() => {
+    if (confirm) cancelRef.current?.focus()
+  }, [confirm])
+  const onDialogKey = (e: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      closeConfirm()
+      return
+    }
+    if (e.key !== 'Tab') return
+    const items = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), a[href]') || [])
+    if (!items.length) return
+    const first = items[0]
+    const last = items[items.length - 1]
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus() }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus() }
+  }
 
   // ── App journey (movement order) ──
   const [movement, setMovement] = useState<RouteVisit[]>([])
@@ -69,7 +113,7 @@ export default function ProfileSettingsPage() {
     const file = e.target.files?.[0]
     e.target.value = '' // allow re-selecting the same file
     if (!file) return
-    setDataBusy('restore'); setDataMsg(null); setDataErr(null)
+    setDataBusy('restore'); setDataMsg(null); setDataErr(null); setRestoredPartly(false)
     try {
       const text = await file.text()
       const parsed = JSON.parse(text)
@@ -84,9 +128,19 @@ export default function ProfileSettingsPage() {
       const json = await res.json()
       if (!res.ok) throw new Error(json?.error || `HTTP ${res.status}`)
       const total = Object.values(json.restored || {}).reduce((a: number, b: any) => a + Number(b), 0)
-      setDataMsg(`Restored ${total} record${total === 1 ? '' : 's'}. Reloading…`)
       clearLocal([...PROGRESS_LS_KEYS])
-      setTimeout(() => window.location.reload(), 1200)
+      // What couldn't be restored is said, by name, and the page waits: it
+      // used to say "Restored N records" and reload, even when the plan itself
+      // was left out (bug audit, 17 November 2026).
+      const skipped: string[] = Array.isArray(json.skipped) ? json.skipped.filter((t: unknown): t is string => typeof t === 'string') : []
+      if (skipped.length) {
+        setDataMsg(`Restored ${total} record${total === 1 ? '' : 's'}.`)
+        setDataErr(`These parts couldn’t be restored: ${partNames(skipped)}. Everything else is back. Reload the page to see it, and try the restore again later for the rest.`)
+        setRestoredPartly(true)
+      } else {
+        setDataMsg(`Restored ${total} record${total === 1 ? '' : 's'}. Reloading…`)
+        setTimeout(() => window.location.reload(), 1200)
+      }
     } catch (e: any) {
       setDataErr(e?.message || 'Restore failed.')
     } finally {
@@ -95,7 +149,8 @@ export default function ProfileSettingsPage() {
   }
 
   const doReset = async (scope: 'progress' | 'all') => {
-    setConfirm(null)
+    closeConfirm()
+    setRestoredPartly(false)
     setDataBusy(scope === 'all' ? 'wipe' : 'reset'); setDataMsg(null); setDataErr(null)
     try {
       const res = await fetch('/api/me/data', {
@@ -190,7 +245,14 @@ export default function ProfileSettingsPage() {
             <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-sm text-emerald-700">{dataMsg}</div>
           )}
           {dataErr && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{dataErr}</div>
+            <div role="alert" className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+              {dataErr}
+              {restoredPartly && (
+                <button type="button" onClick={() => window.location.reload()} className="mt-2 block font-semibold text-red-900 underline underline-offset-2">
+                  Reload the page
+                </button>
+              )}
+            </div>
           )}
 
           {/* Backup + Restore */}
@@ -227,7 +289,7 @@ export default function ProfileSettingsPage() {
                   <p className="text-xs text-slate-600">Clears completed steps, hearts, calendar tasks, stats and your Dream Self picture. Keeps your account and your generated plan.</p>
                 </div>
                 <button
-                  onClick={() => setConfirm('progress')}
+                  onClick={() => askToConfirm('progress')}
                   disabled={dataBusy !== null}
                   className="flex-shrink-0 inline-flex items-center gap-2 px-3 py-2 bg-white border-2 border-amber-400 text-amber-700 rounded-lg text-sm font-semibold hover:bg-amber-50 disabled:opacity-50"
                 >
@@ -238,10 +300,10 @@ export default function ProfileSettingsPage() {
               <div className="flex items-start justify-between gap-3 pt-3 border-t border-red-100">
                 <div>
                   <div className="font-semibold text-slate-900 text-sm">Full restart</div>
-                  <p className="text-xs text-slate-600">Deletes all progress <strong>and</strong> your generated plan, then sends you back through onboarding. Your login stays.</p>
+                  <p className="text-xs text-slate-600">Deletes all progress, your generated plan <strong>and</strong> your Condition &amp; Support Profile, then takes you back to setup. Your login stays.</p>
                 </div>
                 <button
-                  onClick={() => setConfirm('all')}
+                  onClick={() => askToConfirm('all')}
                   disabled={dataBusy !== null}
                   className="flex-shrink-0 inline-flex items-center gap-2 px-3 py-2 bg-red-700 hover:bg-red-800 text-white rounded-lg text-sm font-semibold disabled:opacity-50"
                 >
@@ -296,22 +358,32 @@ export default function ProfileSettingsPage() {
         </div>
       </div>
 
-      {/* Confirm modal */}
+      {/* Confirm modal: a real dialog (role, title, text, focus, Escape). */}
       {confirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overlay-scroll" onClick={() => setConfirm(null)}>
-          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 max-w-sm w-full" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overlay-scroll" onClick={closeConfirm}>
+          <div
+            ref={dialogRef}
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="confirm-reset-title"
+            aria-describedby="confirm-reset-text"
+            onKeyDown={onDialogKey}
+            className="bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 max-w-sm w-full"
+            onClick={e => e.stopPropagation()}
+          >
             <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle className={`w-5 h-5 ${confirm === 'all' ? 'text-red-500' : 'text-amber-500'}`} />
-              <h3 className="text-lg font-bold text-slate-900">{confirm === 'all' ? 'Full restart?' : 'Reset progress?'}</h3>
+              <AlertTriangle className={`w-5 h-5 ${confirm === 'all' ? 'text-red-500' : 'text-amber-500'}`} aria-hidden="true" />
+              <h2 id="confirm-reset-title" className="text-lg font-bold text-slate-900">{confirm === 'all' ? 'Full restart?' : 'Reset progress?'}</h2>
             </div>
-            <p className="text-sm text-slate-600 mb-6">
+            <p id="confirm-reset-text" className="text-sm text-slate-600 mb-6">
               {confirm === 'all'
-                ? 'This permanently deletes your progress and your generated plan, then restarts onboarding. This can’t be undone. Back up first if you want to restore later.'
+                ? 'This permanently deletes your progress, your generated plan and your Condition & Support Profile, then takes you back to setup. This can’t be undone. Back up first if you want to restore later.'
                 : 'This permanently clears your progress (steps, hearts, calendar, stats, portrait) but keeps your plan. This can’t be undone. Back up first if you want to restore later.'}
             </p>
             <div className="flex gap-3">
-              <button onClick={() => setConfirm(null)} className="flex-1 px-4 py-2 bg-white border border-slate-300 text-slate-800 rounded-lg font-semibold hover:bg-slate-50">Cancel</button>
+              <button ref={cancelRef} type="button" onClick={closeConfirm} className="flex-1 px-4 py-2 bg-white border border-slate-300 text-slate-800 rounded-lg font-semibold hover:bg-slate-50">Cancel</button>
               <button
+                type="button"
                 onClick={() => doReset(confirm)}
                 className={`flex-1 px-4 py-2 text-white rounded-lg font-semibold ${confirm === 'all' ? 'bg-red-700 hover:bg-red-800' : 'bg-amber-700 hover:bg-amber-800'}`}
               >

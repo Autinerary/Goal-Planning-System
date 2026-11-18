@@ -9,6 +9,8 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { MAX_ASK, SetupResult } from '@/lib/agentSetup'
 import { saidByServer, withOwnModel, wordsFor } from '@/lib/ownModelRoute'
+// fetch with a time limit that works in Safari before 16 too (AbortSignal.timeout doesn't).
+import { fetchWithTimeout } from '@/lib/backendTimeout'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 const UNAVAILABLE = 'Setting up your agents isn’t available right now. You can still build one yourself below.'
@@ -31,12 +33,11 @@ export default function AgentSetup({ onResult }: { onResult: (asked: string, res
       const body = { text: asked }
       const json: any = await withOwnModel('agent-setup', body, async () => {
         const { data: { session } } = await createClient().auth.getSession()
-        const res = await fetch(`${API_URL}/api/onboarding/agent-setup`, {
+        const res = await fetchWithTimeout(`${API_URL}/api/onboarding/agent-setup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}) },
           body: JSON.stringify(body),
-          signal: AbortSignal.timeout(60000),
-        })
+        }, 60_000)
         const out = await res.json().catch(() => null)
         if (!res.ok) throw saidByServer(res.status === 429 && typeof out?.detail === 'string' ? out.detail : UNAVAILABLE)
         return out

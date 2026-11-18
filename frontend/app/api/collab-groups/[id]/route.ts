@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { randomInt } from 'crypto'
 import { UUID_RE } from '@/lib/social'
 
 export const dynamic = 'force-dynamic'
@@ -103,7 +104,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   const c = await context(params.id)
   if ('error' in c && c.error) return c.error
-  const { admin, group, leader } = c as Exclude<typeof c, { error: NextResponse }>
+  const { admin, group, leader, user } = c as Exclude<typeof c, { error: NextResponse }>
   if (!leader) return NextResponse.json({ error: 'Only the group’s leader can remove members.' }, { status: 403 })
   let body: any
   try { body = await req.json() } catch { body = null }
@@ -111,5 +112,24 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   if (!userId || userId === group.leader_id) return NextResponse.json({ error: 'Choose a member (not yourself).' }, { status: 400 })
   const { error } = await admin.from('collab_group_members').delete().eq('group_id', group.id).eq('user_id', userId)
   if (error) return NextResponse.json({ error: 'That didn’t work.' }, { status: 500 })
+  // A removal sticks. Without this, the person was back with one request: by the group's id (public groups) or with
+  // the code they had already seen (private groups). STEP 105 adds collab_group_removals; before it, the new code
+  // below still keeps them out of a private group.
+  const { error: removalError } = await admin
+    .from('collab_group_removals')
+    .upsert({ group_id: group.id, user_id: userId, removed_by: user.id, removed_at: new Date().toISOString() }, { onConflict: 'group_id,user_id' })
+  if (removalError) console.warn('[collab] removal not recorded:', removalError.message)
+  if (!group.is_public) {
+    const { error: codeError } = await admin.from('collab_groups').update({ join_code: freshJoinCode() }).eq('id', group.id)
+    if (codeError) console.warn('[collab] join code not changed:', codeError.message)
+  }
   return NextResponse.json({ ok: true })
+}
+
+/** The same short, unambiguous kind of code a new group gets (app/api/collab-groups/route.ts), from crypto. */
+function freshJoinCode(): string {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+  let out = ''
+  for (let i = 0; i < 6; i++) out += alphabet[randomInt(alphabet.length)]
+  return out
 }

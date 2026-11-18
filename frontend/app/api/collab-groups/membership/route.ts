@@ -53,6 +53,19 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // Someone the leader removed can't come back by themselves (STEP 105; before it, the table is missing and
+  // nobody is refused).
+  const { data: removed, error: removedError } = await admin
+    .from('collab_group_removals')
+    .select('user_id')
+    .eq('group_id', group.id)
+    .eq('user_id', user.id)
+    .maybeSingle()
+  if (removed) return NextResponse.json({ error: 'The group’s leader removed you from this group, so you can’t join it again.' }, { status: 403 })
+  if (removedError && !/does not exist|PGRST205|42P01/i.test(`${removedError.code} ${removedError.message}`)) {
+    console.warn('[collab] removal check failed:', removedError.message)
+  }
+
   // Joining again changes nothing (it used to make a leader an ordinary member).
   const { error } = await admin
     .from('collab_group_members')

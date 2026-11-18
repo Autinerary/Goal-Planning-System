@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { adFree, pickPromotion, SPONSORED_ON } from '@/lib/sponsored'
 import { PAYMENTS_ON } from '@/lib/billing'
+import { impressionToken } from '@/lib/sponsoredToken'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,5 +23,8 @@ export async function GET(req: NextRequest) {
   const db = createAdminClient()
   if (await adFree(db, user?.id ?? null)) return none
   const item = await pickPromotion(db, { placement: 'paths', text: (req.nextUrl.searchParams.get('q') || '').slice(0, 400) })
-  return NextResponse.json({ items: item ? [item] : [], adFreeOffer: PAYMENTS_ON }, { headers: { 'Cache-Control': 'no-store' } })
+  // A view or a click is counted only with this token: for this promotion, place and viewer, within a day
+  // (app/api/sponsored/event). Without it, a script could spend a business's budget.
+  const items = item ? [{ ...item, token: impressionToken((item as any).id, 'paths', user?.id ?? null, req.headers) }] : []
+  return NextResponse.json({ items, adFreeOffer: PAYMENTS_ON }, { headers: { 'Cache-Control': 'no-store' } })
 }

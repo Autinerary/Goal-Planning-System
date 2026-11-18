@@ -18,7 +18,9 @@ async function getAuthenticatedUser(req: NextRequest) {
     const token = authHeader.split(' ')[1]
     const { data: { user: tokenUser }, error } = await supabase.auth.getUser(token)
     if (!error && tokenUser) {
-      return { user: tokenUser, supabase }
+      // Query as that person: the cookie-less client would read as anon, and row-level
+      // security would hide their path (an empty payload, as if they had no plan).
+      return { user: tokenUser, supabase: createServerSupabase(token) }
     }
   }
 
@@ -97,7 +99,7 @@ export async function PUT(req: NextRequest) {
         payload,
         updated_at: new Date().toISOString(),
       },
-      { onConflict: 'user_id' }
+      { onConflict: 'user_id,path_id' }
     )
 
   if (error) {

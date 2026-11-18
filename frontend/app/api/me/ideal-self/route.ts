@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 /**
  * Ideal Self portrait API.
@@ -8,12 +9,39 @@ import { createServerSupabase } from '@/lib/supabase/server'
  *   POST /api/me/ideal-self   -> generate a fresh portrait, persist, return it
  *
  * Generation uses the OpenAI Images API (server-side fetch — no SDK dep). The
- * resulting PNG is uploaded to the shared `resource-images` Storage bucket and
- * its public URL is upserted into public.ideal_self_portraits so we only pay
- * for a new image when the user explicitly (re)generates.
+ * resulting PNG is kept in the PRIVATE `portraits` Storage bucket (STEP 105),
+ * which only the server reads: the page gets a link that works for an hour.
+ * It used to sit in the public `resource-images` bucket at a path made from
+ * the user's id, so anyone who knew that id could open it, though the table
+ * says nothing here is public. Portraits saved there move to the private
+ * bucket the next time their owner opens the page. Before STEP 105 creates
+ * the bucket, the old public place is still used.
  */
 
 const STORAGE_BUCKET = 'resource-images'
+const PRIVATE_BUCKET = 'portraits'
+/** image_url for a portrait in the private bucket: "portraits:<path>", signed when it is read. */
+const PRIVATE_MARK = 'portraits:'
+const LINK_SECONDS = 3600
+
+type Admin = ReturnType<typeof createAdminClient>
+
+/** A link to a private portrait that works for an hour, or null. */
+async function signedLink(admin: Admin, path: string): Promise<string | null> {
+  const { data, error } = await admin.storage.from(PRIVATE_BUCKET).createSignedUrl(path, LINK_SECONDS)
+  if (error) {
+    console.error('portrait link failed:', error.message)
+    return null
+  }
+  return data?.signedUrl || null
+}
+
+/** Put a portrait in the private bucket. False when that bucket isn't there yet (before STEP 105) or the upload fails. */
+async function storePrivately(admin: Admin, path: string, bytes: Buffer): Promise<boolean> {
+  const { error } = await admin.storage.from(PRIVATE_BUCKET).upload(path, bytes, { contentType: 'image/png', upsert: true, cacheControl: '3600' })
+  if (error) console.warn('private portrait upload failed:', error.message)
+  return !error
+}
 // Image models, newest first. dall-e-3 was the default here and has since
 // been retired by OpenAI — the request failed with "The model 'dall-e-3' does
 // not exist", which is invisible until you actually read the API's reply.
@@ -43,7 +71,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from('ideal_self_portraits')
-    .select('image_url, prompt, style, updated_at')
+    .select('image_url, image_path, prompt, style, updated_at')
     .eq('user_id', user.id)
     .maybeSingle()
 
@@ -52,9 +80,36 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  let imageUrl: string | null = data?.image_url ?? null
+  if (data && imageUrl) {
+    try {
+      const admin = createAdminClient()
+      if (imageUrl.startsWith(PRIVATE_MARK)) {
+        imageUrl = await signedLink(admin, imageUrl.slice(PRIVATE_MARK.length))
+      } else if (typeof (data as any).image_path === 'string' && (data as any).image_path.startsWith('ideal-self/')) {
+        // Saved in the public bucket before STEP 105: move it to the private one, then remove the public copy.
+        const legacyPath = (data as any).image_path as string
+        const { data: file } = await admin.storage.from(STORAGE_BUCKET).download(legacyPath)
+        const privatePath = `${user.id}/portrait.png`
+        if (file && (await storePrivately(admin, privatePath, Buffer.from(await file.arrayBuffer())))) {
+          const { error: moveError } = await supabase
+            .from('ideal_self_portraits')
+            .update({ image_url: `${PRIVATE_MARK}${privatePath}`, image_path: privatePath })
+            .eq('user_id', user.id)
+          if (!moveError) {
+            await admin.storage.from(STORAGE_BUCKET).remove([legacyPath])
+            imageUrl = await signedLink(admin, privatePath)
+          }
+        }
+      }
+    } catch (e: any) {
+      console.error('portrait read failed:', e?.message ?? e)
+    }
+  }
+
   return NextResponse.json({
     portrait: data
-      ? { imageUrl: data.image_url, prompt: data.prompt, style: data.style, updatedAt: data.updated_at }
+      ? { imageUrl, prompt: data.prompt, style: data.style, updatedAt: data.updated_at }
       : null,
     hasApiKey: Boolean(process.env.OPENAI_API_KEY),
   })
@@ -245,7 +300,28 @@ export async function POST(req: NextRequest) {
   const bytes = Buffer.from(b64, 'base64')
   const dataUrl = `data:image/png;base64,${b64}`
 
-  // 2. Upload to Storage (upsert to a stable path so we keep one per user).
+  // 2. Upload to Storage (upsert to a stable path so we keep one per user): the private bucket when it exists.
+  let admin: Admin | null = null
+  try {
+    admin = createAdminClient()
+  } catch {}
+  const privatePath = `${user.id}/portrait.png`
+  if (admin && (await storePrivately(admin, privatePath, bytes))) {
+    const { error: saveError } = await supabase
+      .from('ideal_self_portraits')
+      .upsert({ user_id: user.id, image_url: `${PRIVATE_MARK}${privatePath}`, image_path: privatePath, prompt, style }, { onConflict: 'user_id' })
+    // A copy in the old public place (saved before STEP 105) goes.
+    await admin.storage.from(STORAGE_BUCKET).remove([`ideal-self/${user.id}/portrait.png`]).then(() => {}, () => {})
+    const link = (await signedLink(admin, privatePath)) || dataUrl
+    if (saveError) console.error('ideal_self upsert failed:', saveError.message)
+    return NextResponse.json({
+      portrait: { imageUrl: link, prompt, style, updatedAt: new Date().toISOString() },
+      saved: !saveError,
+      storedInBucket: true,
+    })
+  }
+
+  // Before STEP 105: the old public place.
   const imagePath = `ideal-self/${user.id}/portrait.png`
   let publicUrl: string | null = null
   try {

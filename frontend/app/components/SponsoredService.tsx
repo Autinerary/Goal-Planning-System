@@ -9,11 +9,13 @@ interface Item {
   body: string | null
   image_url: string | null
   resource: { id: string; name: string; category: string; city: string }
+  /** Given with the item (app/api/sponsored); a view or a click counts only with it. */
+  token?: string
 }
 
 /** A view or a click, sent even as the page changes (app/api/sponsored/event). */
-function record(id: string, kind: 'impression' | 'click') {
-  const body = JSON.stringify({ id, kind, placement: 'paths' })
+function record(id: string, kind: 'impression' | 'click', token?: string) {
+  const body = JSON.stringify({ id, kind, placement: 'paths', token })
   try {
     if (navigator.sendBeacon?.('/api/sponsored/event', new Blob([body], { type: 'application/json' }))) return
   } catch {}
@@ -55,7 +57,7 @@ export default function SponsoredService({ text }: { text: string }) {
     const seen = new IntersectionObserver(
       (entries) => {
         if (entries.some((e) => e.isIntersecting)) {
-          record(item.id, 'impression')
+          record(item.id, 'impression', item.token)
           seen.disconnect()
         }
       },
@@ -71,7 +73,7 @@ export default function SponsoredService({ text }: { text: string }) {
       <p className="text-xs font-bold uppercase tracking-wide text-amber-900">Sponsored</p>
       <a
         href={goHubHref(`/resources/${item.resource.id}`)}
-        onClick={() => record(item.id, 'click')}
+        onClick={() => record(item.id, 'click', item.token)}
         className="mt-1 block font-semibold text-slate-900 underline underline-offset-2"
       >
         {item.headline}

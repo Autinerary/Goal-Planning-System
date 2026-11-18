@@ -5,6 +5,8 @@ import { MessageSquareText, LifeBuoy, Check } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { track } from '@/lib/funnel'
 import { saidByServer, withOwnModel, wordsFor } from '@/lib/ownModelRoute'
+// fetch with a time limit that works in Safari before 16 too (AbortSignal.timeout doesn't).
+import { fetchWithTimeout } from '@/lib/backendTimeout'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -73,15 +75,14 @@ export default function GoalHelper({
       // On the person's own model when "Use my own model" is on (lib/ownModelRoute.ts); asked first if it isn't ready.
       const json: any = await withOwnModel('goal-helper', body, async () => {
         const { data: { session } } = await createClient().auth.getSession()
-        const res = await fetch(`${API_URL}/api/onboarding/goal-helper`, {
+        const res = await fetchWithTimeout(`${API_URL}/api/onboarding/goal-helper`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
           },
           body: JSON.stringify(body),
-          signal: AbortSignal.timeout(45000),
-        })
+        }, 45_000)
         const out = await res.json().catch(() => null)
         if (!res.ok) throw saidByServer(res.status === 429 && typeof out?.detail === 'string' ? out.detail : UNAVAILABLE)
         return out

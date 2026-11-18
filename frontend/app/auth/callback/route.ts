@@ -1,15 +1,17 @@
 import { NextResponse } from 'next/server'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { safeNextPath } from '@/lib/safeNext'
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
   const origin = requestUrl.origin
   // Where to go afterwards, for links the app asked for (changing your email
-  // address on Your profile). Only a page of this app.
-  const nextParam = requestUrl.searchParams.get('next') || ''
-  const next = nextParam.startsWith('/') && !nextParam.startsWith('//') && !nextParam.startsWith('/\\') ? nextParam : null
+  // address on Your profile, or a page opened signed out before Google
+  // sign-in). Only a page of this app: resolved the way the browser will,
+  // so tab, newline and backslash tricks can't leave the site (lib/safeNext.ts).
+  const next = safeNextPath(requestUrl.searchParams.get('next'))
 
   if (code) {
     const cookieStore = await cookies()

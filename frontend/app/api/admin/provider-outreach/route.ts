@@ -5,6 +5,7 @@ import { emailEnabled, providerReviewedEmail, providerSurveyEmail, sendEmail } f
 import { postalAddress } from '@/lib/newsletter'
 import { surveyLink, usableEmail } from '@/lib/listings'
 import { PROOF_EMAIL } from '@/lib/legal'
+import { allRows } from '@/lib/server/allRows'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300
@@ -60,7 +61,15 @@ async function targets(kind: Kind, limit: number): Promise<Target[]> {
   ])
   const out = new Set((optouts || []).map((o) => o.email_key))
   const done = new Set((sent || []).map((s) => s.ref))
+  // One email of a kind per ADDRESS (per month, for "reviewed"), across batches: an inbox several listings share
+  // used to get one per listing, because only this batch's addresses were remembered.
   const seenEmail = new Set<string>()
+  const before = await allRows<{ sent_to: string | null }>((a, b) => {
+    let q = db.from('provider_emails').select('sent_to').eq('kind', kind)
+    if (kind === 'reviewed') q = q.like('ref', `%:${month}`)
+    return q.order('ref').range(a, b)
+  })
+  for (const row of before.data) if (row.sent_to) seenEmail.add(row.sent_to.toLowerCase())
   const list: Target[] = []
   for (const { r, email } of withEmail) {
     const key = email.toLowerCase()

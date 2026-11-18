@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/client'
 import { track } from '@/lib/funnel'
 import { withOwnModel, wordsFor } from '@/lib/ownModelRoute'
 import type { GoalIdea } from './GoalHelper'
+// fetch with a time limit that works in Safari before 16 too (AbortSignal.timeout doesn't).
+import { fetchWithTimeout } from '@/lib/backendTimeout'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -134,12 +136,11 @@ export default function ChatSetup({
       // On the person's own model when "Use my own model" is on (lib/ownModelRoute.ts); asked first if it isn't ready.
       const json: any = await withOwnModel('goal-helper', body, async () => {
         const { data: { session } } = await createClient().auth.getSession()
-        const res = await fetch(`${API_URL}/api/onboarding/goal-helper`, {
+        const res = await fetchWithTimeout(`${API_URL}/api/onboarding/goal-helper`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}) },
           body: JSON.stringify(body),
-          signal: AbortSignal.timeout(45000),
-        })
+        }, 45_000)
         return res.json().catch(() => null)
       }, { ask: true })
       if (json?.crisis) {

@@ -7,6 +7,7 @@ import { createCheckinToken } from '@/lib/checkinToken'
 import { AWAY_DAYS } from '@/lib/checkin'
 import { pausedIds } from '@/lib/pause'
 import { cronAuthorized } from '@/lib/cronAuth'
+import { allRows } from '@/lib/server/allRows'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -56,10 +57,10 @@ export async function GET(req: NextRequest) {
   const admin = createAdminClient()
   const people = new Map<string, Person>()
 
-  const { data: optedIn, error } = await admin
-    .from('profiles')
-    .select('id, email, checkin:preferences->checkin')
-    .eq('preferences->checkin->>optIn', 'true')
+  // Paged (allRows): one request returns at most 1,000 rows.
+  const { data: optedIn, error } = await allRows<{ id: string; email: string | null; checkin: any }>((a, b) =>
+    admin.from('profiles').select('id, email, checkin:preferences->checkin').eq('preferences->checkin->>optIn', 'true').order('id').range(a, b)
+  )
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   for (const p of (optedIn || []) as { id: string; email: string | null; checkin: any }[]) {
     if (!p.email) continue
@@ -67,7 +68,9 @@ export async function GET(req: NextRequest) {
   }
 
   // Devices with notifications on. Missing before STEP 47 is applied.
-  const { data: devices } = await admin.from('push_subscriptions').select('user_id, created_at')
+  const { data: devices } = await allRows<{ user_id: string; created_at: string }>((a, b) =>
+    admin.from('push_subscriptions').select('user_id, created_at').order('endpoint').range(a, b)
+  )
   for (const d of (devices || []) as { user_id: string; created_at: string }[]) {
     const person = people.get(d.user_id) || { id: d.user_id }
     person.pushSince = Math.max(person.pushSince || 0, Date.parse(d.created_at) || 0)

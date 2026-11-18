@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { TAKING_LONGER, fetchWithTimeout, isTimeout } from '@/lib/backendTimeout'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -28,14 +29,15 @@ async function authHeaders(): Promise<Record<string, string>> {
 export default function MilestoneRating({ pathId, milestoneId }: { pathId?: string; milestoneId: string }) {
   const [available, setAvailable] = useState(false)
   const [rating, setRating] = useState<number | null>(null)
-  const [state, setState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  // 'slow': the backend didn't answer in time (it can take over a minute to wake; lib/backendTimeout.ts).
+  const [state, setState] = useState<'idle' | 'saving' | 'saved' | 'error' | 'slow'>('idle')
 
   useEffect(() => {
     if (!pathId) return
     let cancelled = false
     ;(async () => {
       try {
-        const res = await fetch(`${API_URL}/api/milestone-ratings/${encodeURIComponent(pathId)}`, { headers: await authHeaders() })
+        const res = await fetchWithTimeout(`${API_URL}/api/milestone-ratings/${encodeURIComponent(pathId)}`, { headers: await authHeaders() })
         const json = res.ok ? await res.json() : null
         if (cancelled || !json?.available) return
         setAvailable(true)
@@ -54,14 +56,14 @@ export default function MilestoneRating({ pathId, milestoneId }: { pathId?: stri
     setRating(value)
     setState('saving')
     try {
-      const res = await fetch(`${API_URL}/api/milestone-ratings`, {
+      const res = await fetchWithTimeout(`${API_URL}/api/milestone-ratings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
         body: JSON.stringify({ pathId, milestoneId, rating: value }),
       })
       setState(res.ok ? 'saved' : 'error')
-    } catch {
-      setState('error')
+    } catch (e) {
+      setState(isTimeout(e) ? 'slow' : 'error')
     }
   }
 
@@ -86,7 +88,7 @@ export default function MilestoneRating({ pathId, milestoneId }: { pathId?: stri
         ))}
       </div>
       <p role="status" className="mt-2 text-sm text-slate-700">
-        {state === 'saved' ? 'Thank you. Saved.' : state === 'error' ? 'This could not be saved just now. Please try again.' : ''}
+        {state === 'saved' ? 'Thank you. Saved.' : state === 'error' ? 'This could not be saved just now. Please try again.' : state === 'slow' ? TAKING_LONGER : ''}
       </p>
     </section>
   )

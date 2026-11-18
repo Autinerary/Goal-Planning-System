@@ -1,11 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { usePreferences } from '../context/usePreferences'
+import { useEffect, useRef, useState } from 'react'
+import { usePreferences, useTypedPreferences } from '../context/usePreferences'
 import { ANIMAL_COLORS, ANIMAL_TYPES, SPIRIT_MODES, WEEKDAYS, normalizeGamification, slotCount, slotLabel, type GamificationPreferences } from '@/lib/gamification'
 
 export function useGamification() {
   const { prefs, update, saveError } = usePreferences()
+  // Typed themes are saved to the account when typing pauses, not on every key (one request per letter before).
+  const typed = useTypedPreferences(update)
   const [legacy, setLegacy] = useState<Partial<GamificationPreferences>>({})
   useEffect(() => {
     try {
@@ -13,16 +15,39 @@ export function useGamification() {
       setLegacy({ animals: profile.preferences?.spiritAnimals, mode: profile.preferences?.spiritAnimalMode })
     } catch {}
   }, [])
-  return { value: normalizeGamification(prefs.gamification || legacy), saveError, save: (value: GamificationPreferences) => update({ gamification: normalizeGamification(value) }) }
+  return {
+    value: normalizeGamification(prefs.gamification || legacy),
+    saveError,
+    // A choice (an animal, a colour, how many): saved at once, after any typing still waiting, which it includes.
+    save: (value: GamificationPreferences) => { typed.flush(); return update({ gamification: normalizeGamification(value) }) },
+    // Typing in a theme field: shown at once, saved when typing pauses.
+    saveTyped: (value: GamificationPreferences) => typed.type({ gamification: normalizeGamification(value) }),
+  }
 }
 
 export default function GamificationSettings() {
-  const { value, save, saveError } = useGamification()
+  const { value, save, saveTyped, saveError } = useGamification()
   const patch = (change: Partial<GamificationPreferences>) => save({ ...value, ...change })
   const setTheme = (field: 'monthlyThemes' | 'weeklyThemes' | 'dailyThemes', index: number, text: string) => {
     const items = [...value[field]]
     items[index] = text
-    patch({ [field]: items })
+    saveTyped({ ...value, [field]: items })
+  }
+  // How many daily themes, as typed. The box used to apply every keystroke, so
+  // clearing it to type a new number set it to 0 and erased every daily theme
+  // (bug audit, 17 November 2026). Now an empty or unfinished box changes
+  // nothing, and themes beyond a smaller number are kept here: typing 12 over
+  // 5 (passing through 1) brings them back instead of losing them.
+  const [countText, setCountText] = useState<string | null>(null)
+  const keptDaily = useRef<string[]>([])
+  const setDailyCount = (raw: string) => {
+    setCountText(raw)
+    if (raw.trim() === '') return
+    const count = Math.max(0, Math.min(31, Math.trunc(Number(raw))))
+    if (!Number.isFinite(count)) return
+    const current = value.dailyThemes
+    current.forEach((theme, index) => { keptDaily.current[index] = theme })
+    saveTyped({ ...value, dailyThemes: Array.from({ length: count }, (_, index) => (index < current.length ? current[index] : keptDaily.current[index] || '')) })
   }
   // #spirit-animals: the "Complete your profile" card links here (Riipen Labs,
   // Groups 25 to 30: spirit animals left setup for the app).
@@ -72,10 +97,10 @@ export default function GamificationSettings() {
         </span>
       </label>
     </fieldset>
-    <label className="mt-6 block text-sm">Yearly theme<input maxLength={100} value={value.yearlyTheme} onChange={event => patch({ yearlyTheme: event.target.value })} className="mt-1 block w-full rounded border p-2" /></label>
+    <label className="mt-6 block text-sm">Yearly theme<input maxLength={100} value={value.yearlyTheme} onChange={event => saveTyped({ ...value, yearlyTheme: event.target.value })} className="mt-1 block w-full rounded border p-2" /></label>
     <details className="mt-4"><summary className="cursor-pointer font-medium">Monthly themes</summary><div className="mt-3 grid gap-3 sm:grid-cols-3">{Array.from({ length: 12 }, (_, index) => <label key={index} className="text-sm">{new Date(2026, index, 1).toLocaleString('en', { month: 'long' })}<input maxLength={100} value={value.monthlyThemes[index] || ''} onChange={event => setTheme('monthlyThemes', index, event.target.value)} className="mt-1 block w-full rounded border p-2" /></label>)}</div></details>
     <details className="mt-4"><summary className="cursor-pointer font-medium">Weekly themes</summary><div className="mt-3 grid gap-3 sm:grid-cols-2">{WEEKDAYS.map((day, index) => <label key={day} className="text-sm">{day}<input maxLength={100} value={value.weeklyThemes[index] || ''} onChange={event => setTheme('weeklyThemes', index, event.target.value)} className="mt-1 block w-full rounded border p-2" /></label>)}</div></details>
-    <label className="mt-4 block text-sm">Daily themes (0-31)<input aria-label="Number of daily themes" type="number" min={0} max={31} value={value.dailyThemes.length} onChange={event => patch({ dailyThemes: Array.from({ length: Math.max(0, Math.min(31, Math.trunc(Number(event.target.value) || 0))) }, (_, index) => value.dailyThemes[index] || '') })} className="mt-1 block w-24 rounded border p-2" /></label>
+    <label className="mt-4 block text-sm">Daily themes (0-31)<input aria-label="Number of daily themes" type="number" inputMode="numeric" min={0} max={31} value={countText ?? String(value.dailyThemes.length)} onChange={event => setDailyCount(event.target.value)} onBlur={() => setCountText(null)} className="mt-1 block w-24 rounded border p-2" /></label>
     <div className="mt-3 grid gap-3 sm:grid-cols-3">{value.dailyThemes.map((theme, index) => <label key={index} className="text-sm">Day {index + 1} of month<input maxLength={100} value={theme} onChange={event => setTheme('dailyThemes', index, event.target.value)} className="mt-1 block w-full rounded border p-2" /></label>)}</div>
   </section>
 }

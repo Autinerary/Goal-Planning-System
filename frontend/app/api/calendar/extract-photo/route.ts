@@ -47,11 +47,10 @@ export async function POST(req: NextRequest) {
   if (!imageDataUrl.startsWith('data:image/')) {
     return NextResponse.json({ error: 'Send a base64 image data URL.' }, { status: 400 })
   }
-  // A phone photo can run 5-10MB; base64 inflates that further, and the
-  // point of this feature is a quick screenshot of a schedule, not an
-  // arbitrary upload pipeline.
-  if (imageDataUrl.length > 8_000_000) {
-    return NextResponse.json({ error: 'That image is too large. Try a tighter crop or a lower-res photo.' }, { status: 413 })
+  // Vercel refuses request bodies over 4.5 MB before this code runs (a bare 413 the page couldn't read), so the
+  // page shrinks photos first (PhotoScheduleImport) and anything still over about 4 MB is turned away here, in words.
+  if (imageDataUrl.length > 4_000_000) {
+    return NextResponse.json({ error: 'That image is too large. Try a tighter crop or a smaller photo.' }, { status: 413 })
   }
 
   const today = new Date()

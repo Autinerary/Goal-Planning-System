@@ -8,6 +8,8 @@ import { Eye, EyeOff, LogIn, Loader2 } from 'lucide-react'
 import GoogleSignIn from '../components/GoogleSignIn'
 import { wakeBackend } from '@/lib/wakeBackend'
 import { hubReturnHref } from '@/lib/serviceHub'
+import { safeNextPath } from '@/lib/safeNext'
+import { afterSignInPath } from '@/lib/afterSignIn'
 import PublicDisplay from '../components/PublicDisplay'
 
 export default function LoginPage() {
@@ -48,14 +50,14 @@ export default function LoginPage() {
         sessionStorage.setItem('returnTo_used', 'true')
         // Back to ResourceHub through the hand-off, so it arrives signed in.
         // Anything else must be a page of this app: returnTo used to send
-        // people to any address at all.
-        const inApp = returnTo.startsWith('/') && !returnTo.startsWith('//') && !returnTo.startsWith('/\\')
-        window.location.href = hubReturnHref(returnTo) || (inApp ? returnTo : '/path')
+        // people to any address at all (lib/safeNext.ts).
+        window.location.href = hubReturnHref(returnTo) || safeNextPath(returnTo) || '/path'
       } else {
         sessionStorage.removeItem('returnTo')
         sessionStorage.removeItem('returnTo_used')
-        // Back from the Path shouldn't reopen the sign-in page.
-        router.replace('/path')
+        // Back from the Path shouldn't reopen the sign-in page. A link opened
+        // signed out (?next=, from the sign-in guard) goes back to its page.
+        router.replace(afterSignInPath(new URLSearchParams(window.location.search).get('next')) || '/path')
       }
     } else {
       setError(result.error || 'Login failed. Please check your credentials.')

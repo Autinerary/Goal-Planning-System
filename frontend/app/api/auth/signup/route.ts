@@ -21,6 +21,14 @@ async function teenRequest(input: { email: string; password: string; name: strin
     message: 'Thank you. If that email belongs to an adult with an Autinerary account, we have asked them to approve you. You can sign in once they do. If they don’t have an account yet, ask them to make one, then try again.',
   })
   if (!adultProfile || adultAge === null || adultAge < MIN_SIGNUP_AGE || adultProfile.managed_by_guardian) return sent
+  // Only the account whose sign-in email this is: profiles.email could be set by its owner (until STEP 105).
+  const { data: adultAccount } = await admin.auth.admin.getUserById(adultProfile.id)
+  if (adultAccount?.user?.email?.toLowerCase() !== input.adultEmail) return sent
+
+  // The request must be able to be saved BEFORE a locked account is made (STEP 84): otherwise the account was left
+  // locked for good, with the email taken, and someone had to clean it up by hand.
+  const { error: tableError } = await admin.from('guardian_requests').select('child_id', { head: true, count: 'exact' }).limit(1)
+  if (tableError) return NextResponse.json({ error: 'Asking a trusted adult isn’t available yet. Please try again later.' }, { status: 503 })
 
   const { data: created, error } = await admin.auth.admin.createUser({
     email: input.email,
@@ -40,7 +48,13 @@ async function teenRequest(input: { email: string; password: string; name: strin
     return NextResponse.json({ error: 'That didn’t work. Please try again.' }, { status: 400 })
   }
   const { error: requestError } = await admin.from('guardian_requests').insert({ child_id: created.user.id, adult_id: adultProfile.id })
-  if (requestError) return NextResponse.json({ error: 'Your account was made but the request could not be sent. Please contact us.' }, { status: 503 })
+  if (requestError) {
+    // Undo the locked account, so the email is free to try again (a profile row would block the delete).
+    await admin.from('profiles').delete().eq('id', created.user.id).then(() => {}, () => {})
+    const { error: undoError } = await admin.auth.admin.deleteUser(created.user.id)
+    if (undoError) console.error('[signup] locked account left after a failed request:', created.user.id, undoError.message)
+    return NextResponse.json({ error: 'The request couldn’t be sent just now. Please try again later.' }, { status: 503 })
+  }
   await admin.from('profiles').upsert({ id: created.user.id, email: input.email, date_of_birth: input.dateOfBirth, managed_by_guardian: true }, { onConflict: 'id' }).then(() => {}, () => {})
   if (emailEnabled()) {
     const { data: adult } = await admin.auth.admin.getUserById(adultProfile.id)

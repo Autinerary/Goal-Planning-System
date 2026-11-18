@@ -421,7 +421,10 @@ export function savePreferences(prefs: Partial<UserPreferences>): UserPreference
     ...prefs,
     layout: { ...current.layout, ...(prefs.layout || {}) },
     accessibility: { ...current.accessibility, ...(prefs.accessibility || {}) },
-    reminders: { ...current.reminders, ...(prefs.reminders || {}) },
+    // A reminders patch is the whole of them, as the account stores it (app/api/me/preferences replaces
+    // `reminders`). Merged into this device's copy, an end date taken away ("Keep sending after that") came back
+    // here, and was sent again with the next change.
+    reminders: prefs.reminders ? { ...DEFAULT_REMINDERS, ...prefs.reminders } : current.reminders,
     updatedAt: new Date().toISOString(),
   }
   try {

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { backendAuthHeaders } from '@/lib/backendAuth'
+import { TAKING_LONGER, fetchWithTimeout, isTimeout } from '@/lib/backendTimeout'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -10,7 +11,8 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 export const ADAPTATION_OFFERS_ENABLED = process.env.NEXT_PUBLIC_ADAPTATION_OFFERS_ENABLED === 'true'
 
 type Offer = { id: string; rule: string; milestone_id: string; milestone_name: string; text: string; reason: string }
-type OfferState = 'saving' | 'accepted' | 'dismissed' | 'error'
+// 'slow': the backend didn't answer in time (it can take over a minute to wake; lib/backendTimeout.ts).
+type OfferState = 'saving' | 'accepted' | 'dismissed' | 'error' | 'slow'
 type Ask = { id: string; ask: 'first' | 'second'; milestone_id: string; milestone_name: string; text: string }
 
 /**
@@ -19,18 +21,18 @@ type Ask = { id: string; ask: 'first' | 'second'; milestone_id: string; mileston
  * backend works out which question is due; nothing is scheduled.
  */
 function Helped({ id, pathId, question }: { id: string; pathId: string; question: string }) {
-  const [state, setState] = useState<'idle' | 'saving' | 'thanks' | 'error'>('idle')
+  const [state, setState] = useState<'idle' | 'saving' | 'thanks' | 'error' | 'slow'>('idle')
   const send = async (answer: 'yes' | 'no') => {
     setState('saving')
     try {
-      const res = await fetch(`${API_URL}/api/adaptations/${encodeURIComponent(id)}/helped`, {
+      const res = await fetchWithTimeout(`${API_URL}/api/adaptations/${encodeURIComponent(id)}/helped`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(await backendAuthHeaders()) },
         body: JSON.stringify({ pathId, answer }),
       })
       setState(res.ok ? 'thanks' : 'error')
-    } catch {
-      setState('error')
+    } catch (e) {
+      setState(isTimeout(e) ? 'slow' : 'error')
     }
   }
   if (state === 'thanks') return <p role="status" className="mt-3 text-sm font-medium text-emerald-800">Thank you.</p>
@@ -52,6 +54,7 @@ function Helped({ id, pathId, question }: { id: string; pathId: string; question
         ))}
       </div>
       {state === 'error' && <p role="status" className="mt-2 text-sm text-slate-800">This could not be saved just now. Please try again.</p>}
+      {state === 'slow' && <p role="status" className="mt-2 text-sm text-slate-800">{TAKING_LONGER}</p>}
     </div>
   )
 }
@@ -73,7 +76,7 @@ export default function SuggestedChanges({ pathId, onChanged }: { pathId?: strin
     let cancelled = false
     ;(async () => {
       try {
-        const res = await fetch(`${API_URL}/api/adaptations/${encodeURIComponent(pathId)}`, {
+        const res = await fetchWithTimeout(`${API_URL}/api/adaptations/${encodeURIComponent(pathId)}`, {
           cache: 'no-store',
           headers: await backendAuthHeaders(),
         })
@@ -94,7 +97,7 @@ export default function SuggestedChanges({ pathId, onChanged }: { pathId?: strin
   const answer = async (offer: Offer, response: 'accept' | 'not_now') => {
     setStates((s) => ({ ...s, [offer.id]: 'saving' }))
     try {
-      const res = await fetch(`${API_URL}/api/adaptations/${encodeURIComponent(offer.id)}/respond`, {
+      const res = await fetchWithTimeout(`${API_URL}/api/adaptations/${encodeURIComponent(offer.id)}/respond`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(await backendAuthHeaders()) },
         body: JSON.stringify({ pathId, response }),
@@ -106,8 +109,8 @@ export default function SuggestedChanges({ pathId, onChanged }: { pathId?: strin
       } else {
         setStates((s) => ({ ...s, [offer.id]: 'error' }))
       }
-    } catch {
-      setStates((s) => ({ ...s, [offer.id]: 'error' }))
+    } catch (e) {
+      setStates((s) => ({ ...s, [offer.id]: isTimeout(e) ? 'slow' : 'error' }))
     }
   }
 
@@ -158,6 +161,7 @@ export default function SuggestedChanges({ pathId, onChanged }: { pathId?: strin
             {state === 'error' && (
               <p role="status" className="mt-2 text-sm text-slate-800">This could not be saved just now. Please try again.</p>
             )}
+            {state === 'slow' && <p role="status" className="mt-2 text-sm text-slate-800">{TAKING_LONGER}</p>}
           </article>
         )
       })}

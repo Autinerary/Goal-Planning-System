@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   loadPreferences,
   DEFAULT_PREFERENCES,
@@ -9,10 +9,15 @@ import {
   type UserPreferences,
   type LayoutPositions,
 } from '@/lib/preferences'
+import { PERSONAL_CLEARED_EVENT } from '@/lib/personalData'
 
 let pendingWrites = 0
 let preferenceRevision = 0
 let writeQueue: Promise<boolean> = Promise.resolve(true)
+
+// Someone signed out, or another account signed in (lib/personalData.ts): an account copy still being read is for
+// the last person, so it is not written here when it arrives (the hydration below checks the revision).
+if (typeof window !== 'undefined') window.addEventListener(PERSONAL_CLEARED_EVENT, () => { preferenceRevision++ })
 
 function persistPreferences(patch: Partial<UserPreferences>) {
   pendingWrites++
@@ -107,4 +112,54 @@ export function usePreferences() {
   }, [])
 
   return { prefs, update, updateLayout, saveError, synced }
+}
+
+/**
+ * For what is typed into a field (a theme, a name, a note): shown and kept on this device at once, and saved to the
+ * account when typing pauses, not once per key. The theme fields and the Alternate Persona sent one request for
+ * every letter (bug audit, 17 November 2026). What is still waiting is sent when the page closes or is hidden.
+ * Give it usePreferences' `update`.
+ */
+export function useTypedPreferences(update: (patch: Partial<UserPreferences>) => Promise<boolean>, delay = 800) {
+  const waiting = useRef<Partial<UserPreferences> | null>(null)
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const latestUpdate = useRef(update)
+  latestUpdate.current = update
+
+  const flush = useCallback(() => {
+    if (timer.current) clearTimeout(timer.current)
+    timer.current = null
+    const patch = waiting.current
+    waiting.current = null
+    if (patch) void latestUpdate.current(patch)
+  }, [])
+
+  const type = useCallback((patch: Partial<UserPreferences>) => {
+    // At once on this device, and on every open page (the autinerary:prefs event).
+    savePreferences(patch)
+    waiting.current = { ...(waiting.current || {}), ...patch }
+    if (timer.current) clearTimeout(timer.current)
+    timer.current = setTimeout(flush, delay)
+  }, [flush, delay])
+
+  useEffect(() => {
+    const onHide = () => { if (document.visibilityState === 'hidden') flush() }
+    // Signed out, or another account in: what the last person typed is not saved afterwards, here or to an account.
+    const drop = () => {
+      if (timer.current) clearTimeout(timer.current)
+      timer.current = null
+      waiting.current = null
+    }
+    document.addEventListener('visibilitychange', onHide)
+    window.addEventListener('pagehide', flush)
+    window.addEventListener(PERSONAL_CLEARED_EVENT, drop)
+    return () => {
+      document.removeEventListener('visibilitychange', onHide)
+      window.removeEventListener('pagehide', flush)
+      window.removeEventListener(PERSONAL_CLEARED_EVENT, drop)
+      flush()
+    }
+  }, [flush])
+
+  return { type, flush }
 }

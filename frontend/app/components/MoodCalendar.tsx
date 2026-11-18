@@ -12,16 +12,26 @@ import MoodCheckInCard from './MoodCheckInCard'
  * colour, so colour is never the only cue. Today's check-in can be made here
  * too: on the Path it only appears after "Show more".
  *
- * Days are the dates the check-ins are stored under (UTC, as
- * /api/me/life-stats/checkin saves them).
+ * Days are the person's own calendar days: the browser sends its time zone
+ * and /api/me/life-stats/checkin files each check-in under the local date
+ * (it used to be the UTC date, so evenings in the Americas landed on the
+ * next day).
  */
 
 const WEEKS = 5
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-const DAY_MS = 86_400_000
+/** "YYYY-MM-DD" of a local calendar day. */
+function localKey(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
 
-function utcKey(t: number): string {
-  return new Date(t).toISOString().slice(0, 10)
+/** This browser's time zone, sent so the server files check-ins under the same day this calendar shows. */
+function browserZone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || ''
+  } catch {
+    return ''
+  }
 }
 
 function band(mood: number): { cell: string; word: string } {
@@ -35,20 +45,21 @@ export default function MoodCalendar({ onPayload }: { onPayload?: (payload: any)
   const [failed, setFailed] = useState(false)
 
   // Five whole weeks, Monday to Sunday, ending with this week.
-  const todayKey = utcKey(Date.now())
-  const today = new Date(`${todayKey}T00:00:00Z`)
-  const mondayOffset = (today.getUTCDay() + 6) % 7
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const todayKey = localKey(today)
+  const mondayOffset = (today.getDay() + 6) % 7
   const shownDays = mondayOffset + (WEEKS - 1) * 7 + 1
-  const start = today.getTime() - (shownDays - 1) * DAY_MS
+  // Whole calendar days counted from today (by date, not by 24-hour steps, so a clock change can't skip a day).
   const weeks = Array.from({ length: WEEKS }, (_, w) =>
     Array.from({ length: 7 }, (_, d) => {
-      const t = start + (w * 7 + d) * DAY_MS
-      return { key: utcKey(t), date: new Date(t), future: t > today.getTime() }
+      const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() - (shownDays - 1) + w * 7 + d)
+      return { key: localKey(date), date, future: date.getTime() > today.getTime() }
     })
   )
 
   const load = useCallback(() => {
-    fetch(`/api/me/life-stats/checkin?days=${shownDays}`, { cache: 'no-store', credentials: 'include' })
+    fetch(`/api/me/life-stats/checkin?days=${shownDays}&tz=${encodeURIComponent(browserZone())}`, { cache: 'no-store', credentials: 'include' })
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
       .then((j) => {
         const next: Record<string, number> = {}
@@ -68,7 +79,7 @@ export default function MoodCalendar({ onPayload }: { onPayload?: (payload: any)
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mood, note }),
+      body: JSON.stringify({ mood, note, timeZone: browserZone() }),
     })
     const json = await res.json().catch(() => null)
     if (!res.ok) throw new Error(json?.error || 'Could not save your check-in. Try again?')
@@ -108,7 +119,7 @@ export default function MoodCalendar({ onPayload }: { onPayload?: (payload: any)
                   <tr key={week[0].key}>
                     {week.map(({ key, date, future }) => {
                       const mood = moods[key]
-                      const label = date.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })
+                      const label = date.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })
                       const b = mood != null ? band(mood) : null
                       return (
                         <td key={key} className="p-0">
@@ -117,7 +128,7 @@ export default function MoodCalendar({ onPayload }: { onPayload?: (payload: any)
                               b ? b.cell : future ? 'border-transparent bg-transparent text-slate-500' : 'border-dashed border-slate-200 bg-slate-50 text-slate-600'
                             } ${key === todayKey ? 'ring-2 ring-indigo-600 ring-offset-1' : ''}`}
                           >
-                            <span aria-hidden="true" className="text-[0.625rem] leading-none">{date.getUTCDate()}</span>
+                            <span aria-hidden="true" className="text-[0.625rem] leading-none">{date.getDate()}</span>
                             <span aria-hidden="true" className="text-base font-bold leading-tight">{mood ?? ''}</span>
                             <span className="sr-only">
                               {label}{key === todayKey ? ' (today)' : ''}: {mood != null ? `mood ${mood} out of 10, ${b!.word}` : future ? 'not yet' : 'no check-in'}

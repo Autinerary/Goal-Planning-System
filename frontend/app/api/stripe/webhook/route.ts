@@ -38,7 +38,9 @@ async function save(admin: SupabaseClient, sub: Stripe.Subscription, userId: str
   const item = sub.items?.data?.[0] as (Stripe.SubscriptionItem & { current_period_end?: number }) | undefined
   const periodEnd = item?.current_period_end ?? (sub as unknown as { current_period_end?: number }).current_period_end
   const plan = planForPrice(item?.price?.id) || ((sub.metadata?.plan as Plan) ?? null)
-  await admin.from('subscriptions').upsert(
+  // A failed write must fail the whole notice, so it isn't recorded as handled and Stripe sends it again.
+  // (Ignoring the error left, for example, a cancelled plan active here for good.)
+  const { error } = await admin.from('subscriptions').upsert(
     {
       user_id: userId,
       stripe_customer_id: typeof sub.customer === 'string' ? sub.customer : sub.customer.id,
@@ -52,6 +54,7 @@ async function save(admin: SupabaseClient, sub: Stripe.Subscription, userId: str
     },
     { onConflict: 'user_id' }
   )
+  if (error) throw new Error(`subscriptions not saved: ${error.message}`)
   return { plan, periodEnd }
 }
 
@@ -183,16 +186,17 @@ export async function POST(req: NextRequest) {
           })
           const why = sub.cancellation_details
           if (why && (why.feedback || why.comment)) {
-            await admin.from('subscription_feedback').upsert(
-              {
-                user_id: userId,
-                moment: 'stripe',
-                reason: why.feedback ? REASONS[why.feedback] || 'other' : null,
-                details: why.comment ? String(why.comment).slice(0, 2000) : null,
-                stripe_subscription_id: sub.id,
-              },
-              { onConflict: 'stripe_subscription_id', ignoreDuplicates: true }
-            )
+            // A plain insert: the only unique index on stripe_subscription_id is partial (WHERE moment = 'stripe'),
+            // which an upsert's ON CONFLICT can't use (Postgres 42P10), so every reason was lost. A repeat of the
+            // same notice hits that index instead (23505), which is fine.
+            const { error: feedbackError } = await admin.from('subscription_feedback').insert({
+              user_id: userId,
+              moment: 'stripe',
+              reason: why.feedback ? REASONS[why.feedback] || 'other' : null,
+              details: why.comment ? String(why.comment).slice(0, 2000) : null,
+              stripe_subscription_id: sub.id,
+            })
+            if (feedbackError && feedbackError.code !== '23505') console.warn('[stripe] cancellation reason not saved:', feedbackError.message)
           }
         }
         break

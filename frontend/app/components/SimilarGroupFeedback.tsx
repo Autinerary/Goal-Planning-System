@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { backendAuthHeaders } from '@/lib/backendAuth'
+import { TAKING_LONGER, fetchWithTimeout, isTimeout } from '@/lib/backendTimeout'
 
 /** Off unless NEXT_PUBLIC_SIMILAR_GROUP_FEEDBACK_ENABLED is 'true' (and the backend's flag). */
 export const SIMILAR_GROUP_FEEDBACK_ENABLED = process.env.NEXT_PUBLIC_SIMILAR_GROUP_FEEDBACK_ENABLED === 'true'
@@ -29,13 +30,14 @@ export default function SimilarGroupFeedback() {
   const [group, setGroup] = useState<Group | null>(null)
   const [answer, setAnswer] = useState<string | null>(null)
   const [note, setNote] = useState('')
-  const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+  // 'slow': the backend didn't answer in time (it can take over a minute to wake; lib/backendTimeout.ts).
+  const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'error' | 'slow'>('idle')
 
   useEffect(() => {
     let cancelled = false
     ;(async () => {
       try {
-        const res = await fetch(`${API_URL}/api/pattern/group`, { headers: await backendAuthHeaders() })
+        const res = await fetchWithTimeout(`${API_URL}/api/pattern/group`, { headers: await backendAuthHeaders() })
         const json = res.ok ? await res.json() : null
         if (!cancelled && json && typeof json.size === 'number') {
           setGroup({ size: json.size, conditions: Array.isArray(json.conditions) ? json.conditions : [] })
@@ -55,14 +57,14 @@ export default function SimilarGroupFeedback() {
     if (!answer) return
     setState('sending')
     try {
-      const res = await fetch(`${API_URL}/api/pattern/group/feedback`, {
+      const res = await fetchWithTimeout(`${API_URL}/api/pattern/group/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(await backendAuthHeaders()) },
         body: JSON.stringify({ answer, note: note.trim() || undefined }),
       })
       setState(res.ok ? 'sent' : 'error')
-    } catch {
-      setState('error')
+    } catch (e) {
+      setState(isTimeout(e) ? 'slow' : 'error')
     }
   }
 
@@ -116,6 +118,7 @@ export default function SimilarGroupFeedback() {
           {state === 'sending' ? 'Sending…' : 'Send'}
         </button>
         {state === 'error' && <span role="alert" className="text-xs text-red-700">That didn't send. Please try again.</span>}
+        {state === 'slow' && <span role="alert" className="text-xs text-red-700">{TAKING_LONGER}</span>}
       </div>
     </div>
   )

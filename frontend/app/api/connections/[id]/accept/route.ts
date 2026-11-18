@@ -47,9 +47,11 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
     .eq('target_user_id', user.id)
     .eq('status', 'pending')
     .select('id, status, role, owner_id, target_user_id, category')
-    .single()
+    // maybeSingle: a request that was already accepted (a double tap, a second tab) or withdrawn matches no row.
+    // .single() turned that into a 500 with PostgREST's message, so the 404 below never ran.
+    .maybeSingle()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return NextResponse.json({ error: 'Could not accept that request just now.' }, { status: 500 })
   if (!data) return NextResponse.json({ error: 'Request not found or already actioned' }, { status: 404 })
 
   if (data.category === 'friends') {

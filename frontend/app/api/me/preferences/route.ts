@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
 
+const SERVER_ONLY_KEYS = ['lookups']
+
 /**
  * GET /api/me/preferences
  * Returns the signed-in user's stored view/interaction preferences (the JSON
@@ -70,6 +72,8 @@ export async function POST(req: NextRequest) {
     .maybeSingle()
 
   const current = (existing?.preferences as Record<string, any>) || {}
+  // Keys only the server writes: a page can't set or clear them (the old look-up counter lived here).
+  for (const key of SERVER_ONLY_KEYS) delete (patch as Record<string, unknown>)[key]
   const merged: Record<string, any> = { ...current, ...patch }
   if (patch.layout || current.layout) {
     merged.layout = { ...(current.layout || {}), ...(patch.layout || {}) }

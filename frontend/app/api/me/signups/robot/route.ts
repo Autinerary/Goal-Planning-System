@@ -95,6 +95,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ status: before.status, detail: 'already' })
   }
 
+  // The count above is of services (one row each), so retrying one service that keeps failing was unlimited, and each
+  // try starts a browser and fills in someone else's form again. Count every run too, where only the server writes.
+  const { data: fresh } = await admin.auth.admin.getUserById(user.id)
+  const meta = (fresh?.user?.app_metadata as Record<string, any>) || {}
+  const today = new Date().toISOString().slice(0, 10)
+  const runs = meta.robot_runs?.day === today ? Number(meta.robot_runs.count) || 0 : 0
+  if (runs >= ROBOT_DAILY_LIMIT * 2) return NextResponse.json({ error: 'That’s the most for one day. Try again tomorrow.' }, { status: 429 })
+  const { error: runError } = await admin.auth.admin.updateUserById(user.id, { app_metadata: { robot_runs: { day: today, count: runs + 1 } } })
+  if (runError) return NextResponse.json({ error: 'Sign me up isn’t available just now. Try again in a minute.' }, { status: 503 })
+
   const resourceId = UUID.test(String(body?.resourceId || '')) ? String(body.resourceId) : null
   await recordSignup(admin, { userId: user.id, service: recipe.key, resourceId, runner: 'server', status: 'started' })
   const password = recipe.kind === 'account' ? newPassword() : undefined

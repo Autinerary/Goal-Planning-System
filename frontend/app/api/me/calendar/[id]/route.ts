@@ -90,12 +90,14 @@ export async function PATCH(req: NextRequest, ctx: { params: { id: string } }) {
   }
   if (time !== undefined) update.time = time
   const builder = supabase.from('calendar_tasks').update(update).eq('user_id', user.id)
-  const { error } = await (isUuid ? builder.eq('id', id) : builder.eq('client_id', id))
+  const { data: changed, error } = await (isUuid ? builder.eq('id', id) : builder.eq('client_id', id)).select('id')
 
   if (error) {
     console.error('PATCH /api/me/calendar/[id] error:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
+  // Nothing matched (the task was deleted, or isn't this person's): say so, so a page doesn't show it as done.
+  if (!changed?.length) return NextResponse.json({ error: 'That task wasn’t found.' }, { status: 404 })
 
   return NextResponse.json({ ok: true })
 }

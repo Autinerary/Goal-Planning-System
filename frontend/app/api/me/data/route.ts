@@ -55,8 +55,15 @@ const CONFLICT: Record<string, string> = {
   life_stats_snapshots: 'user_id,snapshot_date',
   life_stats_checkins: 'user_id,checkin_date',
   ideal_self_portraits: 'user_id',
-  user_paths: 'user_id',
+  // A person can have several paths: the key is (user_id, path_id). An upsert on user_id alone is
+  // rejected by Postgres (42P10), which used to leave the plan out of every restore.
+  user_paths: 'user_id,path_id',
   user_diagnostic_profiles: 'user_id',
+}
+
+/** A table this database doesn't have yet (its STEP isn't applied): not a failure, nothing to clear or restore. */
+function missingTable(error: { code?: string; message?: string } | null | undefined): boolean {
+  return Boolean(error && (error.code === '42P01' || error.code === 'PGRST205' || /does not exist|Could not find the table/i.test(error.message || '')))
 }
 
 async function requireUser() {
@@ -128,6 +135,7 @@ export async function POST(req: NextRequest) {
     try {
       const { error } = await admin.from(table).delete().eq('user_id', user.id)
       if (error) {
+        if (missingTable(error)) continue
         console.warn(`reset: skipped ${table}:`, error.message)
         skipped.push(table)
       } else {
@@ -169,13 +177,19 @@ export async function PUT(req: NextRequest) {
 
     // Force ownership to the current user — a backup can only ever restore into
     // the caller's own account, never someone else's.
-    const scoped = rows.map((r: any) => ({ ...r, user_id: user.id }))
+    const scoped = rows.map((r: any) => {
+      const row = { ...r, user_id: user.id }
+      // Older backups can have a path without its id; give it the id a first path gets.
+      if (table === 'user_paths' && !row.path_id) row.path_id = `path_${user.id}`
+      return row
+    })
 
     try {
       const { error } = await admin
         .from(table)
         .upsert(scoped, { onConflict: CONFLICT[table] || 'user_id' })
       if (error) {
+        if (missingTable(error)) continue
         console.warn(`restore: skipped ${table}:`, error.message)
         skipped.push(table)
       } else {

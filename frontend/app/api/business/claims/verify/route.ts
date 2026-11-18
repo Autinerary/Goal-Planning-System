@@ -22,7 +22,16 @@ export async function POST(req: NextRequest) {
   if (claim.status !== 'pending' || !claim.code_hash) return NextResponse.json({ error: 'Ask for a new code.' }, { status: 400 })
   if (!claim.code_expires_at || Date.parse(claim.code_expires_at) < Date.now()) return NextResponse.json({ error: 'That code has expired. Ask for a new one.' }, { status: 400 })
   if (claim.attempts >= CODE_TRIES) return NextResponse.json({ error: 'Too many tries. Ask for a new code.' }, { status: 429 })
-  await admin.from('listing_claims').update({ attempts: claim.attempts + 1 }).eq('id', claim.id)
+  // Count this try before checking it, and only if no other try was counted in between (compare and swap):
+  // with a plain read-then-write, many guesses sent at once all read the same count and each got a free try.
+  const { data: counted, error: countError } = await admin
+    .from('listing_claims')
+    .update({ attempts: claim.attempts + 1 })
+    .eq('id', claim.id)
+    .eq('attempts', claim.attempts)
+    .select('id')
+  if (countError) return NextResponse.json({ error: 'Could not check that code. Try again.' }, { status: 500 })
+  if (!counted?.length) return NextResponse.json({ error: 'Another try is being checked. Wait a moment, then try again.' }, { status: 429 })
   if (!claimCodeMatches(claim.id, code, claim.code_hash)) {
     const left = CODE_TRIES - claim.attempts - 1
     return NextResponse.json({ error: left > 0 ? `That code doesn’t match. ${left} ${left === 1 ? 'try' : 'tries'} left.` : 'That code doesn’t match. Ask for a new one.' }, { status: 400 })

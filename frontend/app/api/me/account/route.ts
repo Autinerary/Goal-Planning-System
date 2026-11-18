@@ -66,36 +66,15 @@ export async function DELETE(req: NextRequest) {
     }
   }
 
-  // Photos first: once the account is gone, nobody may remove them.
-  const storage = supabase.storage.from('avatars')
-  const { data: photos } = await storage.list(user.id, { limit: 100 })
-  if (photos?.length) await storage.remove(photos.map((f) => `${user.id}/${f.name}`))
-  // And the photos and videos of their moments (Hare World Social, STEP 87).
-  const moments = supabase.storage.from('moments')
-  for (let page = 0; page < 20; page++) {
-    const { data: files } = await moments.list(user.id, { limit: 100 })
-    if (!files?.length) break
-    const { error: removeError } = await moments.remove(files.map((f) => `${user.id}/${f.name}`))
-    if (removeError) break
-  }
+  // What has to go after the account: the models they shared live in a private bucket, one folder per model, and
+  // their rows go with the account, so note them now.
+  const { data: shared } = await admin.from('shared_adapters').select('id').eq('owner_id', user.id)
+  // Pathways they shared in the Path Market carry their name: noted now, because deleting the sign-in sets their
+  // contributor to nothing (ON DELETE SET NULL), after which they couldn't be found by person.
+  const { data: pathways } = await admin.from('path_models').select('id').eq('contributor_id', user.id)
 
-  // Models they shared (Share my model, STEP 96): their rows go with the account, so their files go first, from the
-  // private bucket, one folder per model. And pathways they shared in the Path Market, which carry their name.
-  try {
-    const { data: shared } = await admin.from('shared_adapters').select('id').eq('owner_id', user.id)
-    const bucket = admin.storage.from('shared-adapters')
-    for (const model of shared || []) {
-      const { data: files } = await bucket.list(model.id, { limit: 100 })
-      if (files?.length) await bucket.remove(files.map((f) => `${model.id}/${f.name}`))
-    }
-    await admin.from('path_models').delete().eq('contributor_id', user.id)
-  } catch (e: any) {
-    console.error('[account] shared models or pathways not removed:', user.id, e?.message)
-  }
-
-  // A newsletter sign-up with the same address is the same person.
-  if (user.email) await admin.from('newsletter_subscribers').delete().ilike('email', user.email.replace(/[\\%_]/g, (c) => `\\${c}`))
-
+  // The account first. Photos, shared files and pathways used to be removed before this, so a delete that then
+  // failed still lost them. The service client can remove files after the account is gone.
   const { data: outcome, error } = await supabase.rpc('delete_my_account', { confirm: 'DELETE' })
   if (error || (outcome !== 'deleted' && outcome !== 'profile_deleted')) {
     console.error('[account] delete failed:', error?.code, error?.message, outcome)
@@ -110,6 +89,35 @@ export async function DELETE(req: NextRequest) {
     }
   }
 
+  await removeLeftovers(admin, user.id, user.email || null, (shared || []).map((m: any) => m.id as string), (pathways || []).map((m: any) => m.id as string))
   await supabase.auth.signOut().catch(() => {})
   return NextResponse.json({ deleted: true })
+}
+
+/** Photos, moments, shared model files, shared pathways and a newsletter sign-up: after the account, never before. */
+async function removeLeftovers(admin: ReturnType<typeof createAdminClient>, userId: string, email: string | null, sharedModelIds: string[], pathwayIds: string[]) {
+  try {
+    const avatars = admin.storage.from('avatars')
+    const { data: photos } = await avatars.list(userId, { limit: 100 })
+    if (photos?.length) await avatars.remove(photos.map((f) => `${userId}/${f.name}`))
+    // And the photos and videos of their moments (Hare World Social, STEP 87).
+    const moments = admin.storage.from('moments')
+    for (let page = 0; page < 20; page++) {
+      const { data: files } = await moments.list(userId, { limit: 100 })
+      if (!files?.length) break
+      const { error: removeError } = await moments.remove(files.map((f) => `${userId}/${f.name}`))
+      if (removeError) break
+    }
+    // Models they shared (Share my model, STEP 96), and pathways they shared in the Path Market (they carry their name).
+    const bucket = admin.storage.from('shared-adapters')
+    for (const id of sharedModelIds) {
+      const { data: files } = await bucket.list(id, { limit: 100 })
+      if (files?.length) await bucket.remove(files.map((f) => `${id}/${f.name}`))
+    }
+    if (pathwayIds.length) await admin.from('path_models').delete().in('id', pathwayIds)
+    // A newsletter sign-up with the same address is the same person.
+    if (email) await admin.from('newsletter_subscribers').delete().ilike('email', email.replace(/[\\%_]/g, (c) => `\\${c}`))
+  } catch (e: any) {
+    console.error('[account] leftovers not all removed:', userId, e?.message)
+  }
 }

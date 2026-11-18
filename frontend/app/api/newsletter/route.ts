@@ -50,12 +50,16 @@ export async function POST(req: NextRequest) {
     // Confirmed before: what they ask for now starts straight away.
     if (existing?.status === 'confirmed') {
       const patch: Record<string, unknown> = { weekly: existing.weekly || weekly }
-      if (sendList) {
+      // At most one list email every 10 minutes per address: this form needs no sign-in, so without a limit
+      // anyone could make it email a subscriber over and over.
+      const listSentRecently = existing.list_sent_at && now.getTime() - Date.parse(existing.list_sent_at) < RESEND_CONFIRM_AFTER_MS
+      if (sendList && !listSentRecently) {
         const links = await listLinks(role, need!)
         const title = pathwayTitle(role || 'unsure', need!)
         const start = `${appUrl}/start?for=${role || 'unsure'}&need=${need}`
         const { subject, html, text } = newsletterListEmail(title, links, start, `${appUrl}/newsletter/unsubscribe?t=${existing.token}`, postalAddress())
-        const sent = await sendEmail({ to: existing.email, subject, html, text })
+        const window = Math.floor(now.getTime() / RESEND_CONFIRM_AFTER_MS)
+        const sent = await sendEmail({ to: existing.email, subject, html, text, idempotencyKey: `newsletter-list-${existing.id}-${window}` })
         if (sent.ok) Object.assign(patch, { list_sent_at: now.toISOString(), role, need })
       }
       await admin.from('newsletter_subscribers').update(patch).eq('id', existing.id)

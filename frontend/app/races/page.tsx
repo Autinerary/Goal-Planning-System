@@ -33,6 +33,7 @@ import { goalAreas, goalsForDimension } from '@/lib/goalCategories'
 import { useDisclosure } from '@/lib/disclosure'
 import { useCssHeightVar } from '@/lib/useCssHeightVar'
 import { GamePanel, GameBanner, GameButton, GameTabs, GameMeter } from '../components/GameUI'
+import { toast } from '../components/Toaster'
 
 /*
   DREAM LAND — One continuous race-track roadmap.
@@ -89,6 +90,15 @@ function RacesContent() {
   const openGoalsPanel = () => {
     setGoalsOpen(true)
     setTimeout(() => goalsPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
+  }
+  // "Add another goal", here and from any page (/races?goals=add): the goals
+  // editor opens with a new goal to fill in, and the rest of the plan stays.
+  // It used to open setup (/onboarding?step=3), whose new plan replaced the
+  // whole plan with just the new goal (bug audit, 17 November 2026).
+  const [addGoalAsked, setAddGoalAsked] = useState(false)
+  const addGoal = () => {
+    setAddGoalAsked(true)
+    openGoalsPanel()
   }
 
   const [isDayTheme, setIsDayTheme] = useState(true)
@@ -278,8 +288,20 @@ function RacesContent() {
       return next
     })
   }
-  const toggleMilestoneComplete = (id: string, name?: string) => {
-    if (!completedMilestoneIds.has(id)) {
+  // A tick shows at once and is saved with the account. The request was made
+  // inside the state update and its answer never looked at, so a tick that
+  // didn't save looked saved and was gone on the next visit (bug audit, 17
+  // November 2026). Now a failed save takes the tick back and says so.
+  const setMilestoneDone = (id: string, done: boolean) =>
+    setCompletedMilestoneIds(prev => {
+      if (prev.has(id) === done) return prev
+      const next = new Set(prev)
+      if (done) next.add(id); else next.delete(id)
+      return next
+    })
+  const toggleMilestoneComplete = async (id: string, name?: string) => {
+    const wasCompleted = completedMilestoneIds.has(id)
+    if (!wasCompleted) {
       // Beep beep, and the car bounces (CharacterCar).
       playCarBeep()
       setHonk((h) => h + 1)
@@ -289,24 +311,31 @@ function RacesContent() {
       if (name && isSignedIn) socialAvailable().then((on) => (on ? setCaptureFor({ id, name }) : !helpPromptOff() && setHelpFor({ id, name })))
       else if (name && !helpPromptOff()) setHelpFor({ id, name })
     }
-    setCompletedMilestoneIds(prev => {
-      const next = new Set(prev)
-      const wasCompleted = next.has(id)
-      if (wasCompleted) next.delete(id); else next.add(id)
-      if (isSignedIn) {
-        if (wasCompleted) {
-          fetch(`/api/me/progress?milestone_id=${encodeURIComponent(id)}&kind=completed`, { method: 'DELETE', credentials: 'include' }).catch(() => {})
-        } else {
-          fetch('/api/me/progress', {
+    setMilestoneDone(id, !wasCompleted)
+    if (!isSignedIn) return
+    let saved = false
+    try {
+      const res = wasCompleted
+        ? await fetch(`/api/me/progress?milestone_id=${encodeURIComponent(id)}&kind=completed`, { method: 'DELETE', credentials: 'include' })
+        : await fetch('/api/me/progress', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify({ milestone_id: id, kind: 'completed' }),
-          }).catch(() => {})
-        }
-      }
-      return next
-    })
+          })
+      saved = res.ok
+    } catch {
+      saved = false
+    }
+    if (saved) return
+    setMilestoneDone(id, wasCompleted)
+    if (!wasCompleted) {
+      setCaptureFor((c) => (c?.id === id ? null : c))
+      setHelpFor((h) => (h?.id === id ? null : h))
+    }
+    toast.error(wasCompleted
+      ? 'That step couldn’t be unticked just now. Please try again.'
+      : 'That tick didn’t save, so it’s been taken back. Please try again.')
   }
 
   /* ═══ REAL CONNECTIONS for the compare picker (no mock people) ═══ */
@@ -409,6 +438,21 @@ function RacesContent() {
         milestone: firstMilestoneName || 'Getting started',
         models: userBarrierLabels,
       })) || []
+  // /races?goals=add, from another page's "Add another goal": once the plan is
+  // here, the goals editor opens with a new goal (addGoal), and the address
+  // loses it, so going back or reloading doesn't open it again. With no plan
+  // yet, the page offers to make one (NoPlanYet), which replaces nothing.
+  const wantsToAddGoal = searchParams.get('goals') === 'add'
+  const hasRaces = rawRaces.length > 0
+  useEffect(() => {
+    if (!wantsToAddGoal || loading || !hasRaces) return
+    addGoal()
+    const params = new URLSearchParams(window.location.search)
+    params.delete('goals')
+    const rest = params.toString()
+    router.replace(rest ? `/races?${rest}` : '/races', { scroll: false })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wantsToAddGoal, loading, hasRaces])
   // The UI hard-references races[0] and races[1]. Pad with a placeholder when
   // the user only declared a single goal so we never crash.
   const races = rawRaces.length >= 2
@@ -1049,7 +1093,7 @@ function RacesContent() {
               Surfaced at the top so users can see their choices ARE being
               considered (Odosa), and changed right here without setting up
               again (the team's notes, October 2026; GoalsEditor). */}
-          {(userGoalNames.length > 0 || ((payload?.userProfile?.dreams || []) as string[]).length > 0) && (
+          {(userGoalNames.length > 0 || ((payload?.userProfile?.dreams || []) as string[]).length > 0 || goalsOpen) && (
             <div className="w-full max-w-2xl px-2 pt-4" ref={goalsPanelRef}>
               {/* Folded: what the races were made from is background, and
                   Races was crowded with it (Riipen Labs, Group 32). */}
@@ -1073,6 +1117,8 @@ function RacesContent() {
                   onUltimateDream={(text) => { updatePrefs({ biggestDream: text }) }}
                   note={goalsNote}
                   setNote={setGoalsNote}
+                  startAdding={addGoalAsked}
+                  onStartedAdding={() => setAddGoalAsked(false)}
                 />
               </details>
             </div>
@@ -1216,7 +1262,7 @@ function RacesContent() {
                 <GamePanel tone="parchment" className="px-4 pt-6 pb-4 flex flex-col">
                   <GameBanner tone="amber">🏪 ResourceHub</GameBanner>
                   <p className="text-[0.6875rem] font-medium text-amber-900/80 mb-3 flex-1 text-center">
-                    Curated tools, services &amp; support matched to the barriers you face and your goals.
+                    Curated tools, services &amp; support matched to your norms and your goals.
                   </p>
                   <GameButton tone="amber" size="sm" href={goHubHref('/')} className="w-full">
                     Open ResourceHub →
@@ -1571,7 +1617,7 @@ function RacesContent() {
                         this area and the agents will build the path.
                       </p>
                       <button
-                        onClick={() => router.push('/onboarding?step=3')}
+                        onClick={addGoal}
                         className={`mt-3 text-[0.625rem] font-bold px-3 py-1.5 rounded-lg bg-gradient-to-r ${accent} text-white shadow hover:scale-105 transition-all`}
                       >
                         ➕ Add a goal
@@ -2038,7 +2084,7 @@ function RacesContent() {
                       </div>
                     ))}
                   </div>
-                  <button onClick={() => router.push('/onboarding?step=3')} className={`w-full mt-2 text-[0.625rem] font-bold px-2 py-1.5 rounded-lg border-2 border-dashed transition-all hover:brightness-105 ${txt}`}>➕ Add another goal</button>
+                  <button onClick={addGoal} className={`w-full mt-2 text-[0.625rem] font-bold px-2 py-1.5 rounded-lg border-2 border-dashed transition-all hover:brightness-105 ${txt}`}>➕ Add another goal</button>
                   {userBarrierLabels.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
                       {userBarrierLabels.slice(0, 5).map((b: string) => (

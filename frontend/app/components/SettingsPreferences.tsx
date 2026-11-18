@@ -319,12 +319,17 @@ export default function SettingsPreferences() {
               // Turned on here, it has no end date: an old "first two weeks"
               // end would otherwise stop it before it started.
               const { until, ...rest } = prefs.reminders || ({} as typeof prefs.reminders)
+              // Turned on, an emailed reminder goes to this account's own
+              // email, which can be changed just below. An address kept on this
+              // device could be the last person's on a shared browser (bug
+              // audit, 17 November 2026), so it is never the default.
+              const byEmail = (rest.channel || 'email') === 'email'
               update({
                 reminders: {
                   ...rest,
                   ...(e.target.checked ? {} : until ? { until } : {}),
                   enabled: e.target.checked,
-                  contact: prefs.reminders?.contact || user?.email || '',
+                  contact: e.target.checked && byEmail ? user?.email || rest.contact || '' : rest.contact || user?.email || '',
                 },
               })
             }}

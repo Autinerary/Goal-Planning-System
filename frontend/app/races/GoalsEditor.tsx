@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Loader2, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react'
 import { backendAuthHeaders } from '@/lib/backendAuth'
+import { fetchWithTimeout, isTimeout } from '@/lib/backendTimeout'
 import { loadPreferences } from '@/lib/preferences'
 import { saidByServer, withOwnModel, wordsFor } from '@/lib/ownModelRoute'
 import { GOAL_AREAS } from '@/lib/goalAreas'
@@ -11,6 +12,8 @@ import { SharedBadge, type Collab } from './GoalsTogether'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 const AREA = Object.fromEntries(GOAL_AREAS.map((a) => [a.id, a])) as Record<string, (typeof GOAL_AREAS)[number]>
+// Building a goal's steps runs the planning agents (often a minute), after the backend wakes (up to a minute more).
+const GOAL_STEPS_TIMEOUT_MS = 180_000
 
 type GoalRow = { text: string; from: string | null; area: GoalArea }
 
@@ -37,6 +40,8 @@ export default function GoalsEditor({
   onUltimateDream,
   note,
   setNote,
+  startAdding = false,
+  onStartedAdding,
 }: {
   day: boolean
   goals: string[]
@@ -53,6 +58,10 @@ export default function GoalsEditor({
    *  loading state, which takes this editor away and back, and its own state with it. */
   note: string
   setNote: (note: string) => void
+  /** "Add another goal" (here or from another page, /races?goals=add): open with a new, empty goal to fill in. */
+  startAdding?: boolean
+  /** Told once it has opened, so a reload of the plan doesn't open it again. */
+  onStartedAdding?: () => void
 }) {
   const [editing, setEditing] = useState(false)
   const [rows, setRows] = useState<GoalRow[]>([])
@@ -62,26 +71,48 @@ export default function GoalsEditor({
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [building, setBuilding] = useState<string | null>(null)
+  // The new goal's field, focused when "Add another goal" opens the editor.
+  const newGoalRef = useRef<HTMLInputElement | null>(null)
+  const [focusNewGoal, setFocusNewGoal] = useState(false)
 
   const txt = day ? 'text-slate-900' : 'text-white'
   const sub = day ? 'text-slate-700' : 'text-indigo-200'
   const field = `w-full rounded-lg border px-2 py-1.5 text-sm ${day ? 'border-slate-300 bg-white text-slate-900' : 'border-indigo-600 bg-indigo-950 text-white'}`
 
-  const start = () => {
-    setRows(goals.map((g) => ({ text: g, from: g, area: areas[g] || 'other' })))
+  const start = (withNewGoal = false) => {
+    const current: GoalRow[] = goals.map((g) => ({ text: g, from: g, area: areas[g] || 'other' }))
+    setRows(withNewGoal && current.length < 10 ? [...current, { text: '', from: null, area: 'other' }] : current)
     setDreamRows([...dreams])
     setObstacleRows([...obstacles])
     setBiggest(ultimateDream)
     setError('')
     setEditing(true)
+    if (withNewGoal) setFocusNewGoal(true)
   }
+
+  useEffect(() => {
+    if (!startAdding) return
+    if (editing) {
+      setRows((r) => (r.length < 10 && !r.some((row) => !row.text.trim()) ? [...r, { text: '', from: null, area: 'other' }] : r))
+      setFocusNewGoal(true)
+    } else start(true)
+    onStartedAdding?.()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startAdding])
+
+  useEffect(() => {
+    if (!focusNewGoal || !editing) return
+    setFocusNewGoal(false)
+    newGoalRef.current?.focus()
+  }, [focusNewGoal, editing, rows])
 
   const save = async () => {
     setSaving(true)
     setError('')
     try {
       const auth = await backendAuthHeaders()
-      const res = await fetch(`${API_URL}/api/paths/me/profile`, {
+      // Bounded: the backend can take over a minute to wake (lib/backendTimeout.ts).
+      const res = await fetchWithTimeout(`${API_URL}/api/paths/me/profile`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', ...auth },
         body: JSON.stringify({
@@ -100,8 +131,8 @@ export default function GoalsEditor({
       setEditing(false)
       setNote(j?.goalsWithoutSteps?.length ? 'Saved. New goals can get their own steps below.' : 'Saved.')
       await onSaved()
-    } catch {
-      setError('That didn’t save. Try again.')
+    } catch (e) {
+      setError(isTimeout(e) ? 'Saving is taking longer than usual. Your changes are still here: please try again in a minute.' : 'That didn’t save. Try again.')
     } finally {
       setSaving(false)
     }
@@ -115,11 +146,13 @@ export default function GoalsEditor({
       // On the person's own model when "Use my own model" is on (lib/ownModelRoute.ts); asked first if it isn't ready.
       const j: any = await withOwnModel('goal-steps', body, async () => {
         const auth = await backendAuthHeaders()
-        const res = await fetch(`${API_URL}/api/paths/me/goal-steps`, {
+        // Planning a goal's steps runs the planning agents, and the backend may
+        // have to wake first: a longer bound than a save, but a bound.
+        const res = await fetchWithTimeout(`${API_URL}/api/paths/me/goal-steps`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', ...auth },
           body: JSON.stringify(body),
-        })
+        }, GOAL_STEPS_TIMEOUT_MS)
         const out = await res.json().catch(() => null)
         if (!res.ok) throw saidByServer(typeof out?.detail === 'string' ? out.detail : 'The steps couldn’t be built. Try again later.')
         return out
@@ -127,7 +160,10 @@ export default function GoalsEditor({
       setNote(j?.added ? `Added ${j.added} steps for “${goal}”. They aren’t on your calendar yet.` : `“${goal}” has its steps already.`)
       await onSaved()
     } catch (e) {
-      setNote(wordsFor(e, 'The steps couldn’t be built. Try again later.'))
+      // Taking too long: they may still be made, so trying again says so if they are.
+      setNote(isTimeout(e)
+        ? `Building steps for “${goal}” is taking longer than usual. Please try again in a few minutes.`
+        : wordsFor(e, 'The steps couldn’t be built. Try again later.'))
     } finally {
       setBuilding(null)
     }
@@ -224,7 +260,7 @@ export default function GoalsEditor({
               </div>
             </div>
           )}
-          <button type="button" onClick={start} className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-semibold ${day ? 'border-slate-300 bg-white text-slate-900 hover:bg-slate-50' : 'border-indigo-500 bg-indigo-900 text-white'}`}>
+          <button type="button" onClick={() => start()} className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-semibold ${day ? 'border-slate-300 bg-white text-slate-900 hover:bg-slate-50' : 'border-indigo-500 bg-indigo-900 text-white'}`}>
             <Pencil className="h-4 w-4" aria-hidden="true" /> Change goals, dreams or obstacles
           </button>
         </>
@@ -242,6 +278,7 @@ export default function GoalsEditor({
               {rows.map((row, i) => (
                 <div key={i} className="flex flex-wrap items-center gap-2">
                   <input
+                    ref={i === rows.findIndex((r) => !r.text.trim()) ? newGoalRef : undefined}
                     value={row.text}
                     onChange={(e) => setRows(rows.map((r, j) => (j === i ? { ...r, text: e.target.value } : r)))}
                     maxLength={200}

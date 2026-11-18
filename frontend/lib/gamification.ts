@@ -24,7 +24,8 @@ const strings = (value: unknown, limit: number): string[] => Array.isArray(value
 
 export function normalizeGamification(value?: Partial<GamificationPreferences> | null): GamificationPreferences {
   return {
-    animals: Array.isArray(value?.animals) ? value.animals.slice(0, 7).map(animal => ({ type: ANIMAL_TYPES.includes(animal?.type) ? animal.type : '', color: Object.hasOwn(ANIMAL_COLORS, animal?.color || '') ? animal.color : 'orange' })) : [],
+    // hasOwnProperty, not Object.hasOwn: Safari before 15.4 doesn't have it, and Milestone pages stopped there.
+    animals: Array.isArray(value?.animals) ? value.animals.slice(0, 7).map(animal => ({ type: ANIMAL_TYPES.includes(animal?.type) ? animal.type : '', color: Object.prototype.hasOwnProperty.call(ANIMAL_COLORS, animal?.color || '') ? animal.color : 'orange' })) : [],
     mode: value?.mode === 'weekly' || value?.mode === 'fastSlow' ? value.mode : 'general',
     yearlyTheme: typeof value?.yearlyTheme === 'string' ? value.yearlyTheme.slice(0, 100) : '',
     monthlyThemes: strings(value?.monthlyThemes, 12),

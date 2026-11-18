@@ -85,6 +85,16 @@ export function parseDurationString(duration?: string | null): number | null {
   return null
 }
 
+/**
+ * One week's occurrence of a weekly task, moved on its own (dragged on Time
+ * Blocks): a one-time copy whose id says which task and which date it stands
+ * in for, "<task id>~<yyyy-mm-dd>". The weekly task stays as it is, every
+ * other week; on that one date it isn't drawn, the copy is. Dragging one
+ * occurrence used to turn the whole weekly task into a one-time task, so it
+ * left every other week (bug audit, 17 November 2026).
+ */
+export const movedOccurrenceId = (taskId: string, dateISO: string) => `${taskId}~${dateISO}`
+
 /** Every occurrence of every task that falls inside [from, to], inclusive. */
 export function occurrencesInRange(
   tasks: CalendarTask[],
@@ -93,6 +103,8 @@ export function occurrencesInRange(
 ): Occurrence[] {
   const days = eachDayOfInterval({ start: from, end: to })
   const out: Occurrence[] = []
+  // Occurrences moved on their own: their copies' ids.
+  const ids = new Set(tasks.map((task) => task.id))
 
   for (const task of tasks) {
     const duration = task.durationMinutes ?? DEFAULT_DURATION_MINUTES
@@ -107,9 +119,10 @@ export function occurrencesInRange(
       continue
     }
 
-    // Weekly template: one occurrence per matching weekday in the range.
+    // Weekly template: one occurrence per matching weekday in the range,
+    // except a date whose occurrence was moved on its own (its copy is drawn).
     for (const day of days) {
-      if (WEEKDAYS[day.getDay()] === task.day) {
+      if (WEEKDAYS[day.getDay()] === task.day && !ids.has(movedOccurrenceId(task.id, toISODate(day)))) {
         out.push({ task, date: day, startMinutes, durationMinutes: duration, recurring: true })
       }
     }

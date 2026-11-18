@@ -5,6 +5,71 @@ import { Camera, Check, Loader2, Pencil, X } from 'lucide-react'
 
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
+// Photos are made smaller here before they're sent: a phone photo of 4 MB or more was turned away by the hosting
+// limit (4.5 MB for the whole request) before anything could read it (bug audit, 17 November 2026). The longest side
+// becomes about 1600 px, as a JPEG at 0.8, which keeps handwriting readable at a few hundred KB.
+const LONGEST_SIDE = 1600
+const JPEG_QUALITY = 0.8
+// Well under the server's limit for the image (app/api/calendar/extract-photo, about 4 MB as a data URL).
+const MAX_DATA_URL = 3_000_000
+
+const TOO_LARGE = 'That photo is too large to read, even made smaller. Try a tighter crop, or a screenshot of just the schedule.'
+
+function readAsDataUrl(file: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result))
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(file)
+  })
+}
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => resolve(img)
+    img.onerror = () => reject(new Error('unreadable image'))
+    img.src = src
+  })
+}
+
+/** The photo as a JPEG data URL, longest side at most `side` px (drawn on white, so a see-through PNG stays readable). */
+function drawSmaller(img: HTMLImageElement, side: number, quality: number): string | null {
+  const scale = Math.min(1, side / Math.max(img.naturalWidth || 1, img.naturalHeight || 1))
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.max(1, Math.round((img.naturalWidth || 1) * scale))
+  canvas.height = Math.max(1, Math.round((img.naturalHeight || 1) * scale))
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+  return canvas.toDataURL('image/jpeg', quality)
+}
+
+/**
+ * The photo, made small enough to send, or null when even that is too large. A picture this browser can't draw
+ * (some HEIC photos on a computer) goes as it is when it is small enough.
+ */
+async function photoToSend(file: File): Promise<string | null> {
+  const url = URL.createObjectURL(file)
+  try {
+    const img = await loadImage(url)
+    const first = drawSmaller(img, LONGEST_SIDE, JPEG_QUALITY)
+    if (first && first.length <= MAX_DATA_URL) return first
+    // A very detailed photo: once more, smaller and a little softer.
+    const second = drawSmaller(img, 1200, 0.7)
+    if (second && second.length <= MAX_DATA_URL) return second
+    if (first || second) return null
+  } catch {
+    /* not drawable here: send the original if it fits */
+  } finally {
+    URL.revokeObjectURL(url)
+  }
+  const original = await readAsDataUrl(file)
+  return original.length <= MAX_DATA_URL ? original : null
+}
+
 export interface ExtractedEvent {
   id: string
   name: string
@@ -41,12 +106,11 @@ export default function PhotoScheduleImport({
     setError('')
     setBusy(true)
     try {
-      const dataUrl: string = await new Promise((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onload = () => resolve(String(reader.result))
-        reader.onerror = () => reject(reader.error)
-        reader.readAsDataURL(file)
-      })
+      const dataUrl = await photoToSend(file)
+      if (!dataUrl) {
+        setError(TOO_LARGE)
+        return
+      }
 
       const res = await fetch('/api/calendar/extract-photo', {
         method: 'POST',
@@ -56,7 +120,8 @@ export default function PhotoScheduleImport({
       })
       const j = await res.json().catch(() => ({}))
       if (!res.ok) {
-        setError(j?.error || 'Could not read that photo.')
+        // 413 can come from the hosting itself, with no words of ours.
+        setError(res.status === 413 ? TOO_LARGE : j?.error || 'Could not read that photo.')
         return
       }
       const rows: ExtractedEvent[] = (j.events || []).map((e: any) => ({ ...e, included: true }))
@@ -117,7 +182,7 @@ export default function PhotoScheduleImport({
               accept="image/*"
               capture="environment"
               className="hidden"
-              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f) }}
+              onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) handleFile(f) }}
             />
             <button
               onClick={() => fileRef.current?.click()}
@@ -130,7 +195,7 @@ export default function PhotoScheduleImport({
           </>
         )}
 
-        {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+        {error && <p role="alert" className="mt-3 text-sm text-red-700">{error}</p>}
 
         {events && events.length > 0 && (
           <div className="space-y-3">

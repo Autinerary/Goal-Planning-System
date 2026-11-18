@@ -10,6 +10,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { DEFAULT_TIME_ZONE, localParts, validTimeZone } from '@/lib/reminderSchedule'
 import {
   computeCommitment,
   computeEnergy,
@@ -60,8 +61,26 @@ export interface LifeStatsPayload {
   checkinPromptedToday: boolean
 }
 
-function dayKey(d: Date): string {
-  return d.toISOString().slice(0, 10)
+/**
+ * The calendar date at `d` where the person lives. Check-ins are kept one per local day: a UTC date put an evening
+ * check-in in Toronto (after about 7 pm) on the next day, and then hid the next day's "How are you today?".
+ */
+function dayKey(d: Date, timeZone: string = DEFAULT_TIME_ZONE): string {
+  return localParts(d, timeZone).date
+}
+
+/**
+ * The person's time zone: the one their browser sent, else the one saved with their reminders, else Eastern time
+ * (where most people using the app live).
+ */
+export async function personTimeZone(supabase: SupabaseClient, userId: string, sent?: unknown): Promise<string> {
+  if (typeof sent === 'string' && sent) return validTimeZone(sent)
+  try {
+    const { data } = await supabase.from('profiles').select('preferences').eq('id', userId).maybeSingle()
+    const saved = (data?.preferences as any)?.reminders?.timeZone
+    if (typeof saved === 'string' && saved) return validTimeZone(saved)
+  } catch {}
+  return DEFAULT_TIME_ZONE
 }
 
 function sevenDaysAgo(now: Date): Date {
@@ -94,15 +113,17 @@ function toResponse(s: StatComponents, baseline: number | null): StatResponse | 
 export async function loadAndComputeForUser(
   supabase: SupabaseClient,
   userId: string,
-  now: Date = new Date()
+  now: Date = new Date(),
+  timeZone?: string
 ): Promise<LifeStatsPayload> {
+  const zone = timeZone ? validTimeZone(timeZone) : await personTimeZone(supabase, userId)
   const weekAgo = sevenDaysAgo(now)
   const weekAgoIso = weekAgo.toISOString()
-  const weekAgoDay = dayKey(weekAgo)
-  const todayDay = dayKey(now)
+  const weekAgoDay = dayKey(weekAgo, zone)
+  const todayDay = dayKey(now, zone)
   const monthAgo = twentyEightDaysAgo(now)
   const monthAgoIso = monthAgo.toISOString()
-  const monthAgoDay = dayKey(monthAgo)
+  const monthAgoDay = dayKey(monthAgo, zone)
 
   // Fetch every signal in parallel. Errors fall back to empty arrays
   // so a single bad query doesn't 500 the whole endpoint.

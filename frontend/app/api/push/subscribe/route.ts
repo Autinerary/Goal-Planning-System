@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { pushEnabled, sendPush } from '@/lib/push'
+import { knownPushEndpoint, pushEnabled, sendPush } from '@/lib/push'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,14 +24,8 @@ async function signedInUser() {
   return user
 }
 
-function validEndpoint(value: unknown): value is string {
-  if (typeof value !== 'string' || value.length > 1000) return false
-  try {
-    return new URL(value).protocol === 'https:'
-  } catch {
-    return false
-  }
-}
+// Only real browser push services (lib/push.ts): any other https address could be a server that never answers.
+const validEndpoint = knownPushEndpoint
 
 export async function POST(req: NextRequest) {
   if (!pushEnabled()) return NextResponse.json({ error: 'Notifications are not set up yet.' }, { status: 503 })
@@ -84,7 +78,10 @@ export async function DELETE(req: NextRequest) {
   } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
-  if (!validEndpoint(body?.endpoint)) return NextResponse.json({ error: 'Invalid subscription' }, { status: 400 })
+  // Turning off works for any saved device of the caller's, including ones saved before the list of push services.
+  if (typeof body?.endpoint !== 'string' || !body.endpoint || body.endpoint.length > 1000) {
+    return NextResponse.json({ error: 'Invalid subscription' }, { status: 400 })
+  }
   const { error } = await createAdminClient()
     .from('push_subscriptions')
     .delete()

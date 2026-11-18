@@ -70,9 +70,20 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: 'Pick a group and type an account’s email.' }, { status: 400 })
   }
   const admin = createAdminClient()
-  const { data: person } = await admin.from('profiles').select('id').ilike('email', email).limit(1).maybeSingle()
-  if (!person) return NextResponse.json({ error: 'No account has that email.' }, { status: 404 })
-  const { error } = await admin.from('organization_members').upsert({ org_id: id, user_id: person.id, role }, { onConflict: 'org_id,user_id' })
+  // The whole address, not a pattern (in ILIKE "_" matches any character), and confirmed against the account's
+  // sign-in email: profiles.email could be set by its owner (until STEP 105), so it alone could hand a group's
+  // safety counts to someone who typed a partner's address into their profile.
+  const { data: candidates } = await admin.from('profiles').select('id').ilike('email', email.replace(/[\\%_]/g, (c) => `\\${c}`)).limit(5)
+  let personId: string | null = null
+  for (const candidate of candidates || []) {
+    const { data: account } = await admin.auth.admin.getUserById(candidate.id)
+    if (account?.user?.email?.toLowerCase() === email) {
+      personId = candidate.id
+      break
+    }
+  }
+  if (!personId) return NextResponse.json({ error: 'No account has that email.' }, { status: 404 })
+  const { error } = await admin.from('organization_members').upsert({ org_id: id, user_id: personId, role }, { onConflict: 'org_id,user_id' })
   if (error) return NextResponse.json({ error: 'Couldn’t change it.' }, { status: 500 })
   return NextResponse.json({ ok: true, role })
 }

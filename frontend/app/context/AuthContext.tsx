@@ -8,6 +8,9 @@ import { isHalloween } from '@/lib/achievements'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 import { trackArea, trackDailyOpen } from '@/lib/funnel'
 import { markSeenToday } from '@/lib/checkin'
+import { claimBrowserFor, noSessionHere, releaseBrowser } from '@/lib/personalData'
+import { wakeBackendThisSession } from '@/lib/wakeBackend'
+import { afterSignInPath, loginHrefFor } from '@/lib/afterSignIn'
 
 interface User {
   id: string
@@ -162,12 +165,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     async function init() {
       try {
-        const { data: { session } } = await supabase!.auth.getSession()
+        const { data: { session }, error } = await supabase!.auth.getSession()
         if (cancelled) return
         if (session?.user) {
+          // Someone else's things in this browser are cleared before any page shows them (lib/personalData.ts).
+          claimBrowserFor(session.user.id)
           setSupabaseUser(session.user)
           setUser(profileFromSupabase(session.user))
         } else {
+          // No session at all (not a network error): the last person's words and answers go, as at sign-out,
+          // unless they already went then, so what a visitor answers before signing up (Start here) is kept.
+          if (!error) noSessionHere()
           // No session (signed out elsewhere, or it ran out): drop the copy
           // this page started from. Kept, it made the app act signed in:
           // sign-in sent a ResourceHub visitor straight back to ResourceHub
@@ -195,9 +203,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // Only clear user on SIGNED_OUT if we don't have a custom bearer token stored
       if (session?.user) {
+        claimBrowserFor(session.user.id)
         setSupabaseUser(session.user)
         setUser(profileFromSupabase(session.user))
       } else if (event === 'SIGNED_OUT' && !localStorage.getItem('access_token')) {
+        // Signed out (here, in another tab, or everywhere): their things leave this browser too.
+        releaseBrowser()
         setSupabaseUser(null)
         setUser(null)
         localStorage.removeItem('app_user')
@@ -219,6 +230,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!user) return
     trackDailyOpen()
     markSeenToday()
+    // The backend sleeps when idle: wake it once per visit, so the Path, the Journal and the assistant don't wait
+    // for it (lib/wakeBackend.ts).
+    wakeBackendThisSession()
   }, [user])
 
   // Which parts of the app people use, once they have a path or chose to skip
@@ -249,13 +263,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (hubBack) {
       window.location.replace(hubBack)
     } else if (!user && !isPublic && !isOnboarding) {
-      router.replace('/login')
+      // The page asked for goes along, so signing in leads back to it (a link to a step, from an email or a
+      // friend, used to end on the Path instead). Only this site's own pages (lib/afterSignIn.ts).
+      router.replace(loginHrefFor(`${pathname}${window.location.search}${window.location.hash}`))
     } else if (user && user.needsDateOfBirth && !isPublic) {
       if (pathname !== AGE_ROUTE) router.replace(AGE_ROUTE)
     } else if (user && !user.hasCompletedOnboarding && !user.skippedSetup && !isOnboarding && !isPublic) {
       router.replace('/onboarding')
     } else if (user && (user.hasCompletedOnboarding || user.skippedSetup) && (pathname === '/login' || pathname === '/signup' || pathname === '/')) {
-      router.replace('/path')
+      const next = pathname === '/login' ? afterSignInPath(new URLSearchParams(window.location.search).get('next')) : null
+      router.replace(next || '/path')
     }
   }, [user, isLoading, pathname, router])
 
@@ -273,8 +290,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const body = await res.json()
       if (!res.ok) return { success: false, error: body.message || body.error || 'Signup failed' }
 
-      const { error: signInErr } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password })
+      const { data: signedIn, error: signInErr } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password })
       if (signInErr) return { success: false, error: signInErrorMessage(signInErr) }
+      // A new account never starts from the last person's setup draft (lib/personalData.ts).
+      if (signedIn?.user) claimBrowserFor(signedIn.user.id)
 
       return { success: true }
     } catch (err: any) {
@@ -297,6 +316,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password })
       if (error || !data.user) return { success: false, error: signInErrorMessage(error) }
 
+      // Another person's things left in this browser are cleared first (lib/personalData.ts).
+      claimBrowserFor(data.user.id)
       localStorage.removeItem('access_token')
       const userProfile = profileFromSupabase(data.user)
       localStorage.setItem('app_user', JSON.stringify(userProfile))
@@ -313,6 +334,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       if (supabase) await supabase.auth.signOut()
     } catch {}
+    // Their setup draft, plan answers, preferences and the rest leave with them, so the next person to use this
+    // browser starts clean (bug audit, 17 November 2026: it resumed the last person's setup).
+    releaseBrowser()
     localStorage.removeItem('access_token')
     localStorage.removeItem('app_user')
     setUser(null)
@@ -335,26 +359,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.replace(href)
   }, [user, supabase, router])
 
+  // Saves that setup is finished. It throws when that couldn't be saved: the error used to be logged and ignored, so
+  // the page cleared the setup draft and moved on, and the next visit sent the person back to an empty setup.
   const completeOnboarding = useCallback(async (pathId: string) => {
     if (!user) return
+
+    if (supabase) {
+      let saved: SupabaseUser | null = null
+      try {
+        const { data, error } = await supabase.auth.updateUser({
+          data: { has_completed_onboarding: true, path_id: pathId },
+        })
+        if (error) console.error('Error saving onboarding status:', error)
+        saved = error ? null : data?.user ?? null
+      } catch (err) {
+        console.error('Error saving onboarding status:', err)
+      }
+      if (!saved) throw Object.assign(new Error('Setup could not be marked as finished.'), { setupNotSaved: true })
+      setSupabaseUser(saved)
+      void fetch('/api/me/welcome', { method: 'POST' }).catch(() => {})
+    }
 
     const updatedUser = { ...user, hasCompletedOnboarding: true }
     setUser(updatedUser)
     localStorage.setItem('app_user', JSON.stringify(updatedUser))
-
-    if (supabase) {
-      try {
-        const { data } = await supabase.auth.updateUser({
-          data: { has_completed_onboarding: true, path_id: pathId },
-        })
-        if (data?.user) {
-          setSupabaseUser(data.user)
-          void fetch('/api/me/welcome', { method: 'POST' }).catch(() => {})
-        }
-      } catch (err) {
-        console.error('Error saving onboarding status:', err)
-      }
-    }
   }, [user, supabase])
 
   return (

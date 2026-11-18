@@ -21,7 +21,7 @@ import WeekTimeGrid from '../components/calendar/WeekTimeGrid'
 import MonthGrid from '../components/calendar/MonthGrid'
 import GamificationSettings, { useGamification } from '../components/GamificationSettings'
 import { animalForDay, themeForDate, ANIMAL_COLORS, WEEKDAYS, type GamificationPreferences } from '@/lib/gamification'
-import { parseDurationString, weekDays, type CalendarTask as DatedTask } from '@/lib/calendarModel'
+import { movedOccurrenceId, parseDurationString, weekDays, type CalendarTask as DatedTask } from '@/lib/calendarModel'
 import { addDays, addMonths, format as fmtDate } from 'date-fns'
 import { useCalendarHistory } from '@/lib/calendarHistory'
 import { Undo2, Redo2 } from 'lucide-react'
@@ -31,6 +31,7 @@ import { usePreferences } from '../context/usePreferences'
 import { loadPreferences } from '@/lib/preferences'
 import { doneThisWeek, tickPlanTask, weekKey } from '@/lib/planTaskDone'
 import { calendarIdeas } from '@/lib/calendarIdeas'
+import { weekdayOf } from '@/lib/taskDay'
 // Scenario-specific task data
 const scenarioData = {
   worst: {
@@ -359,11 +360,10 @@ function CalendarContent() {
 
   const buildAgentScenarioData = () => {
     if (!agentScenario?.days?.length) return null
-    const weekday = (iso: string) => {
-      const d = new Date(iso)
-      if (isNaN(d.getTime())) return 'Day'
-      return ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()]
-    }
+    // "2026-11-16" is that calendar day. new Date() read it as midnight UTC,
+    // the evening before anywhere west of UTC, so in Toronto every planned day
+    // showed one weekday early (bug audit, 17 November 2026; lib/taskDay.ts).
+    const weekday = (iso: string) => weekdayOf({ date: iso }) || 'Day'
     const formatMinutes = (m: number | undefined) => {
       if (!m) return '30 min'
       if (m >= 60) {
@@ -554,14 +554,19 @@ function CalendarContent() {
 
   // Drag-to-reschedule on the week grid. Writes the real date server-side and
   // updates locally so the block doesn't snap back while the request is in
-  // flight.
-  const rescheduleTask = (taskId: string, newDateISO: string, newTime: string) => {
+  // flight. A one-time task moves. One week's occurrence of a weekly task (the
+  // plan's or your own) moves on its own, as a copy for that week
+  // (movedOccurrenceId, lib/calendarModel.ts), and the weekly task stays in
+  // every other week: it used to become a one-time task, gone from them all.
+  const rescheduleTask = (taskId: string, newDateISO: string, newTime: string, fromDateISO?: string) => {
     const agent = datedTasks.find((t) => t.id === taskId)
     if (!agent) return
     const day = new Date(`${newDateISO}T12:00:00`).toLocaleDateString('en', { weekday: 'long' })
     const existing = addedTasks.find(task => task.id === taskId)
-    const moved = { ...existing, id: taskId, day, time: newTime, scheduledDate: newDateISO, durationMinutes: agent.durationMinutes, name: agent.name, duration: existing?.duration || `${agent.durationMinutes || 30} min`, priority: agent.priority, scenario }
-    void history.change(existing ? addedTasks.map(task => task.id === taskId ? moved : task) : [...addedTasks, moved])
+    const id = !agent.scheduledDate && fromDateISO ? movedOccurrenceId(taskId, fromDateISO) : taskId
+    const before = addedTasks.find(task => task.id === id)
+    const moved = { ...existing, ...before, id, day, time: newTime, scheduledDate: newDateISO, durationMinutes: agent.durationMinutes, name: agent.name, duration: before?.duration || existing?.duration || `${agent.durationMinutes || 30} min`, priority: agent.priority, scenario }
+    void history.change(before ? addedTasks.map(task => task.id === id ? moved : task) : [...addedTasks, moved])
   }
 
   const moveDayTasks = async (fromDay: string, toDay: string) => {
@@ -828,13 +833,16 @@ function CalendarContent() {
                 
                 <div className="space-y-2">
                   <label htmlFor="suggestion-day" className="block text-sm font-medium text-slate-700">Select Day:</label>
+                  {/* Every day of the week, plan or no plan: it listed only the
+                      plan's days, so with no schedule there was no day to pick
+                      and Add failed. */}
                   <select
                     id="suggestion-day"
                     className="w-full px-4 py-3 rounded-lg focus:outline-none focus:border-purple-500 text-slate-800 surface"
-                    defaultValue={currentData.days[0]?.name || 'Monday'}
+                    defaultValue={currentData.days[0]?.name || fmtDate(anchorDate, 'EEEE')}
                   >
-                    {currentData.days.map((day: any) => (
-                      <option key={day.name} value={day.name} className="bg-white text-slate-800">{day.name}</option>
+                    {WEEKDAYS.map((day) => (
+                      <option key={day} value={day} className="bg-white text-slate-800">{day}</option>
                     ))}
                   </select>
                 </div>
@@ -883,6 +891,8 @@ function CalendarContent() {
                     Add to Calendar
                   </button>
                 </div>
+                {/* Why it wasn't added, here: it failed with nothing said. */}
+                {history.error && <p role="alert" className="text-sm text-red-700">{history.error}</p>}
               </div>
           </div>
         </div>
@@ -1235,7 +1245,7 @@ function CalendarContent() {
             )}
 
             <p className="text-xs text-slate-700">
-              Purple: your plan, every week. Blue: on that date only. {viewType === 'timeblock' && period !== 'month' ? 'Drag a block to move it; ' : ''}Open a task to start it.
+              Purple: your plan, every week. Blue: on that date only. {viewType === 'timeblock' && period !== 'month' ? 'Drag a block to move it, or use the arrow keys on it; ' : ''}Open a task to start it.
             </p>
           </div>
           </>

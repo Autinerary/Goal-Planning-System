@@ -9,6 +9,8 @@ import { useAgentPath } from '../context/AgentPathContext'
 
 interface RecommendedChoice {
   id: string
+  /** The plan's step this is suggested for: "View Details" opens it. */
+  milestoneId: string
   name: string
   description: string
   service: string
@@ -52,6 +54,7 @@ export default function RecommendChoicesPage() {
     const serviceName: string = m.name || 'Milestone'
     agentChoicesByService[serviceName] = rec.slice(0, 6).map((t: any, idx: number) => ({
       id: `${m.id}_${t.id || idx}`,
+      milestoneId: String(m.id),
       name: t.name || 'Recommended action',
       description: t.description || `Recommended for: ${serviceName}`,
       service: serviceName,
@@ -324,9 +327,12 @@ export default function RecommendChoicesPage() {
             )}
           </div>
 
-          {/* Action Button */}
+          {/* Action Button: the step it is suggested for, where its tools and
+              resources are. It linked to "<step>_<tool>", a step that doesn't
+              exist (bug audit, 17 November 2026). */}
           <Link
-            href={`/milestones/${choice.id}`}
+            href={`/milestones/${encodeURIComponent(choice.milestoneId)}`}
+            aria-label={`View details: ${choice.name}, for ${choice.service}`}
             className="ml-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2 whitespace-nowrap"
           >
             View Details

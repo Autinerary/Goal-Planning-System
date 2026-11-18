@@ -24,3 +24,21 @@ export function wakeBackend(): void {
     fetch(`${API_URL}/health`, { mode: 'no-cors', cache: 'no-store' }).catch(() => {})
   } catch {}
 }
+
+const SESSION_KEY = 'autinerary_backend_woken'
+
+/**
+ * The same ping, once per browser session, for everyone signed in, from the app shell (app/context/AuthContext.tsx).
+ * Only sign-up, sign-in and setup asked before, so someone coming back to the Path, the Journal or the assistant
+ * paid the whole wake-up, over 60 s (bug audit, 17 November 2026, item 36).
+ */
+export function wakeBackendThisSession(): void {
+  if (typeof window === 'undefined') return
+  try {
+    if (sessionStorage.getItem(SESSION_KEY)) return
+    sessionStorage.setItem(SESSION_KEY, '1')
+  } catch {
+    /* storage blocked: once per page load instead */
+  }
+  wakeBackend()
+}

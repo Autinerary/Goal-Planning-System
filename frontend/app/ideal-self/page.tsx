@@ -7,7 +7,7 @@ import { ArrowLeft, Sparkles, Target, Users } from 'lucide-react'
 import { useAgentPath } from '../context/AgentPathContext'
 import { useAuth } from '../context/AuthContext'
 import AvatarEditor, { type Appearance } from '../components/AvatarEditor'
-import { usePreferences } from '../context/usePreferences'
+import { usePreferences, useTypedPreferences } from '../context/usePreferences'
 import { DEFAULT_HAIR_COLOR, DEFAULT_SKIN_TONE } from '@/lib/avatar'
 import DreamGoals from './DreamGoals'
 import SupportedDream from './SupportedDream'
@@ -25,6 +25,8 @@ export default function IdealSelfPage() {
   const { supabaseUser } = useAuth()
   const isSignedIn = Boolean(supabaseUser)
   const { prefs, update } = usePreferences()
+  // The persona's name and note are saved when typing pauses, not one request per letter.
+  const typed = useTypedPreferences(update)
   const defaultAppearance = { hairStyle: 'short_straight', hairColor: DEFAULT_HAIR_COLOR, skinColor: DEFAULT_SKIN_TONE }
   const persona = prefs.alternatePersona || { name: '', note: '', appearance: defaultAppearance }
   // Your character from setup. Its only editor was setup itself, so it could
@@ -148,12 +150,12 @@ export default function IdealSelfPage() {
             <AvatarEditor title="Dream Self appearance" value={prefs.dreamAppearance || defaultAppearance} onChange={appearance => update({ dreamAppearance: appearance })} />
             <div className="space-y-4">
               <label className="block text-sm font-medium">Alternate Persona name
-                <input value={persona.name} maxLength={60} onChange={event => update({ alternatePersona: { ...persona, name: event.target.value } })} className="mt-2 block w-full rounded-lg border bg-white p-2" />
+                <input value={persona.name} maxLength={60} onChange={event => typed.type({ alternatePersona: { ...persona, name: event.target.value } })} className="mt-2 block w-full rounded-lg border bg-white p-2" />
               </label>
               <label className="block text-sm font-medium">About your Alternate Persona
-                <textarea value={persona.note} maxLength={400} onChange={event => update({ alternatePersona: { ...persona, note: event.target.value } })} className="mt-2 block w-full rounded-lg border bg-white p-2" />
+                <textarea value={persona.note} maxLength={400} onChange={event => typed.type({ alternatePersona: { ...persona, note: event.target.value } })} className="mt-2 block w-full rounded-lg border bg-white p-2" />
               </label>
-              <AvatarEditor title="Alternate Persona appearance" value={persona.appearance} onChange={appearance => update({ alternatePersona: { ...persona, appearance } })} />
+              <AvatarEditor title="Alternate Persona appearance" value={persona.appearance} onChange={appearance => { typed.flush(); update({ alternatePersona: { ...persona, appearance } }) }} />
             </div>
           </section>
           {/* Theirs after yours, except for a parent or guardian, where it comes first. */}
@@ -237,7 +239,8 @@ export default function IdealSelfPage() {
             ) : (
               <div className="text-sm text-slate-500">
                 No goals yet.{' '}
-                <Link href="/onboarding?step=3" className="text-sky-600 font-semibold underline underline-offset-2">Add one →</Link>
+                {/* Added on Races, in the goals editor: setup would replace the whole plan with this one goal. */}
+                <Link href="/races?goals=add" className="text-sky-600 font-semibold underline underline-offset-2">Add one →</Link>
               </div>
             )}
             {barriers.length > 0 && (

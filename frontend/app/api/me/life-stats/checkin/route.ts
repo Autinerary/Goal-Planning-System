@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
-import { loadAndComputeForUser } from '@/lib/life-stats/loader'
+import { loadAndComputeForUser, personTimeZone } from '@/lib/life-stats/loader'
+import { localParts } from '@/lib/reminderSchedule'
 
 /**
  * POST /api/me/life-stats/checkin
  *
- * Body: { mood: 1..10, note?: string }
+ * Body: { mood: 1..10, note?: string, timeZone?: string (the browser's) }
  *
  * Upserts today's mood check-in for the user and returns the freshly
  * recomputed life-stats payload so the UI can update without a follow-up
@@ -38,7 +39,11 @@ export async function POST(req: NextRequest) {
   }
   const note = typeof body?.note === 'string' ? body.note.trim().slice(0, 500) : null
 
-  const todayDay = new Date().toISOString().slice(0, 10)
+  // Today where the person is (their browser sends its time zone): the UTC date filed evening check-ins in the
+  // Americas under tomorrow.
+  const zone = await personTimeZone(supabase, user.id, body?.timeZone)
+  const now = new Date()
+  const todayDay = localParts(now, zone).date
 
   const { error: upsertError } = await supabase
     .from('life_stats_checkins')
@@ -59,7 +64,7 @@ export async function POST(req: NextRequest) {
 
   // Re-run the pipeline so the response reflects the new check-in.
   try {
-    const payload = await loadAndComputeForUser(supabase, user.id, new Date())
+    const payload = await loadAndComputeForUser(supabase, user.id, now, zone)
     return NextResponse.json(payload)
   } catch (err: any) {
     console.error('POST /api/me/life-stats/checkin recompute failed:', err?.message ?? err)
@@ -87,7 +92,8 @@ export async function GET(req: NextRequest) {
   }
 
   const days = Math.min(92, Math.max(7, Math.trunc(Number(req.nextUrl.searchParams.get('days')) || 35)))
-  const since = new Date(Date.now() - (days - 1) * 86_400_000).toISOString().slice(0, 10)
+  const zone = await personTimeZone(supabase, user.id, req.nextUrl.searchParams.get('tz'))
+  const since = localParts(new Date(Date.now() - (days - 1) * 86_400_000), zone).date
 
   const { data, error } = await supabase
     .from('life_stats_checkins')

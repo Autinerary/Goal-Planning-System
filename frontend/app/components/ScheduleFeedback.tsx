@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { TAKING_LONGER, fetchWithTimeout, isTimeout } from '@/lib/backendTimeout'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -26,14 +27,15 @@ async function authHeaders(): Promise<Record<string, string>> {
 export default function ScheduleFeedback({ pathId }: { pathId?: string }) {
   const [scheduleId, setScheduleId] = useState<string | null>(null)
   const [answer, setAnswer] = useState<Answer | null>(null)
-  const [state, setState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  // 'slow': the backend didn't answer in time (it can take over a minute to wake; lib/backendTimeout.ts).
+  const [state, setState] = useState<'idle' | 'saving' | 'saved' | 'error' | 'slow'>('idle')
 
   useEffect(() => {
     if (!SCHEDULE_FEEDBACK_ENABLED || !pathId) return
     let cancelled = false
     ;(async () => {
       try {
-        const res = await fetch(`${API_URL}/api/schedule-feedback/${encodeURIComponent(pathId)}`, { headers: await authHeaders() })
+        const res = await fetchWithTimeout(`${API_URL}/api/schedule-feedback/${encodeURIComponent(pathId)}`, { headers: await authHeaders() })
         const json = res.ok ? await res.json() : null
         if (cancelled || !json?.available || !json.scheduleId) return
         setScheduleId(json.scheduleId)
@@ -58,7 +60,7 @@ export default function ScheduleFeedback({ pathId }: { pathId?: string }) {
   const send = async (value: Answer) => {
     setState('saving')
     try {
-      const res = await fetch(`${API_URL}/api/schedule-feedback`, {
+      const res = await fetchWithTimeout(`${API_URL}/api/schedule-feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
         body: JSON.stringify({ pathId, scheduleId, answer: value }),
@@ -71,8 +73,8 @@ export default function ScheduleFeedback({ pathId }: { pathId?: string }) {
       } else {
         setState('error')
       }
-    } catch {
-      setState('error')
+    } catch (e) {
+      setState(isTimeout(e) ? 'slow' : 'error')
     }
   }
 
@@ -94,7 +96,7 @@ export default function ScheduleFeedback({ pathId }: { pathId?: string }) {
         ))}
       </div>
       <p role="status" className="mt-2 text-sm text-slate-700">
-        {state === 'error' ? 'This could not be saved just now. Please try again.' : ''}
+        {state === 'error' ? 'This could not be saved just now. Please try again.' : state === 'slow' ? TAKING_LONGER : ''}
       </p>
     </section>
   )

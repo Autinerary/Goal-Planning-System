@@ -22,11 +22,9 @@ export async function DELETE() {
   const { data: { user } } = await createServerSupabase().auth.getUser()
   if (!user) return NextResponse.json({ error: 'Not signed in' }, { status: 401 })
   const admin = createAdminClient()
-  const { data } = await admin.auth.admin.getUserById(user.id)
-  const meta = { ...(data?.user?.app_metadata || {}) }
-  delete meta.sms_phone
-  delete meta.sms_verified_at
-  const { error } = await admin.auth.admin.updateUserById(user.id, { app_metadata: meta })
+  // Supabase Auth merges app_metadata: a key that is left out is kept, and only null removes it. Deleting the keys
+  // from the object before sending it used to keep the number, and reminders kept texting it.
+  const { error } = await admin.auth.admin.updateUserById(user.id, { app_metadata: { sms_phone: null, sms_verified_at: null } })
   if (error) return NextResponse.json({ error: 'Could not remove the number' }, { status: 500 })
   return NextResponse.json({ phone: null })
 }

@@ -308,7 +308,8 @@ export default function TasksPage() {
                 {goalsToRender.length === 0 && (
                   <div className="text-center py-8 px-2">
                     <p className="text-sm text-slate-500 mb-3">No goals set yet.</p>
-                    <Link href="/onboarding?step=3" className="text-xs font-semibold text-cyan-600 underline underline-offset-2">
+                    {/* Added on Races, in the goals editor: setup would replace the whole plan with this one goal. */}
+                    <Link href="/races?goals=add" className="text-xs font-semibold text-cyan-600 underline underline-offset-2">
                       Add your goals →
                     </Link>
                   </div>

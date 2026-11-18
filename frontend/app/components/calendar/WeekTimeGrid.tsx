@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useRef, useState, type ReactNode } from 'react'
+import { useId, useMemo, useRef, useState, type ReactNode } from 'react'
 import { format, isSameDay, isToday } from 'date-fns'
 import {
   layoutDayColumn, minutesToTime, occurrencesInRange, toISODate, weekDays,
@@ -18,7 +18,8 @@ interface WeekTimeGridProps {
   /** Hours shown. Outside this range events are still reachable via Day view. */
   startHour?: number
   endHour?: number
-  onMove?: (taskId: string, newDateISO: string, newTime: string) => void
+  /** fromDateISO: the date of the occurrence moved, so one week of a weekly task can move on its own. */
+  onMove?: (taskId: string, newDateISO: string, newTime: string, fromDateISO?: string) => void
   onSelect?: (task: CalendarTask) => void
   renderDayIdentity?: (date: Date) => ReactNode
   /** 7 for the week of anchorDate, 1 for anchorDate alone (the Day view). */
@@ -62,28 +63,92 @@ export default function WeekTimeGrid({
     [tasks, days]
   )
 
+  // The occurrence being moved: by pointer, or by keyboard (arrow keys, then
+  // Enter). Keyed by task AND date, so dragging one week of a weekly task
+  // moves that block only, not every copy of it on screen.
   const [drag, setDrag] = useState<{
+    key: string
     taskId: string
+    fromISO: string
+    fromDayIndex: number
+    fromMinutes: number
     dayIndex: number
     startMinutes: number
+    keyboard?: boolean
   } | null>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
+  // Said to screen readers while a block is moved with the keyboard.
+  const [announcement, setAnnouncement] = useState('')
+  const hintId = useId()
 
   // Where the pointer went down, and whether it has travelled far enough to
   // count as a drag. Without this a plain click fires onMove with the block's
   // CURRENT position — a pointless write that also silently converts a
   // recurring agent task into a dated one just by clicking it.
   const pressRef = useRef<{ x: number; y: number; moved: boolean; task: CalendarTask } | null>(null)
+  // When a pointer last went down on a block. The click that follows a press is the pointer's, already handled on
+  // release; any other click (Enter or Space, or a screen reader's) opens the block.
+  const lastPress = useRef(0)
 
   const hours = Array.from({ length: endHour - startHour }, (_, i) => startHour + i)
+  const occKey = (occ: Occurrence) => `${occ.task.id}-${toISODate(occ.date)}`
+  const startFor = (occ: Occurrence, dayIndex: number, keyboard = false) => ({
+    key: occKey(occ),
+    taskId: occ.task.id,
+    fromISO: toISODate(occ.date),
+    fromDayIndex: dayIndex,
+    fromMinutes: occ.startMinutes,
+    dayIndex,
+    startMinutes: occ.startMinutes,
+    keyboard,
+  })
+  // Saves a move, unless it ended where it started.
+  const commit = (d: NonNullable<typeof drag>) => {
+    if (d.dayIndex === d.fromDayIndex && d.startMinutes === d.fromMinutes) return false
+    onMove?.(d.taskId, toISODate(days[d.dayIndex]), minutesToTime(d.startMinutes), d.fromISO)
+    return true
+  }
 
   const beginDrag = (e: React.PointerEvent, occ: Occurrence, dayIndex: number) => {
     // Capture on the element receiving the events, or pointerup never fires
     // and the block is left stranded mid-drag.
     e.currentTarget.setPointerCapture(e.pointerId)
+    lastPress.current = Date.now()
     pressRef.current = { x: e.clientX, y: e.clientY, moved: false, task: occ.task }
     if (onMove) {
-      setDrag({ taskId: occ.task.id, dayIndex, startMinutes: occ.startMinutes })
+      setDrag(startFor(occ, dayIndex))
+    }
+  }
+
+  // Time Blocks with the keyboard (bug audit, 17 November 2026: only a mouse
+  // or a finger could use them). Enter opens a block; the arrow keys move it a
+  // day or 15 minutes at a time, then Enter saves the move and Escape cancels.
+  const onBlockKey = (e: React.KeyboardEvent, occ: Occurrence, dayIndex: number) => {
+    if (!onMove) return
+    const moving = drag?.keyboard && drag.key === occKey(occ) ? drag : null
+    const step: Record<string, [number, number]> = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -SNAP_MINUTES], ArrowDown: [0, SNAP_MINUTES] }
+    if (Object.prototype.hasOwnProperty.call(step, e.key)) {
+      e.preventDefault()
+      const [dayStep, minutes] = step[e.key]
+      const from = moving || startFor(occ, dayIndex, true)
+      const next = {
+        ...from,
+        dayIndex: Math.max(0, Math.min(n - 1, from.dayIndex + dayStep)),
+        startMinutes: Math.max(gridStartMin, Math.min(gridEndMin - SNAP_MINUTES, from.startMinutes + minutes)),
+      }
+      setDrag(next)
+      setAnnouncement(`${occ.task.name}: ${format(days[next.dayIndex], 'EEEE d MMMM')}, ${minutesToTime(next.startMinutes)}. Enter to save, Escape to cancel.`)
+      return
+    }
+    if (!moving) return
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      setDrag(null)
+      setAnnouncement(commit(moving) ? `Moved to ${format(days[moving.dayIndex], 'EEEE d MMMM')}, ${minutesToTime(moving.startMinutes)}.` : 'Not moved.')
+    } else if (e.key === 'Escape') {
+      e.preventDefault()
+      setDrag(null)
+      setAnnouncement('Not moved.')
     }
   }
 
@@ -122,9 +187,7 @@ export default function WeekTimeGrid({
       onSelect?.(press.task)
       return
     }
-    if (drag) {
-      onMove?.(drag.taskId, toISODate(days[drag.dayIndex]), minutesToTime(drag.startMinutes))
-    }
+    if (drag && !drag.keyboard) commit(drag)
     setDrag(null)
   }
 
@@ -198,7 +261,7 @@ export default function WeekTimeGrid({
               const laid = layoutDayColumn(dayOccs.map((o) => ({ ...o, durationMinutes: Math.max(o.durationMinutes, MIN_BLOCK_MINUTES) })))
 
               return laid.map((occ) => {
-                const dragging = drag?.taskId === occ.task.id
+                const dragging = drag?.key === occKey(occ)
                 const effDay = dragging ? drag!.dayIndex : dayIndex
                 const effStart = dragging ? drag!.startMinutes : occ.startMinutes
 
@@ -213,6 +276,13 @@ export default function WeekTimeGrid({
                     key={`${occ.task.id}-${day.toISOString()}`}
                     type="button"
                     onPointerDown={(e) => beginDrag(e, occ, dayIndex)}
+                    // Enter or Space (or a screen reader) opens it; a mouse or
+                    // finger opens it on release (endDrag), so its click is skipped.
+                    onClick={() => { if (Date.now() - lastPress.current > 1000 && !(dragging && drag?.keyboard)) onSelect?.(occ.task) }}
+                    onKeyDown={(e) => onBlockKey(e, occ, dayIndex)}
+                    onBlur={() => { if (dragging && drag?.keyboard) { setDrag(null); setAnnouncement('Not moved.') } }}
+                    aria-label={`${occ.task.name}, ${format(days[effDay], 'EEEE d MMMM')}, ${minutesToTime(effStart)}${occ.recurring ? ', every week' : ''}`}
+                    aria-describedby={onMove ? hintId : undefined}
                     title={`${occ.task.name} · ${minutesToTime(effStart)}${occ.recurring ? ' · repeats weekly' : ''}${onSelect ? '. Click to open, drag to move' : ''}`}
                     className={`absolute text-left rounded-lg px-1.5 py-1 overflow-hidden border transition-shadow ${
                       dragging ? 'shadow-lg z-20 opacity-90' : 'z-10 hover:shadow-md'
@@ -248,6 +318,12 @@ export default function WeekTimeGrid({
         </div>
       </div>
     </div>
+    {onMove && (
+      <p id={hintId} className="sr-only">
+        Enter opens it. To move it, use the arrow keys: left and right for the day, up and down for the time. Then Enter saves, and Escape cancels.
+      </p>
+    )}
+    <p aria-live="polite" className="sr-only">{announcement}</p>
     </div>
   )
 }

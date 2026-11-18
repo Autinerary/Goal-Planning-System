@@ -5,6 +5,8 @@ import { Check } from 'lucide-react'
 import { usePreferences } from '../context/usePreferences'
 import { backendAuthHeaders } from '@/lib/backendAuth'
 import { MOTIVATION_OPTIONS, LIFE_STAGES, cleanMotivation } from '@/lib/motivationChoices'
+// fetch with a time limit that works in Safari before 16 too (AbortSignal.timeout doesn't).
+import { fetchWithTimeout } from '@/lib/backendTimeout'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -48,7 +50,7 @@ export default function MotivationField({ onSaved }: { onSaved?: () => void }) {
     onSaved?.()
     // Best effort: the backend's own sweep rebuilds it later otherwise.
     backendAuthHeaders()
-      .then((headers) => fetch(`${API_URL}/api/pattern/reindex`, { method: 'POST', headers, signal: AbortSignal.timeout(20000) }))
+      .then((headers) => fetchWithTimeout(`${API_URL}/api/pattern/reindex`, { method: 'POST', headers }, 20_000))
       .catch(() => {})
   }
 

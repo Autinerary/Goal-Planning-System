@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { loadAndComputeForUser } from '@/lib/life-stats/loader'
 import { cronAuthorized } from '@/lib/cronAuth'
+import { allRows } from '@/lib/server/allRows'
 
 /**
  * POST /api/cron/life-stats-snapshot
@@ -26,11 +27,14 @@ export async function POST(req: NextRequest) {
 
   // "Active in last 30 days" = any write to any user-keyed table we know about.
   // We union the user_ids and then run the pipeline once per unique id.
+  // Page through each (allRows): one request returns at most 1,000 rows, and the snapshots alone are one row per
+  // person per day, so a plain select started leaving people out.
+  type Row = { user_id: string }
   const [calendarUsers, progressUsers, checkinUsers, snapshotUsers] = await Promise.all([
-    admin.from('calendar_tasks').select('user_id').gte('updated_at', thirtyDaysAgoIso),
-    admin.from('race_progress').select('user_id').gte('completed_at', thirtyDaysAgoIso),
-    admin.from('life_stats_checkins').select('user_id').gte('created_at', thirtyDaysAgoIso),
-    admin.from('life_stats_snapshots').select('user_id').gte('snapshot_date', thirtyDaysAgoIso.slice(0, 10)),
+    allRows<Row>((a, b) => admin.from('calendar_tasks').select('user_id').gte('updated_at', thirtyDaysAgoIso).order('user_id').range(a, b)),
+    allRows<Row>((a, b) => admin.from('race_progress').select('user_id').gte('completed_at', thirtyDaysAgoIso).order('user_id').range(a, b)),
+    allRows<Row>((a, b) => admin.from('life_stats_checkins').select('user_id').gte('created_at', thirtyDaysAgoIso).order('user_id').range(a, b)),
+    allRows<Row>((a, b) => admin.from('life_stats_snapshots').select('user_id').gte('snapshot_date', thirtyDaysAgoIso.slice(0, 10)).order('user_id').range(a, b)),
   ])
 
   const userIds = new Set<string>()

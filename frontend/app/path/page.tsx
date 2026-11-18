@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { backendAuthHeaders } from '@/lib/backendAuth'
+import { withoutHiddenGoals } from '@/lib/hiddenGoals'
+import { fetchWithTimeout, isTimeout } from '@/lib/backendTimeout'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { TrendingUp, Target, Zap, Heart, Brain, Users, UserCheck, UserPlus, Lock, Loader2, ChevronRight, Settings, Map, RotateCcw, Quote, GitCompare, Save, Compass, Lightbulb, MapPin, Store } from 'lucide-react'
@@ -122,54 +124,64 @@ export default function PathView() {
 
   // Fetch AI-generated path on mount.
   useEffect(() => {
+    let cancelled = false
     const fetchPath = async () => {
       const pathId = supabaseUser?.user_metadata?.path_id
       const userId = supabaseUser?.id
+      // Goals taken out in "Your Goals, Dreams & Obstacles" stay in the plan,
+      // and no page shows them (lib/hiddenGoals.ts); the Path showed them.
+      const show = (payload: any) => { if (!cancelled) setPathData(payload ? withoutHiddenGoals(payload) : null) }
 
       try {
         // 1. Same-origin Supabase route FIRST. This is always reachable (part
         //    of the Next.js app) and holds the path the backend already wrote,
         //    so the Path renders even when FastAPI is asleep/down (Render free
         //    tier sleeps) or not running locally — matching AgentPathContext.
-        
-try {
-  // Replace standard fetch with fetchWithAuth (token attached automatically)
-  const meRes = await fetchWithAuth('/api/me/path', { cache: 'no-store' })
-  if (meRes.ok) {
-    const json = await meRes.json()
-    if (json?.payload) {
-      setPathData(json.payload)
-      return
-    }
-  }
-} catch {
-  /* fall through to FastAPI */
-}
+        //    An answer with no plan (payload: null) means there is none: the
+        //    backend isn't asked as well, so people with no plan don't wait for
+        //    it to wake. Only a network error or a 5xx falls back.
+        let fallBack = false
+        try {
+          // The session's token goes too, in case the cookie isn't read.
+          const meRes = await fetchWithAuth('/api/me/path', { cache: 'no-store', headers: await backendAuthHeaders() })
+          if (meRes.ok) {
+            const json = await meRes.json()
+            show(json?.payload || null)
+            return
+          }
+          fallBack = meRes.status >= 500
+        } catch {
+          fallBack = true
+        }
+        if (!fallBack) return
 
-        // 2. FastAPI fallback (local dev with the backend up, or a path not yet
-        //    mirrored into Supabase).
+        // 2. FastAPI fallback, bounded: it can take over a minute to wake
+        //    (lib/backendTimeout.ts).
         let response: Response | null = null
         if (pathId) {
-          response = await fetch(`${API_URL}/api/onboarding/path/${pathId}`, { headers: await backendAuthHeaders() })
+          response = await fetchWithTimeout(`${API_URL}/api/onboarding/path/${pathId}`, { headers: await backendAuthHeaders() })
         }
         if ((!response || !response.ok) && userId) {
-          response = await fetch(`${API_URL}/api/onboarding/user/${userId}/path`, { headers: await backendAuthHeaders() })
+          response = await fetchWithTimeout(`${API_URL}/api/onboarding/user/${userId}/path`, { headers: await backendAuthHeaders() })
         }
 
         if (response && response.ok) {
-          setPathData(await response.json())
+          show(await response.json())
         }
         // No path anywhere yet → leave pathData null; the view shows honest
         // empty states rather than a scary "backend down" banner.
       } catch (err) {
         // Only reached if BOTH Supabase and FastAPI are unreachable.
-        setLoadError('Could not load your path. Check your connection.')
+        if (!cancelled) setLoadError(isTimeout(err)
+          ? 'Your path is taking longer than usual to load. Please try again in a minute.'
+          : 'Could not load your path. Check your connection.')
       } finally {
-        setIsLoadingPath(false)
+        if (!cancelled) setIsLoadingPath(false)
       }
     }
 
     fetchPath()
+    return () => { cancelled = true }
   }, [supabaseUser])
 
   // Load the user's saved paths for the multi-path switcher.
@@ -185,8 +197,12 @@ try {
   // After an accepted suggested change (Adaptation, STEP 73), show the plan as it is now.
   const reloadPath = async () => {
     if (!pathData?.id) return
-    const res = await fetch(`${API_URL}/api/onboarding/path/${pathData.id}`, { cache: 'no-store', headers: await backendAuthHeaders() })
-    if (res.ok) setPathData(await res.json())
+    try {
+      const res = await fetchWithTimeout(`${API_URL}/api/onboarding/path/${pathData.id}`, { cache: 'no-store', headers: await backendAuthHeaders() })
+      if (res.ok) setPathData(withoutHiddenGoals(await res.json()))
+    } catch {
+      /* the plan on screen stays; the next visit reads it again */
+    }
   }
 
   // Switch the active path and reload it into the view.
@@ -196,11 +212,13 @@ try {
     setSwitchingPath(true)
     try {
       await activateServerPath(userId, newPathId)
-      const res = await fetch(`${API_URL}/api/onboarding/path/${newPathId}`, { cache: 'no-store', headers: await backendAuthHeaders() })
+      const res = await fetchWithTimeout(`${API_URL}/api/onboarding/path/${newPathId}`, { cache: 'no-store', headers: await backendAuthHeaders() })
       if (res.ok) {
-        setPathData(await res.json())
+        setPathData(withoutHiddenGoals(await res.json()))
         setServerPaths((prev) => prev.map((p) => ({ ...p, isActive: p.pathId === newPathId })))
       }
+    } catch (e) {
+      setLoadError(isTimeout(e) ? 'Switching plans is taking longer than usual. Please try again in a minute.' : 'That plan couldn’t be opened just now. Please try again.')
     } finally {
       setSwitchingPath(false)
     }

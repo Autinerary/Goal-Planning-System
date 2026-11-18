@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { loadPreferences } from '@/lib/preferences'
 import { a11yParam } from '@/lib/a11yHandoff'
+import { safeNextPath } from '@/lib/safeNext'
 
 const SH = (process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001').replace(/\/$/, '')
 
@@ -26,7 +27,9 @@ function Redirector() {
 
   useEffect(() => {
     const raw = params.get('next') || '/'
-    const next = raw.startsWith('/') && !raw.startsWith('//') ? raw : `/${raw.replace(/^\/+/, '')}`
+    // A path on ResourceHub, resolved the way the browser will (lib/safeNext.ts): tab, newline and backslash tricks
+    // fall back to its home page. A bare "resources/1" is read as "/resources/1", as before.
+    const next = safeNextPath(raw.startsWith('/') ? raw : `/${raw}`) || '/'
     const prefs = loadPreferences()
     const a11y = a11yParam(prefs.accessibility, prefs.layout)
     // Text size, contrast, dark mode, the colours and the rest go along,

@@ -20,6 +20,7 @@ import { makePlanOnDevice, ownModelError } from '@/lib/deviceRun'
 import { createClient } from '@/lib/supabase/client'
 import { track } from '@/lib/funnel'
 import { wakeBackend } from '@/lib/wakeBackend'
+import { ownLocalProfile } from '@/lib/personalData'
 import { START_FOR_KEY, START_NEED_KEY, START_GOALS, isStartGoal, isStartRole, suggestedStart } from '@/lib/startHere'
 import GoalHelper from '@/app/components/GoalHelper'
 import { GOAL_AREAS, isGoalArea } from '@/lib/goalAreas'
@@ -115,7 +116,16 @@ function submitErrorMessage(error: any): string {
   const detail = error?.response?.data?.detail
   // "Use my own model": what happened with the model on their device, as it is (lib/deviceRun.ts).
   if (error?.ownModel) return `${error.message} ${saved}`
-  if ((status === 422 || status === 429) && typeof detail === 'string' && detail.trim()) return detail
+  // A goal the safety checks turned down, or the daily limit, from a job that
+  // failed (its errorKind) or from the blocking call's 422 or 429: the
+  // backend's words exactly as written, since they can hold the crisis lines
+  // (9-8-8, 911), then the note that nothing is lost. Shown in full, line
+  // breaks kept (the alert under the buttons).
+  if (typeof error?.saidByServer === 'string' && error.saidByServer.trim()) return `${error.saidByServer}\n\n${saved}`
+  if ((status === 422 || status === 429) && typeof detail === 'string' && detail.trim()) return `${detail}\n\n${saved}`
+  // The plan was made, but saving that setup is finished didn't work
+  // (AuthContext's completeOnboarding): Try again finishes it, with no new plan.
+  if (error?.setupNotSaved) return `Your plan is made, but we couldn’t finish saving your setup. Check your internet connection, then press Try again. ${saved}`
   if (status === 401 || status === 403) return `Your sign-in needs refreshing. Sign in again and come back here. ${saved}`
   if (error?.request && !error?.response) return `We couldn't reach Autinerary just now. Check your internet connection, then try again. ${saved}`
   if (String(error?.message || '').includes('longer than expected')) return `Making your path is taking much longer than usual. Please try again in a few minutes. ${saved}`
@@ -357,6 +367,10 @@ export default function OnboardingPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   // Why the last try to create the path failed, in plain words (shown under the buttons).
   const [submitError, setSubmitError] = useState('')
+  // The plan made by the last try, when only saving "setup is finished" failed
+  // after it (AuthContext's completeOnboarding): Try again finishes that rather
+  // than making a second plan. Changed answers make a new one.
+  const madePathId = useRef<string | null>(null)
   // Path generation takes ~55s alone and ~90s when a few people submit at once
   // (both measured against production). A static spinner for that long reads as
   // frozen — people refresh, abandon the request, and report it as broken.
@@ -437,6 +451,8 @@ export default function OnboardingPage() {
     spiritAnimalMode: 'general' as 'general' | 'fastSlow' | 'weekly',
     spiritAnimals: [] as Array<{ type: string; color: string }>,
   })
+  // Answers changed after a plan was made: the next try makes a plan from them.
+  useEffect(() => { madePathId.current = null }, [formData])
   // Sign-up asks for the date of birth (18+), so setup does not ask the age
   // again when that says 18 or older.
   const ageFromSignup = !isManagedAccount && isAdult(supabaseUser?.app_metadata?.date_of_birth || supabaseUser?.user_metadata?.date_of_birth)
@@ -538,16 +554,22 @@ export default function OnboardingPage() {
   // returning user starts another path (see the carry-over block on mount).
   const CARRYOVER_KEY = 'autinerary_onboarding_carryover'
 
-  // Restore saved draft on mount
+  // Restore the saved draft once the account is known. A draft is one person's:
+  // it says whose it is (userId), and one left by someone else on a shared
+  // browser is dropped, never resumed (bug audit, 17 November 2026: the next
+  // sign-up resumed the last person's goals, norms and city). AuthContext also
+  // clears it when a different account signs in (lib/personalData.ts).
   useEffect(() => {
-    if (draftRestored.current) return
+    if (draftRestored.current || authLoading || !user?.id) return
     draftRestored.current = true
     try {
       const saved = localStorage.getItem(AUTOSAVE_KEY)
       let restoredDraft = false
       if (saved) {
-        const { step, stepId, data } = JSON.parse(saved)
-        if (data && typeof step === 'number') {
+        const { step, stepId, data, userId: draftOwner } = JSON.parse(saved)
+        if (typeof draftOwner === 'string' && draftOwner !== user.id) {
+          localStorage.removeItem(AUTOSAVE_KEY)
+        } else if (data && typeof step === 'number') {
           setFormData(prev => ({ ...prev, ...data }))
           // Restore by id; drafts from before the goal-first reorder only
           // know their position in the old order.
@@ -628,7 +650,10 @@ export default function OnboardingPage() {
         const carryRaw = localStorage.getItem(CARRYOVER_KEY)
         if (carryRaw) {
           const c = JSON.parse(carryRaw)
-          if (c && typeof c === 'object') {
+          // Only this person's own answers (it says whose, since November 2026).
+          if (c && typeof c === 'object' && typeof c.userId === 'string' && c.userId !== user.id) {
+            localStorage.removeItem(CARRYOVER_KEY)
+          } else if (c && typeof c === 'object') {
             setFormData(prev => ({
               ...prev,
               barrierTypes: Array.isArray(c.barrierTypes) ? c.barrierTypes : prev.barrierTypes,
@@ -661,19 +686,21 @@ export default function OnboardingPage() {
     } finally {
       setDraftReady(true)
     }
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, user?.id])
 
   useEffect(() => {
-      if (!draftReady || draftSubmitted.current) return
+      if (!draftReady || draftSubmitted.current || !user?.id) return
       try {
         localStorage.setItem(
           AUTOSAVE_KEY,
-          JSON.stringify({ step: currentStep, stepId: steps[currentStep].id, data: formData })
+          // Whose draft this is, so it is never resumed by another account.
+          JSON.stringify({ step: currentStep, stepId: steps[currentStep].id, data: formData, userId: user.id })
         )
       } catch {
         // quota exceeded — ignore
       }
-  }, [currentStep, formData, draftReady])
+  }, [currentStep, formData, draftReady, user?.id])
 
   // Funnel: which steps people reach, to see where setup loses them. Every
   // visit is sent, coming back included, so the report can show where people
@@ -1082,6 +1109,10 @@ export default function OnboardingPage() {
       }
 
       let response: { data: { pathId?: string } } = { data: {} }
+      // The plan is already made and only saving "setup is finished" failed
+      // last time: Try again finishes that, rather than making a second plan.
+      const madeBefore = madePathId.current
+      if (madeBefore) response = { data: { pathId: madeBefore } }
 
       // Lets the backend attribute generation spend to this account rather than
       // to the shared anonymous budget.
@@ -1097,7 +1128,7 @@ export default function OnboardingPage() {
       // switched silently.
       let madeOnDevice = false
       const ownModel = loadOwnModel()
-      if (ownModel.enabled) {
+      if (ownModel.enabled && !madeBefore) {
         const ping = await pingOwnModel(ownModel)
         const route = planRoute(ping, !!session?.access_token)
         if (route.route === 'device' && session?.access_token) {
@@ -1128,7 +1159,7 @@ export default function OnboardingPage() {
       // 60 s, not 20: a sleeping backend took 41 s to answer, and giving up
       // sooner sent a second request that ran a second generation beside the
       // first (the backend now joins them; core/jobs.py, in_flight_for_user).
-      const enqueued = madeOnDevice ? null : await axios
+      const enqueued = madeOnDevice || madeBefore ? null : await axios
         .post(`${API_URL}/api/onboarding/jobs`, onboardingBody, {
           headers: authHeaders,
           timeout: 60000,
@@ -1158,15 +1189,29 @@ export default function OnboardingPage() {
             })
             .catch(() => null)
           if (!poll) continue // a dropped poll is not a failed job
-          const { status, stage, pathId: donePathId, error: jobError } = poll.data || {}
+          const { status, stage, pathId: donePathId, error: jobError, errorKind } = poll.data || {}
           if (stage) setGenerationStage(stage)
           if (status === 'succeeded' && donePathId) { pathId = donePathId; break }
-          if (status === 'failed') throw new Error(jobError || 'Path generation failed')
+          if (status === 'failed') {
+            try { localStorage.removeItem('autinerary_generation_job') } catch {}
+            // A goal the safety checks turned down, or the daily limit: the
+            // backend's own words, shown as written, because they can hold the
+            // crisis lines (9-8-8, 911). They were hidden behind "Your path
+            // couldn't be made just now" (bug audit, 17 November 2026, item 17).
+            // Any other failure keeps the plain message (submitErrorMessage).
+            // A backend from before errorKind still says the crisis lines in
+            // `error` (core/guardrails.py): those are shown too.
+            const crisisLines = typeof jobError === 'string' && /\b9-8-8\b/.test(jobError)
+            if ((errorKind === 'guardrail' || errorKind === 'limit' || (!errorKind && crisisLines)) && typeof jobError === 'string' && jobError.trim()) {
+              throw Object.assign(new Error(jobError), { saidByServer: jobError })
+            }
+            throw new Error(jobError || 'Path generation failed')
+          }
         }
         try { localStorage.removeItem('autinerary_generation_job') } catch {}
         if (!pathId) throw new Error('Path generation is taking longer than expected. Please try again.')
         response = { data: { pathId } }
-      } else if (!madeOnDevice) {
+      } else if (!madeOnDevice && !madeBefore) {
         // Blocking path — job store unavailable or the enqueue never landed.
         response = await axios.post(`${API_URL}/api/onboarding/`, onboardingBody, {
           headers: authHeaders,
@@ -1178,16 +1223,19 @@ export default function OnboardingPage() {
       if (!response.data || !response.data.pathId) {
         throw new Error('Invalid response from server: missing pathId')
       }
+      madePathId.current = response.data.pathId
 
       // This browser's copy of the plan's answers, read by the assistant,
       // Path Market and lib/pathModel. Kept from the copy already here: the
       // character, spirit animals and Dream Self in it came from setup's old
       // steps (the pages that read them now prefer the saved preferences), and
       // setup no longer asks for them, so they are not reset to defaults.
-      let previous: Record<string, any> = {}
-      try { previous = JSON.parse(localStorage.getItem('autinerary_profile') || '{}') || {} } catch {}
+      // Only this person's own copy is kept from, and it says whose it is
+      // (lib/personalData.ts), so the assistant never reads another person's.
+      const previous: Record<string, any> = ownLocalProfile(user.id) || {}
       localStorage.setItem('autinerary_profile', JSON.stringify({
         ...previous,
+        userId: user.id,
         barriers: mapBarriersToServiceHub(selectedBarrierTypes),
         goals: onboardingBody.goals,
         dreams: onboardingBody.dreams,
@@ -1206,6 +1254,7 @@ export default function OnboardingPage() {
       // skip re-entering them (goals stay per-path, so they're excluded).
       try {
         localStorage.setItem(CARRYOVER_KEY, JSON.stringify({
+          userId: user.id,
           barrierTypes: selectedBarrierTypes,
           // Your character is a stable answer — a returning user should not
           // have to rebuild it for every new path.
@@ -2147,7 +2196,8 @@ export default function OnboardingPage() {
             {/* Shown in the form and in the chat version alike. */}
             {submitError && !isSubmitting && (
               <div role="alert" className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-slate-800">
-                <p>{submitError}</p>
+                {/* In full, with its line breaks: the backend's words can hold the crisis lines. */}
+                <p className="whitespace-pre-line [overflow-wrap:anywhere]">{submitError}</p>
                 <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
                   <button type="button" onClick={handleSubmit} className="font-semibold text-indigo-800 underline underline-offset-2 hover:text-indigo-950">
                     Try again

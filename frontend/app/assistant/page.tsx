@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, Send, Sparkles, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { useAgentPath } from '../context/AgentPathContext'
+import { useAuth } from '../context/AuthContext'
 import { usePreferences } from '../context/usePreferences'
+import { ownLocalProfile } from '@/lib/personalData'
 import { toLlmConfig } from '@/lib/modelPrefs'
 import { withOwnModel, wordsFor } from '@/lib/ownModelRoute'
 import { speak } from '@/lib/speech'
@@ -37,25 +39,16 @@ const STARTERS = [
   'I feel overwhelmed. Where do I start?',
 ]
 
-/** Read the locally cached onboarding profile (fallback context source). */
-function readProfile(): any {
-  if (typeof window === 'undefined') return null
-  try {
-    const raw = localStorage.getItem('autinerary_profile')
-    return raw ? JSON.parse(raw) : null
-  } catch {
-    return null
-  }
-}
-
 /**
  * Build the context summary sent to the assistant. Prefers the live agent
  * payload (goals, current + upcoming milestones, tool recommendations) so the
- * assistant sees the full path; falls back to the cached onboarding profile.
+ * assistant sees the full path; falls back to the cached onboarding profile,
+ * only when that copy is the signed-in person's own: on a shared browser it
+ * used to send the last person's goals and norms (lib/personalData.ts).
  */
-function buildContext(payload: any): string {
+function buildContext(payload: any, userId: string | null): string {
   const parts: string[] = []
-  const profile = readProfile()
+  const profile = typeof window === 'undefined' ? null : ownLocalProfile(userId)
   const up = payload?.userProfile || {}
 
   const goals = [...(up.goals || []), ...(profile?.goals || [])].filter((g: any) => typeof g === 'string' && g.trim())
@@ -87,6 +80,8 @@ function buildContext(payload: any): string {
 export default function AssistantPage() {
   const router = useRouter()
   const { payload } = useAgentPath()
+  const { supabaseUser } = useAuth()
+  const userId = supabaseUser?.id || null
   // Whether About me goes with each question (app/about-me; added on the server).
   const { prefs } = usePreferences()
   const sharesAboutMe = Boolean(prefs.aboutMe?.shareWithAssistant)
@@ -102,7 +97,7 @@ export default function AssistantPage() {
   const [context, setContext] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => setContext(buildContext(payload)), [payload])
+  useEffect(() => setContext(buildContext(payload, userId)), [payload, userId])
 
   // A question asked by voice (VoiceNavigation: "ask …"): sent once on
   // arrival, and the answer read aloud.

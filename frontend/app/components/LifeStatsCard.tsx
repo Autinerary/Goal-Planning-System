@@ -52,6 +52,15 @@ const STAT_ORDER: StatKey[] = ['mentality', 'happiness', 'focus', 'energy', 'com
  * - Trend arrows only render when a baseline snapshot exists (no fake +10%).
  * - Click a stat to see exactly what fed into the number.
  */
+/** This browser's time zone: "today" for check-ins is the person's own day, not the UTC one. */
+function browserZone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || ''
+  } catch {
+    return ''
+  }
+}
+
 export default function LifeStatsCard() {
   const [payload, setPayload] = useState<LifeStatsPayload | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -61,7 +70,7 @@ export default function LifeStatsCard() {
 
   const refresh = useCallback(async () => {
     try {
-      const res = await fetch('/api/me/life-stats', { cache: 'no-store' })
+      const res = await fetch(`/api/me/life-stats?tz=${encodeURIComponent(browserZone())}`, { cache: 'no-store' })
       if (!res.ok) {
         if (res.status === 401) {
           setError('Sign in to see your live Life Stats.')
@@ -90,7 +99,7 @@ export default function LifeStatsCard() {
     const res = await fetch('/api/me/life-stats/checkin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mood, note }),
+      body: JSON.stringify({ mood, note, timeZone: browserZone() }),
     })
     if (!res.ok) {
       const msg = await res.json().catch(() => ({ error: 'Save failed' }))

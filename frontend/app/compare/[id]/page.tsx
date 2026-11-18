@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Trophy, Calendar as CalIcon, Loader2, User as UserIcon } from 'lucide-react'
+import { withoutHiddenGoals } from '@/lib/hiddenGoals'
 
 interface Profile {
   id: string
@@ -158,9 +159,11 @@ export default function ComparePage() {
         const progressJson = progressRes.ok ? await progressRes.json() : { progress: [] }
         const friendJson = friendRes.ok ? await friendRes.json() : null
 
+        // Goals taken out in "Your Goals, Dreams & Obstacles" stay in a plan,
+        // and no page shows them (lib/hiddenGoals.ts), on either side.
         setMe({
           profile: profileJson?.profile || null,
-          path: pathJson?.payload || null,
+          path: withoutHiddenGoals(pathJson?.payload || null),
           calendar: calendarJson.tasks || [],
           progress: progressJson.progress || [],
         })
@@ -168,7 +171,7 @@ export default function ComparePage() {
         if (friendJson?.friend) {
           setFriend({
             profile: friendJson.friend.profile,
-            path: friendJson.friend.path,
+            path: withoutHiddenGoals(friendJson.friend.path || null),
             calendar: friendJson.friend.calendar || [],
             progress: friendJson.friend.progress || [],
           })

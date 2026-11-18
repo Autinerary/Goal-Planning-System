@@ -26,16 +26,22 @@ const STATUS_OFF: Record<ToolStatus, string> = {
   past: 'bg-white text-indigo-800 border-indigo-300 hover:bg-indigo-50',
 }
 
-// Saved statuses and ratings, read once per page however many lists there are.
-let savedOnce: Promise<{ statuses: Record<string, string>; ratings: Record<string, number> }> | null = null
-function loadSaved() {
-  if (!savedOnce) {
+// Saved statuses and ratings: one read for all the lists on a page, and read
+// again when the page is opened or shown again. They change in ResourceHub
+// too, and one read for the whole visit kept showing old ones until a reload
+// (bug audit, 17 November 2026).
+let savedRead: { at: number; promise: Promise<{ statuses: Record<string, string>; ratings: Record<string, number> }> } | null = null
+function loadSaved(maxAgeMs = 5000) {
+  if (!savedRead || Date.now() - savedRead.at > maxAgeMs) {
     const get = (url: string): Promise<any> =>
       fetch(url, { cache: 'no-store', credentials: 'include' }).then((r) => (r.ok ? r.json() : null)).catch(() => null)
-    savedOnce = Promise.all([get('/api/me/resource-status'), get('/api/me/resource-rating')])
-      .then(([s, r]) => ({ statuses: s?.statuses || {}, ratings: r?.ratings || {} }))
+    savedRead = {
+      at: Date.now(),
+      promise: Promise.all([get('/api/me/resource-status'), get('/api/me/resource-rating')])
+        .then(([s, r]) => ({ statuses: s?.statuses || {}, ratings: r?.ratings || {} })),
+    }
   }
-  return savedOnce
+  return savedRead.promise
 }
 
 // Ratings of tools that aren't in ResourceHub stay on this device.
@@ -48,8 +54,11 @@ function helpLines(tool: PlanTool): { category?: string; points: string[] }[] {
   if (Array.isArray(tool.helpsWith) && tool.helpsWith.length) {
     return tool.helpsWith.slice(0, 3).map((h) => ({ category: String(h.category || ''), points: (h.points || []).map(String).filter(Boolean).slice(0, 2) }))
   }
+  // Sentence by sentence. Not split(/(?<=[.;!?])\s+/): Safari before 16.4 has
+  // no lookbehind, and the regex alone stopped Milestone pages loading there.
   const points = String(tool.description || '')
-    .split(/(?<=[.;!?])\s+/)
+    .replace(/([.;!?])\s+/g, '$1\u0000')
+    .split('\u0000')
     .map((s) => s.trim().replace(/[.;]+$/, ''))
     .filter(Boolean)
     .slice(0, 2)
@@ -104,9 +113,18 @@ export default function MilestoneTools({
   const [ratingOverride, setRatingOverride] = useState<Record<string, number>>({})
   useEffect(() => {
     let cancelled = false
-    loadSaved().then((s) => { if (!cancelled) setSaved(s) })
+    const read = () => { loadSaved().then((s) => { if (!cancelled) setSaved(s) }) }
+    read()
     setRatingOverride((prev) => ({ ...readLocal(), ...prev }))
-    return () => { cancelled = true }
+    // Back on this tab, or back to this page from the browser's history.
+    const onShown = () => { if (document.visibilityState === 'visible') read() }
+    document.addEventListener('visibilitychange', onShown)
+    window.addEventListener('pageshow', onShown)
+    return () => {
+      cancelled = true
+      document.removeEventListener('visibilitychange', onShown)
+      window.removeEventListener('pageshow', onShown)
+    }
   }, [])
   const statusOf = (tool: PlanTool): ToolStatus | null => {
     const key = toolKey(tool)

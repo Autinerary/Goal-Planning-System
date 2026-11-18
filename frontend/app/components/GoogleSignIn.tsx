@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { afterSignInPath } from '@/lib/afterSignIn'
 
 /**
  * "Continue with Google" (Riipen Labs, Group 2: "create a connection with
@@ -24,9 +25,11 @@ export default function GoogleSignIn({ label = 'Continue with Google' }: { label
   async function start() {
     setStatus('redirecting')
     try {
+      // A link opened signed out (/login?next=…) goes back to its page after Google too (app/auth/callback).
+      const next = afterSignInPath(new URLSearchParams(window.location.search).get('next'))
       const { error } = await createClient().auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: `${window.location.origin}/auth/callback` },
+        options: { redirectTo: `${window.location.origin}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ''}` },
       })
       if (error) setStatus('error')
     } catch {

@@ -20,10 +20,25 @@ import PeopleBoard, { type PeopleKind } from '../hare-world/PeopleBoard'
 import PersonCard, { type CardPerson } from '../hare-world/PersonCard'
 import SocialHub from '../hare-world/SocialHub'
 import { goHubHref } from '@/lib/serviceHub'
+import { backendAuthHeaders } from '@/lib/backendAuth'
 
 // Service Hub URL - defaults to localhost:3001 (Service Hub should run on a different port)
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+
+// Every call to the backend carries the session's token (backend/api/auth_guard.py): without it, Hare World's
+// messages, calls and memes all failed with 401 (bug audit, 17 November 2026, item 23).
+const withAuth = async () => ({ headers: await backendAuthHeaders() })
+
+/** A suggested link as an href, only when it is a web address (http or https); null for anything else. */
+function webHref(raw: string | null | undefined): string | null {
+  try {
+    const url = new URL(String(raw || '').trim())
+    return url.protocol === 'https:' || url.protocol === 'http:' ? url.href : null
+  } catch {
+    return null
+  }
+}
 
 /**
  * Pit Stop and Hare World, one page each. They were two tabs of one page, and
@@ -54,6 +69,8 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
     if (page === 'people') {
       const params = new URLSearchParams(searchParams.toString())
       params.set('view', view)
+      // Not ?add= with it: kept, it opened the Add dialog again on every change of view.
+      params.delete('add')
       router.replace(`/hare-world?${params.toString()}`, { scroll: false })
     }
   }
@@ -307,12 +324,18 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
   })
 
   // /hare-world?add=friends|mentors|rolemodels opens Search for that list
-  // (the Path's "Find friends" and "Find a mentor" menus).
+  // (the Path's "Find friends" and "Find a mentor" menus), once: ?add= then
+  // leaves the address, so closing the dialog or changing the view doesn't
+  // open it again (bug audit, 17 November 2026).
   useEffect(() => {
     const add = searchParams.get('add')
     if (page === 'people' && (add === 'friends' || add === 'mentors' || add === 'rolemodels')) {
       setAddMode('search')
       handleAddConnection(add)
+      const params = new URLSearchParams(searchParams.toString())
+      params.delete('add')
+      const rest = params.toString()
+      router.replace(rest ? `/hare-world?${rest}` : '/hare-world', { scroll: false })
     }
   }, [searchParams, page]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -692,7 +715,7 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
       const response = await axios.post(`${API_URL}/api/messaging/send?user_id=${userId}`, {
         receiver_id: selectedConversation,
         content: messageInput.trim()
-      })
+      }, await withAuth())
       
       setMessages(prev => [...prev, response.data])
       setMessageInput('')
@@ -715,7 +738,7 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
         receiver_id: mentorId,
         call_type: 'mentor',
         notes: `Video call with ${mentorName}`
-      })
+      }, await withAuth())
       
       const callId = response.data.id
       setActiveCallId(callId)
@@ -738,7 +761,7 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
     }
 
     try {
-      await axios.post(`${API_URL}/api/calls/${activeCallId}/end?user_id=${userId}`)
+      await axios.post(`${API_URL}/api/calls/${activeCallId}/end?user_id=${userId}`, null, await withAuth())
       
       setActiveCallId(null)
       setActiveCallStartTime(null)
@@ -760,7 +783,7 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
     const userId = getUserId()
     if (!userId) return
     try {
-      const response = await axios.get(`${API_URL}/api/calls/history?user_id=${userId}`)
+      const response = await axios.get(`${API_URL}/api/calls/history?user_id=${userId}`, await withAuth())
       setCallHistory(response.data)
     } catch (error) {
       console.error('Error loading call history:', error)
@@ -787,7 +810,7 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
         const userId = getUserId()
         if (!userId) return
         try {
-          const response = await axios.get(`${API_URL}/api/messaging/conversation/${selectedConversation}?user_id=${userId}`)
+          const response = await axios.get(`${API_URL}/api/messaging/conversation/${selectedConversation}?user_id=${userId}`, await withAuth())
           setMessages(response.data)
         } catch (error) {
           console.error('Error polling messages:', error)
@@ -1341,16 +1364,20 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                             {s.note && (
                               <div className="text-xs text-slate-600 italic mt-1">“{s.note}”</div>
                             )}
-                            {s.url && (
+                            {/* A link only when it is a web address (http or https):
+                                a friend's suggestion could hold "javascript:". */}
+                            {s.url && (webHref(s.url) ? (
                               <a
-                                href={s.url}
+                                href={webHref(s.url)!}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-xs text-emerald-700 hover:text-emerald-800 underline mt-1 inline-block break-all"
                               >
                                 {s.url}
                               </a>
-                            )}
+                            ) : (
+                              <span className="text-xs text-slate-600 mt-1 inline-block break-all">{s.url}</span>
+                            ))}
                           </div>
                         </div>
                         <div className="flex flex-col items-end gap-1 flex-shrink-0">
@@ -2657,7 +2684,7 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                           const userId = getUserId()
                           if (!userId) { setMessages([]); return }
                           try {
-                            const response = await axios.get(`${API_URL}/api/messaging/conversation/${person.id}?user_id=${userId}`)
+                            const response = await axios.get(`${API_URL}/api/messaging/conversation/${person.id}?user_id=${userId}`, await withAuth())
                             setMessages(response.data)
                           } catch (error) {
                             console.error('Error loading conversation:', error)
@@ -2746,7 +2773,7 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                         const userId = getUserId()
                         if (!userId) { setMemeFeed([]); return }
                         try {
-                          const response = await axios.get(`${API_URL}/api/memes/feed?user_id=${userId}`)
+                          const response = await axios.get(`${API_URL}/api/memes/feed?user_id=${userId}`, await withAuth())
                           setMemeFeed(response.data)
                         } catch (error) {
                           console.error('Error loading meme feed:', error)
@@ -2789,9 +2816,9 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                                 const userId = getUserId()
                                 if (!userId) return
                                 try {
-                                  await axios.post(`${API_URL}/api/memes/like?user_id=${userId}&meme_id=${meme.id}`)
+                                  await axios.post(`${API_URL}/api/memes/like?user_id=${userId}&meme_id=${meme.id}`, null, await withAuth())
                                   // Refresh feed
-                                  const response = await axios.get(`${API_URL}/api/memes/feed?user_id=${userId}`)
+                                  const response = await axios.get(`${API_URL}/api/memes/feed?user_id=${userId}`, await withAuth())
                                   setMemeFeed(response.data)
                                 } catch (error) {
                                   console.error('Error liking meme:', error)
@@ -2835,11 +2862,11 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                             content_type: 'emoji',
                             content: emoji,
                             caption: `Shared ${emoji} meme!`
-                          })
+                          }, await withAuth())
                           alert(`✅ ${emoji} meme shared successfully!`)
                           // Refresh feed if open
                           if (showMemeFeed) {
-                            const response = await axios.get(`${API_URL}/api/memes/feed?user_id=${userId}`)
+                            const response = await axios.get(`${API_URL}/api/memes/feed?user_id=${userId}`, await withAuth())
                             setMemeFeed(response.data)
                           }
                         } catch (error: any) {
@@ -3059,13 +3086,13 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                           content_type: 'text',
                           content: textMemeInput.trim(),
                           caption: 'Text meme'
-                        })
+                        }, await withAuth())
                         setShowTextMemeModal(false)
                         setTextMemeInput('')
                         alert('✅ Text meme shared successfully!')
                         // Refresh feed if open
                         if (showMemeFeed) {
-                          const response = await axios.get(`${API_URL}/api/memes/feed?user_id=${userId}`)
+                          const response = await axios.get(`${API_URL}/api/memes/feed?user_id=${userId}`, await withAuth())
                           setMemeFeed(response.data)
                         }
                       } catch (error: any) {

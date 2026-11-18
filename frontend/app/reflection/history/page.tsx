@@ -11,6 +11,7 @@ import { createClient } from '@/lib/supabase/client'
 import { chooseRoute, withOwnModelOrRules } from '@/lib/ownModelRoute'
 import CrisisLines from '../../components/CrisisLines'
 import { useGroupLines } from '../../components/useGroupLines'
+import { BACKEND_TIMEOUT_MS, isTimeout } from '@/lib/backendTimeout'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -82,20 +83,27 @@ export default function JournalHistory() {
       }
       const response = await axios.get(`${API_URL}/api/reflections/user/${uid}`, {
         headers: { Authorization: `Bearer ${session.access_token}` },
+        // Bounded: the backend can take over a minute to wake (lib/backendTimeout.ts).
+        timeout: BACKEND_TIMEOUT_MS,
       })
       setJournals(Array.isArray(response.data) ? response.data : [])
     } catch (err) {
       console.error('Error fetching journals:', err)
-      // Backend (Python, port 8000) may not be running; show empty state instead of blocking error
+      // Said as it is. It showed an empty journal, as if there were no
+      // entries, which reads as everything lost (bug audit, 17 November 2026).
       setJournals([])
-      setError(null)
+      setError(isTimeout(err)
+        ? 'Your entries are taking longer than usual to load. They are safe. Please try again in a minute.'
+        : 'Your entries couldn’t be loaded just now. They are safe. Please try again.')
     } finally {
       setLoading(false)
     }
   }
 
-  // Split pasted/uploaded text into entries. A line of only dashes, or a blank
-  // line between paragraphs, separates entries; otherwise the whole blob is one.
+  // Split pasted/uploaded text into entries. A line of only dashes (or === or
+  // ***) separates entries, or else two blank lines; one blank line stays inside
+  // an entry, between its paragraphs. Otherwise the whole text is one entry. The
+  // import panel says the same (it said one blank line, which never split).
   const splitEntries = (raw: string): string[] => {
     const byDivider = raw
       .split(/\n\s*(?:-{3,}|={3,}|\*{3,})\s*\n/)
@@ -135,6 +143,9 @@ export default function JournalHistory() {
     // isn't ready they're saved without an AI reading them, and nothing goes to a cloud model (lib/ownModelRoute.ts).
     const where = await chooseRoute({ ask: false })
     let lastError = ''
+    let slow = false
+    // The entries that didn't save stay in the box, so trying again sends only those.
+    const failed: string[] = []
     for (const [i, text] of entries.entries()) {
       if (where.route === 'device' && entries.length > 1) setImportMsg(`Your own model is reading entry ${i + 1} of ${entries.length}…`)
       const body = {
@@ -148,6 +159,7 @@ export default function JournalHistory() {
         headers: session?.access_token
           ? { Authorization: `Bearer ${session.access_token}` }
           : undefined,
+        timeout: BACKEND_TIMEOUT_MS,
       })
       try {
         await withOwnModelOrRules(where, 'reflection', body, () => post(), () => post({ aiReading: false }))
@@ -155,23 +167,25 @@ export default function JournalHistory() {
       } catch (e: any) {
         /* backend may be offline; keep going */
         if (e?.ownModel) lastError = e.message
+        if (isTimeout(e)) slow = true
+        failed.push(text)
       }
     }
     setImportBusy(false)
     const notRead = where.route === 'none' && ok > 0
       ? ` No AI read ${ok === 1 ? 'it' : 'them'}, because your own model isn’t ready: ${where.why}`
       : ''
+    const why = lastError || (slow ? 'This is taking longer than usual.' : 'The journal may be offline for a moment.')
     setImportMsg(
       ok === entries.length
         ? `Imported ${ok} ${ok === 1 ? 'entry' : 'entries'}. They’ll be considered in your reflections.${notRead}`
         : ok > 0
-          ? `Imported ${ok} of ${entries.length}. ${lastError ? `Some couldn’t be saved: ${lastError}` : 'Some couldn’t be saved (is the backend running?).'}${notRead}`
-          : lastError
-            ? `Couldn’t save entries: ${lastError} Your text is kept below so you can retry.`
-            : `Couldn’t save entries: the journal backend may be offline. Your text is kept below so you can retry.`
+          ? `Imported ${ok} of ${entries.length}. ${failed.length === 1 ? 'One entry' : `${failed.length} entries`} couldn’t be saved, and ${failed.length === 1 ? 'is' : 'are'} kept below so you can try again. ${why}${notRead}`
+          : `Couldn’t save entries. Your text is kept below so you can try again. ${why}`
     )
     if (ok > 0) {
-      setImportText('')
+      // Only what didn't save stays, one entry apart from the next, ready to send again.
+      setImportText(failed.join('\n\n---\n\n'))
       fetchJournals()
     }
   }
@@ -292,17 +306,19 @@ export default function JournalHistory() {
                 </h2>
                 <p className="text-sm text-slate-600 mt-1 max-w-xl">
                   Keep a journal somewhere else (phone Notes, a doc, text files)? Paste it or upload
-                  files here for a mass import. Separate entries with a blank line or a line of
-                  <code className="mx-1">---</code>. They&apos;ll be considered in your reflections and reports.
+                  files here for a mass import. Separate entries with a line of
+                  <code className="mx-1">---</code> or with two blank lines; one blank line stays inside an entry,
+                  between its paragraphs. Files you choose are kept apart from each other. They&apos;ll be considered in your reflections and reports.
                 </p>
               </div>
-              <button onClick={() => setShowImport(false)} className="text-slate-400 hover:text-slate-700">
-                <X className="w-5 h-5" />
+              <button type="button" onClick={() => setShowImport(false)} aria-label="Close import" className="text-slate-500 hover:text-slate-700">
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
             <textarea
               value={importText}
               onChange={(e) => setImportText(e.target.value)}
+              aria-label="Journal entries to import"
               placeholder="Paste your journal entries here…"
               className="w-full min-h-[160px] rounded-xl border border-slate-300 p-4 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-300 resize-y bg-white/80"
             />
@@ -329,7 +345,7 @@ export default function JournalHistory() {
                 {importBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                 {importBusy ? 'Importing…' : 'Import & consider these'}
               </button>
-              {importMsg && <span className="text-sm text-slate-600">{importMsg}</span>}
+              {importMsg && <span role="status" className="text-sm text-slate-700">{importMsg}</span>}
             </div>
           </div>
         )}
@@ -478,21 +494,26 @@ export default function JournalHistory() {
 
             return (
               <div key={journal.id} className="rounded-xl overflow-hidden hover:shadow-xl transition-all surface">
-                {/* Header Row */}
-                <div 
-                  className="flex items-center gap-4 p-6 cursor-pointer hover:bg-white/40 transition-all"
+                {/* Header Row: a button, so an entry opens with the keyboard
+                    too (Enter or Space), and says whether it is open. */}
+                <button
+                  type="button"
+                  aria-expanded={isExpanded}
+                  aria-controls={`entry-${journal.id}`}
+                  className="flex w-full items-center gap-4 p-6 text-left cursor-pointer hover:bg-white/40 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-600"
                   onClick={() => setExpandedId(isExpanded ? null : journal.id)}
                 >
                   {/* Sentiment Icon */}
-                  <div className={`p-3 rounded-full ${sentimentData.bg} shadow-md`}>
-                    <SentimentIcon className={`w-6 h-6 ${sentimentData.color}`} />
-                  </div>
+                  <span className={`p-3 rounded-full ${sentimentData.bg} shadow-md`}>
+                    <SentimentIcon className={`w-6 h-6 ${sentimentData.color}`} aria-hidden="true" />
+                    <span className="sr-only">{journal.sentiment}</span>
+                  </span>
 
                   {/* Date */}
-                  <div className="flex items-center gap-2 text-slate-700">
-                    <Calendar className="w-4 h-4" />
+                  <span className="flex items-center gap-2 text-slate-700">
+                    <Calendar className="w-4 h-4" aria-hidden="true" />
                     <span className="font-mono text-sm">{journal.date}</span>
-                  </div>
+                  </span>
 
                   {/* Context Badge */}
                   <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${contextTypeColors[journal.contextType] || 'bg-white/60 text-slate-800'}`}>
@@ -504,11 +525,11 @@ export default function JournalHistory() {
 
                   {/* Expand Icon */}
                   {isExpanded ? (
-                    <ChevronUp className="w-5 h-5 text-slate-800" />
+                    <ChevronUp className="w-5 h-5 text-slate-800" aria-hidden="true" />
                   ) : (
-                    <ChevronDown className="w-5 h-5 text-slate-800" />
+                    <ChevronDown className="w-5 h-5 text-slate-800" aria-hidden="true" />
                   )}
-                </div>
+                </button>
 
                 {/* Summary (always visible) */}
                 <div className="px-4 pb-4 -mt-2">
@@ -517,7 +538,7 @@ export default function JournalHistory() {
 
                 {/* Expanded Content */}
                 {isExpanded && (
-                  <div className="border-t-2 border-slate-300 p-6 bg-white/40">
+                  <div id={`entry-${journal.id}`} className="border-t-2 border-slate-300 p-6 bg-white/40">
                     {/* Questions & Answers */}
                     {journal.questions && journal.questions.length > 0 && (
                       <div className="mb-6">
