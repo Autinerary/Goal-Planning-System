@@ -69,8 +69,14 @@ export async function middleware(request: NextRequest) {
   const isCampus = pathname === '/campus' || pathname.startsWith('/campus/')
   // "Help us rate our resources!" (the planning note's Goal 11), for anyone.
   const isHelpUsRate = pathname === '/help-us-rate'
+  // Resetting a password happens signed out: the reset email's link must
+  // reach its page with its ?code= instead of being sent to sign-in first.
+  // These exact paths only (and below them), so nothing else opens up.
+  const isPasswordReset = ['/auth/reset-password', '/reset-password', '/forgot-password'].some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`)
+  )
 
-  if (isPublicRoute || isHomePage || isSearchPage || isResourcePage || isGuidelines || isCampus || isHelpUsRate) {
+  if (isPublicRoute || isHomePage || isSearchPage || isResourcePage || isGuidelines || isCampus || isHelpUsRate || isPasswordReset) {
     // Nothing here depends on who the user is, so don't ask.
     return response
   }

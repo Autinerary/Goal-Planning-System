@@ -349,8 +349,10 @@ async function HighestRatingsSection() {
             Highest Ratings
           </h2>
         </div>
+        {/* Sort values the search page reads (decodeSortRules in app/search/page.tsx). "popular", "price" and
+            "helpful" weren't, so these links opened an unsorted search (bug audit, 17 November 2026). */}
         <Link
-          href="/search?sort=popular"
+          href="/search?sort=rating:desc"
           className="text-sm text-blue-600 hover:text-blue-700 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded"
         >
           See all, highest rated first
@@ -498,7 +500,7 @@ async function CheapestSection() {
           </h2>
         </div>
         <Link
-          href="/search?sort=price"
+          href="/search?sort=cost:asc"
           className="text-sm text-blue-600 hover:text-blue-700 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded"
         >
           See all, cheapest first
@@ -611,10 +613,10 @@ async function QualityListsSection() {
           </h2>
         </div>
         <Link
-          href="/search?sort=helpful"
+          href="/search?sort=reviews:desc"
           className="text-sm font-medium text-blue-600 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
         >
-          See all, most helpful first
+          See all, most reviewed first
         </Link>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

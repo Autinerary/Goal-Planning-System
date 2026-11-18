@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Bell, X } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import type { Notification } from '@/types/database'
+import { sameSiteLink } from '@/components/ui/safeNext'
 
 interface NotificationItemProps {
   notification: Notification
@@ -84,9 +85,13 @@ export default function NotificationItem({
     </div>
   )
 
-  if (notification.link) {
+  // Only a path on this site becomes a link. A notification's link comes from
+  // data, and a "javascript:" or outside address in it must never be followed
+  // (bug audit, 17 November 2026, item 1). Anything else shows without a link.
+  const href = sameSiteLink(notification.link)
+  if (href) {
     return (
-      <Link href={notification.link} className="block hover:no-underline">
+      <Link href={href} className="block hover:no-underline">
         {content}
       </Link>
     )

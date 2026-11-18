@@ -1,45 +1,80 @@
+import { randomUUID } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { createOrUpdateRating, getRatingByUserAndResource } from '@/lib/supabase/queries'
+import { createOrUpdateRating, getRatingByUserAndResource, updateOwnRating } from '@/lib/supabase/queries'
 import { isWaitBucket } from '@/lib/waits'
 import { validationAgent } from '@/lib/agents/validation-agent'
 import { getUserHistory } from '@/lib/agents/validation-agent/trust-scorer'
-import { sendNotification } from '@/lib/notifications/service'
+import { sendNotificationToMany } from '@/lib/notifications/service'
 import { formatErrorForUser, createAppError, logError } from '@/lib/errors/handler'
-import { recordRatingOutcome } from '@/lib/agents/recommendation-agent/memory'
+import { recordRatingChange, recordRatingOutcome } from '@/lib/agents/recommendation-agent/memory'
 import {
   attributeReward,
   ratingToReward,
 } from '@/lib/agents/shared/servicehub-learning'
-import type { ValidationAgentInput } from '@/lib/agents/validation-agent/types'
+import type { ValidationAgentInput, ValidationAgentOutput } from '@/lib/agents/validation-agent/types'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { RATING_RULE, ratingAccess } from '@/lib/ratings/access'
+import { CANT_POST_MESSAGE, isPostingBlockedError, postingBlockedReason } from '@/lib/community/client'
+import { dropModerationEntry, enqueueModeration, heldForReview } from '@/lib/moderation/queue'
+import type { BarrierScores } from '@/types/database'
+
+type SessionClient = ReturnType<typeof createClient>
 
 /**
- * Pull the barrier-type list to attribute a rating against. We prefer the
- * explicit `barrier_scores` keys (the rater told us which barriers this
- * rating speaks to) and fall back to the user's profile barriers when the
- * rater didn't break it out.
+ * The norms to attribute a rating's learning signal to: the person's own
+ * norms, from the database. It used to take the keys of the barrier_scores
+ * the browser sent, so anyone could credit a resource for any norm (bug
+ * audit, 17 November 2026, item 11).
  */
-async function resolveBarriers(
-  supabase: ReturnType<typeof createClient>,
-  userId: string,
-  barrier_scores?: Record<string, unknown>
-): Promise<string[]> {
-  if (barrier_scores && typeof barrier_scores === 'object') {
-    const keys = Object.keys(barrier_scores)
-    if (keys.length > 0) return keys
-  }
+async function ownNorms(supabase: SessionClient, userId: string): Promise<string[]> {
   try {
-    const { data } = await supabase
-      .from('user_barriers')
-      .select('barrier_type')
-      .eq('user_id', userId)
-    return (data || []).map((r: any) => r.barrier_type).filter(Boolean)
+    const { data } = await supabase.from('user_barriers').select('barrier_type').eq('user_id', userId)
+    return Array.from(new Set((data || []).map((r: any) => String(r.barrier_type || '').trim().toLowerCase()).filter(Boolean)))
   } catch {
     return []
   }
 }
+
+/** The scores as stored: whole numbers 1-5 under short keys, at most 30. Anything else is dropped. */
+function cleanScores(raw: unknown): BarrierScores | undefined {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return undefined
+  const out: Record<string, number> = {}
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>).slice(0, 30)) {
+    const n = Number(v)
+    if (k && k.length <= 60 && Number.isFinite(n) && n >= 1 && n <= 5) out[k] = Math.round(n)
+  }
+  return Object.keys(out).length > 0 ? (out as BarrierScores) : undefined
+}
+
+function validScore(v: unknown): v is number {
+  return typeof v === 'number' && Number.isInteger(v) && v >= 1 && v <= 5
+}
+
+/** What the person is told when their account may not rate right now. */
+function blockedResponse(message: string) {
+  return NextResponse.json({ error: message, code: 'blocked' }, { status: 403 })
+}
+
+/**
+ * Put a rating the validation agent flagged in the moderation queue, before
+ * it is saved, so it is never shown unreviewed (item 25). Null when the queue
+ * could not be written: the caller then saves nothing.
+ */
+async function holdForReview(ratingId: string, userId: string, result: ValidationAgentOutput): Promise<string | null> {
+  return enqueueModeration({
+    item_type: 'rating',
+    item_id: ratingId,
+    submitted_by: userId,
+    agent_decision: result.decision,
+    agent_confidence: result.confidence,
+    agent_reasons: result.reasons,
+  })
+}
+
+const QUEUE_DOWN = "We couldn't save your rating just now. Please try again in a minute."
+/** A flagged edit of a rating that is already up (PUT). */
+const EDIT_NOT_SAVED = 'That change couldn’t be saved as it is. Your rating is still there as it was. You could reword the change and try again.'
 
 /**
  * GET /api/resources/[id]/ratings — the CALLER's own rating, if they have one.
@@ -50,7 +85,8 @@ async function resolveBarriers(
  * always POSTed, and createOrUpdateRating quietly turned that into an update.
  * You appeared to rate twice and were told it was submitted both times.
  *
- * This lets the modal know, so it can prefill and say it is editing.
+ * This lets the modal know, so it can prefill and say it is editing. Only the
+ * rating's public fields (and their wait) come back, never the row.
  */
 export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
   const supabase = createClient()
@@ -75,6 +111,10 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       await logError(error, { action: 'create_rating', path: `/resources/${params.id}/ratings` })
       return NextResponse.json({ error: error.userMessage }, { status: 401 })
     }
+
+    // A banned or paused account can't rate (item 9).
+    const blocked = await postingBlockedReason(user.id)
+    if (blocked) return blockedResponse(blocked)
 
     // Rating comes from experience (Goal 5, lib/ratings/access.ts).
     const access = await ratingAccess(supabase, params.id)
@@ -107,13 +147,14 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ error: error.userMessage }, { status: 400 })
     }
 
-    const body = await request.json()
-    const { overall_score, barrier_scores, comment, image_urls } = body
+    const body = await request.json().catch(() => ({}))
+    const overall_score = body?.overall_score
+    const barrier_scores = cleanScores(body?.barrier_scores)
+    const comment: string | undefined = typeof body?.comment === 'string' ? body.comment.trim() || undefined : undefined
     // How long they waited (STEP 83), saved after the rating, so a rating still saves before it.
     const wait_bucket = isWaitBucket(body?.wait_bucket) ? body.wait_bucket : null
-    const previousRating = await getRatingByUserAndResource(params.id, user.id)
 
-    if (!overall_score || overall_score < 1 || overall_score > 5) {
+    if (!validScore(overall_score)) {
       const error = createAppError('Overall score must be between 1 and 5', 'validation', {
         statusCode: 400,
       })
@@ -125,11 +166,15 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ error: 'Comment must be 500 characters or less' }, { status: 400 })
     }
 
+    const previousRating = await getRatingByUserAndResource(params.id, user.id)
+
     // Validate using Validation Agent
     const userHistory = await getUserHistory(user.id)
     const validationInput: ValidationAgentInput = {
       itemType: 'rating',
       item: {
+        // An existing rating being changed isn't a duplicate of itself.
+        id: previousRating?.id,
         overall_score,
         barrier_scores,
         comment,
@@ -156,22 +201,11 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       )
     }
 
-    // Add to moderation queue if flagged for review
-    if (validationResult.decision === 'flag_for_review') {
-      await supabase.from('moderation_queue').insert({
-        item_type: 'rating',
-        item_id: params.id, // Will be updated after rating is created
-        submitted_by: user.id,
-        status: 'pending',
-        agent_decision: validationResult.decision,
-        agent_confidence: validationResult.confidence,
-        agent_reasons: validationResult.reasons,
-      })
-    }
-
     // Snapshot the rater's OWN diagnostics (barrier_type -> severity 1-5) so the
     // nested breakdown can group area ratings by diagnostic feature + level,
     // without cross-user profile reads (RLS-safe: the rater reads their own).
+    // Since STEP 105 the database moves this snapshot where only the service
+    // reads it (lib/ratings/raterContext.ts).
     const rater_diagnostics: Record<string, number> = {}
     // Whose experience is this? (Odosa) Captured per norm so ratings can be
     // weighted by proximity — lived experience over ally — without ever
@@ -237,20 +271,43 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       /* non-fatal — rating still saves without org grouping */
     }
 
-    // Create or update rating (only if approved or flagged for review)
-    const rating = await createOrUpdateRating({
-      resource_id: params.id,
-      user_id: user.id,
-      overall_score,
-      barrier_scores,
-      comment: comment?.trim() || undefined,
-      rater_diagnostics,
-      rater_relationships,
-      rater_org_ids,
-      rater_connection_types,
-    })
+    // A flagged rating goes in the moderation queue first, so it is hidden
+    // from the moment it is saved until a moderator has looked (item 25).
+    // The queue used to be written with the person's session, which always
+    // failed, so flagged ratings went public unreviewed.
+    const ratingId = previousRating?.id ?? randomUUID()
+    let queueId: string | null = null
+    let wasHeld = false
+    if (validationResult.decision === 'flag_for_review') {
+      wasHeld = !!previousRating && (await heldForReview('rating', [previousRating.id])).has(previousRating.id)
+      queueId = await holdForReview(ratingId, user.id, validationResult)
+      if (!queueId) return NextResponse.json({ error: QUEUE_DOWN }, { status: 503 })
+    }
+
+    let rating
+    try {
+      rating = await createOrUpdateRating({
+        id: ratingId,
+        resource_id: params.id,
+        user_id: user.id,
+        overall_score,
+        barrier_scores,
+        comment,
+        rater_diagnostics,
+        rater_relationships,
+        rater_org_ids,
+        rater_connection_types,
+      })
+    } catch (err) {
+      if (isPostingBlockedError(err as { code?: string; message?: string })) return blockedResponse(CANT_POST_MESSAGE)
+      throw err
+    }
 
     if (!rating) {
+      // Nothing changed, so nothing new to review (an earlier entry stays).
+      if (queueId && !wasHeld) await dropModerationEntry(queueId)
+      const blockedNow = await postingBlockedReason(user.id)
+      if (blockedNow) return blockedResponse(blockedNow)
       return NextResponse.json({ error: 'Failed to create rating' }, { status: 500 })
     }
     if (wait_bucket) {
@@ -258,26 +315,32 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       if (waitError) console.warn('[ratings] wait time not saved:', waitError.message)
     }
 
-    // Universal-agent learning loop: record this rating as a reward
-    // attribution against (resource_id, barriers). Both this product and the
-    // goal-planning recommendation agent read from the same `tool_outcomes`
-    // table, so a single rating here improves both products' future
-    // suggestions. Best-effort: never blocks the user response.
-    if (validationResult.decision === 'approve' && !previousRating) {
-      try {
-        const barrierTypes = await resolveBarriers(supabase, user.id, barrier_scores)
-        await recordRatingOutcome(params.id, barrierTypes, overall_score)
-      } catch (err) {
-        console.warn('[ratings] recordRatingOutcome skipped:', err)
-      }
-    }
+    // Waiting for a moderator: flagged now, or flagged before and not yet looked at.
+    const held = queueId !== null || (await heldForReview('rating', [rating.id])).has(rating.id)
 
-    // Fan the same reward out to the four non-recommendation ServiceHub
-    // agents (pattern, validation, synthesis, orchestrator). One RPC
-    // call hits every in-window decision touching (user, resource).
-    if (validationResult.decision === 'approve' && !previousRating) {
+    // Universal-agent learning loop: record this rating as a reward
+    // attribution against (resource_id, the rater's own norms). Both this
+    // product and the goal-planning recommendation agent read from the same
+    // `tool_outcomes` table, so a single rating here improves both products'
+    // future suggestions. Once per person and resource: a new rating counts
+    // its reward, a changed one only the change (item 11). A rating waiting
+    // for review counts nothing. Best-effort: never blocks the response.
+    if (validationResult.decision === 'approve' && !held) {
+      const norms = Object.keys(rater_diagnostics)
       try {
-        const reward = ratingToReward(overall_score)
+        if (!previousRating) await recordRatingOutcome(params.id, norms, overall_score)
+        else await recordRatingChange(params.id, norms, previousRating.overall_score, overall_score)
+      } catch (err) {
+        console.warn('[ratings] learning outcome skipped:', err)
+      }
+
+      // Fan the same reward out to the four non-recommendation ServiceHub
+      // agents (pattern, validation, synthesis, orchestrator). One RPC
+      // call hits every in-window decision touching (user, resource).
+      try {
+        const reward = previousRating
+          ? Math.max(-1, Math.min(1, ratingToReward(overall_score) - ratingToReward(previousRating.overall_score)))
+          : ratingToReward(overall_score)
         if (reward !== 0) {
           await attributeReward(user.id, params.id, reward)
         }
@@ -286,47 +349,25 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       }
     }
 
-    // Update moderation queue with rating ID if flagged
-    if (validationResult.decision === 'flag_for_review') {
-      await supabase
-        .from('moderation_queue')
-        .update({ item_id: rating.id })
-        .eq('submitted_by', user.id)
-        .eq('item_type', 'rating')
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false })
-        .limit(1)
-    }
-
-    // Store image URLs if provided
-    // Note: In production, you might want to store image URLs in a separate table
-    // or add an image_urls field to the ratings table
-    if (image_urls && Array.isArray(image_urls) && image_urls.length > 0) {
-      // For now, we'll store image URLs in the comment metadata or a separate field
-      // This is a simplified approach - in production, consider a separate ratings_images table
-    }
-
-    // Notify users who saved this resource about the new rating
-    const { data: savedResources } = await supabase
-      .from('saved_resources')
-      .select('user_id')
-      .eq('resource_id', params.id)
-      .neq('user_id', user.id) // Don't notify the rater
-
-    if (savedResources && savedResources.length > 0) {
-      // Get resource name
-      const { data: resource } = await supabase
-        .from('resources')
-        .select('name')
-        .eq('id', params.id)
-        .single()
-
-      // Send notification to each user who saved this resource
-      for (const saved of savedResources) {
-        await sendNotification(saved.user_id, 'resource_saved_new_rating', {
-          resourceId: params.id,
-          resourceName: resource?.name || 'A resource you saved',
-        })
+    // Tell the people who saved this resource about a new rating, once it
+    // shows. Who saved it is other people's rows, so it is read as the
+    // service; the rater's session only ever found their own (item 33).
+    if (!previousRating && !held) {
+      try {
+        const { data: savedResources, error: savedError } = await createAdminClient()
+          .from('saved_resources')
+          .select('user_id')
+          .eq('resource_id', params.id)
+          .neq('user_id', user.id) // Don't notify the rater
+          .limit(500)
+        if (savedError) console.warn('[ratings] saved-by list not read:', savedError.message)
+        await sendNotificationToMany(
+          (savedResources || []).map((s: { user_id: string }) => s.user_id),
+          'resource_saved_new_rating',
+          { resourceId: params.id, resourceName: resource.name || 'A resource you saved' }
+        )
+      } catch (err) {
+        console.warn('[ratings] saved-resource notifications skipped:', err)
       }
     }
 
@@ -334,7 +375,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       success: true,
       rating,
       validation: {
-        decision: validationResult.decision,
+        // What the person should be told: a rating waiting for a moderator is pending review.
+        decision: held ? 'flag_for_review' : validationResult.decision,
         confidence: validationResult.confidence,
         trustScore: validationResult.trustScore,
       },
@@ -355,6 +397,15 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   }
 }
 
+/**
+ * PUT /api/resources/[id]/ratings — change one's own rating.
+ *
+ * It used to skip the validation agent, take the norms for the learning
+ * signal from the request, add the whole reward again on every save and
+ * create a rating when there was none (bug audit, 17 November 2026, item 11).
+ * Now it changes an existing rating only (404 otherwise), checks it like a
+ * new one, and the learning signal moves only by the change in score.
+ */
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const supabase = createClient()
@@ -362,25 +413,31 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       data: { user },
     } = await supabase.auth.getUser()
 
-        if (!user) {
-          return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        }
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
-        // Rating comes from experience (Goal 5, lib/ratings/access.ts); one's
-        // own rating can always be edited. This replaces "only selected
-        // raters" (profiles.is_rater, set by hand with
-        // scripts/grant-rater-status.sql), which only editing checked.
-        const access = await ratingAccess(supabase, params.id)
-        if (!access.can_rate) {
-          return NextResponse.json({ error: RATING_RULE, reason: 'not_eligible', access }, { status: 403 })
-        }
+    // A banned or paused account can't rate (item 9).
+    const blocked = await postingBlockedReason(user.id)
+    if (blocked) return blockedResponse(blocked)
 
-    const body = await request.json()
-    const { overall_score, barrier_scores, comment, image_urls } = body
+    // Rating comes from experience (Goal 5, lib/ratings/access.ts); one's
+    // own rating can always be edited. This replaces "only selected
+    // raters" (profiles.is_rater, set by hand with
+    // scripts/grant-rater-status.sql), which only editing checked.
+    const access = await ratingAccess(supabase, params.id)
+    if (!access.can_rate) {
+      return NextResponse.json({ error: RATING_RULE, reason: 'not_eligible', access }, { status: 403 })
+    }
+
+    const body = await request.json().catch(() => ({}))
+    const overall_score = body?.overall_score
+    const barrier_scores = cleanScores(body?.barrier_scores)
+    const comment: string | undefined = typeof body?.comment === 'string' ? body.comment.trim() || undefined : undefined
     // How long they waited (STEP 83), saved after the rating, so a rating still saves before it.
     const wait_bucket = isWaitBucket(body?.wait_bucket) ? body.wait_bucket : null
 
-    if (!overall_score || overall_score < 1 || overall_score > 5) {
+    if (!validScore(overall_score)) {
       return NextResponse.json({ error: 'Invalid overall_score' }, { status: 400 })
     }
 
@@ -389,16 +446,66 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: 'Comment must be 500 characters or less' }, { status: 400 })
     }
 
-    // Update rating (createOrUpdateRating handles both create and update)
-    const rating = await createOrUpdateRating({
-      resource_id: params.id,
-      user_id: user.id,
+    // Only an existing rating is changed here; a new one goes through POST.
+    const previous = await getRatingByUserAndResource(params.id, user.id)
+    if (!previous) {
+      return NextResponse.json({ error: "You haven't rated this yet. Add a rating first." }, { status: 404 })
+    }
+
+    // The same check a new rating gets.
+    const userHistory = await getUserHistory(user.id)
+    const validationResult = await validationAgent.validate({
+      itemType: 'rating',
+      item: {
+        id: previous.id,
+        overall_score,
+        barrier_scores,
+        comment,
+        resource_id: params.id,
+        user_id: user.id,
+      },
+      context: { userId: user.id, userHistory },
+    })
+
+    if (validationResult.decision === 'reject') {
+      return NextResponse.json(
+        {
+          error: 'Rating rejected by validation agent',
+          reasons: validationResult.reasons,
+          trustScore: validationResult.trustScore,
+        },
+        { status: 403 }
+      )
+    }
+
+    let queueId: string | null = null
+    let wasHeld = false
+    if (validationResult.decision === 'flag_for_review') {
+      wasHeld = (await heldForReview('rating', [previous.id])).has(previous.id)
+      if (!wasHeld) {
+        // A rating people can already read isn't held because of an edit: a moderator's "reject" deletes the whole
+        // rating, which would also take the version that was fine. So a flagged edit isn't saved; the rating stays
+        // as it was, and the person can reword the change.
+        return NextResponse.json(
+          { error: EDIT_NOT_SAVED, reasons: validationResult.reasons, decision: 'flag_for_review', kept: true },
+          { status: 422 }
+        )
+      }
+      queueId = await holdForReview(previous.id, user.id, validationResult)
+      if (!queueId) return NextResponse.json({ error: QUEUE_DOWN }, { status: 503 })
+    }
+
+    // As before, what isn't sent is left as it was.
+    const rating = await updateOwnRating(previous.id, user.id, {
       overall_score,
-      barrier_scores,
-      comment: comment?.trim() || undefined,
+      ...(barrier_scores ? { barrier_scores } : {}),
+      ...(comment !== undefined ? { comment } : {}),
     })
 
     if (!rating) {
+      if (queueId && !wasHeld) await dropModerationEntry(queueId)
+      const blockedNow = await postingBlockedReason(user.id)
+      if (blockedNow) return blockedResponse(blockedNow)
       return NextResponse.json({ error: 'Failed to update rating' }, { status: 500 })
     }
     if (wait_bucket) {
@@ -406,29 +513,39 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       if (waitError) console.warn('[ratings] wait time not saved:', waitError.message)
     }
 
-    // Universal-agent learning loop (mirrors POST handler). Rating updates
-    // also produce a new reward attribution so the system stays current as
-    // user opinion evolves.
-    try {
-      const barrierTypes = await resolveBarriers(supabase, user.id, barrier_scores)
-      await recordRatingOutcome(params.id, barrierTypes, overall_score)
-    } catch (err) {
-      console.warn('[ratings] recordRatingOutcome skipped:', err)
-    }
+    const held = queueId !== null || (await heldForReview('rating', [rating.id])).has(rating.id)
 
-    // Same fan-out as POST: credit pattern, validation, synthesis,
-    // orchestrator decisions that touched this (user, resource).
-    try {
-      const reward = ratingToReward(overall_score)
-      if (reward !== 0) {
-        await attributeReward(user.id, params.id, reward)
+    // The learning signal moves by the change in score only, against the
+    // person's own norms from the database, and not while it awaits review.
+    if (validationResult.decision === 'approve' && !held && previous.overall_score !== overall_score) {
+      try {
+        await recordRatingChange(params.id, await ownNorms(supabase, user.id), previous.overall_score, overall_score)
+      } catch (err) {
+        console.warn('[ratings] recordRatingChange skipped:', err)
       }
-    } catch (err) {
-      console.warn('[ratings] attributeReward (PUT) skipped:', err)
+      // Same fan-out as POST: credit pattern, validation, synthesis,
+      // orchestrator decisions that touched this (user, resource).
+      try {
+        const reward = Math.max(-1, Math.min(1, ratingToReward(overall_score) - ratingToReward(previous.overall_score)))
+        if (reward !== 0) {
+          await attributeReward(user.id, params.id, reward)
+        }
+      } catch (err) {
+        console.warn('[ratings] attributeReward (PUT) skipped:', err)
+      }
     }
 
-    return NextResponse.json({ success: true, rating })
+    return NextResponse.json({
+      success: true,
+      rating,
+      validation: {
+        decision: held ? 'flag_for_review' : validationResult.decision,
+        confidence: validationResult.confidence,
+        trustScore: validationResult.trustScore,
+      },
+    })
   } catch (error) {
+    if (isPostingBlockedError(error as { code?: string; message?: string })) return blockedResponse(CANT_POST_MESSAGE)
     console.error('Error updating rating:', error)
     return NextResponse.json({ error: 'Failed to update rating' }, { status: 500 })
   }

@@ -129,7 +129,8 @@ export default function CurrentTab({ userId }: CurrentTabProps) {
       )
     } catch (error) {
       console.error('Error deleting note:', error)
-      showToast.error('Failed to delete note. Please try again.')
+      // ResourceNote says it didn't work, and keeps the note shown.
+      throw error
     }
   }
 

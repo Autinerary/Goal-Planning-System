@@ -83,13 +83,17 @@ export default function BuildTeamTab({ userId }: BuildTeamTabProps) {
   const team = useMemo(() => rows.filter((r) => r.status === 'current'), [rows])
 
   const wishlistPageCount = Math.max(1, Math.ceil(wishlist.length / WISHLIST_PAGE_SIZE))
+  // Signing one on or taking one off can leave fewer pages than the one being
+  // shown: then the last page there is, never an empty one (bug audit,
+  // 17 November 2026, item 33).
+  const shownPage = Math.min(Math.max(1, wishlistPage), wishlistPageCount)
   const wishlistVisible = useMemo(
     () =>
       wishlist.slice(
-        (wishlistPage - 1) * WISHLIST_PAGE_SIZE,
-        wishlistPage * WISHLIST_PAGE_SIZE
+        (shownPage - 1) * WISHLIST_PAGE_SIZE,
+        shownPage * WISHLIST_PAGE_SIZE
       ),
-    [wishlist, wishlistPage]
+    [wishlist, shownPage]
   )
 
   // A change made on a card (lib/team.ts): signed on moves it to the team,
@@ -225,8 +229,8 @@ export default function BuildTeamTab({ userId }: BuildTeamTabProps) {
               <div className="mt-6 flex items-center justify-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setWishlistPage((p) => Math.max(1, p - 1))}
-                  disabled={wishlistPage === 1}
+                  onClick={() => setWishlistPage(Math.max(1, shownPage - 1))}
+                  disabled={shownPage === 1}
                   className="p-2 rounded-md border border-gray-300 bg-white text-gray-700 disabled:opacity-40 hover:bg-gray-50"
                   aria-label="Previous page"
                 >
@@ -238,7 +242,7 @@ export default function BuildTeamTab({ userId }: BuildTeamTabProps) {
                     type="button"
                     onClick={() => setWishlistPage(i + 1)}
                     className={`w-9 h-9 rounded-md text-sm font-medium ${
-                      wishlistPage === i + 1
+                      shownPage === i + 1
                         ? 'bg-blue-600 text-white'
                         : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                     }`}
@@ -248,8 +252,8 @@ export default function BuildTeamTab({ userId }: BuildTeamTabProps) {
                 ))}
                 <button
                   type="button"
-                  onClick={() => setWishlistPage((p) => Math.min(wishlistPageCount, p + 1))}
-                  disabled={wishlistPage === wishlistPageCount}
+                  onClick={() => setWishlistPage(Math.min(wishlistPageCount, shownPage + 1))}
+                  disabled={shownPage === wishlistPageCount}
                   className="p-2 rounded-md border border-gray-300 bg-white text-gray-700 disabled:opacity-40 hover:bg-gray-50"
                   aria-label="Next page"
                 >

@@ -8,6 +8,7 @@ import Footer from '@/components/layout/Footer'
 import Breadcrumbs from '@/components/layout/Breadcrumbs'
 import { NORM_GROUPS } from '@/lib/norms/taxonomy'
 import { useMyProfile } from '@/lib/useMyProfile'
+import { safeHref } from '@/components/ui/safeUrl'
 
 interface Visual {
   id: string
@@ -142,7 +143,7 @@ export default function VisualsPage() {
               <ul className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {visuals.map((v) => (
                   <li key={v.id} className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-                    <a href={v.image_url} target="_blank" rel="noopener noreferrer" className="block bg-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500">
+                    <a href={safeHref(v.image_url) ?? undefined} target="_blank" rel="noopener noreferrer" className="block bg-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={v.image_url} alt={v.alt_text} loading="lazy" className="aspect-[4/3] w-full object-contain" />
                       <span className="sr-only">(opens the full image in a new tab)</span>

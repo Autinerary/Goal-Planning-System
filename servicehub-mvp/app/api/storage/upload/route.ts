@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { imageKind } from '@/lib/visuals/aiCheck'
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const TYPES = { png: 'image/png', jpg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif' } as const
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,17 +17,16 @@ export async function POST(request: NextRequest) {
     }
 
     const formData = await request.formData()
-    const file = formData.get('file') as File
-    const resourceId = formData.get('resourceId') as string
-    const index = formData.get('index') as string
+    const file = formData.get('file')
+    const resourceId = String(formData.get('resourceId') || '')
+    const index = String(formData.get('index') || '0').replace(/[^0-9]/g, '').slice(0, 3) || '0'
 
-    if (!file || !resourceId) {
+    if (!(file instanceof File) || !resourceId) {
       return NextResponse.json({ error: 'Missing file or resourceId' }, { status: 400 })
     }
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      return NextResponse.json({ error: 'File must be an image' }, { status: 400 })
+    // Part of the file's path, so only an id.
+    if (!UUID.test(resourceId)) {
+      return NextResponse.json({ error: 'Which listing is this picture for?' }, { status: 400 })
     }
 
     // Validate file size (500KB max)
@@ -31,15 +34,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'File size must be less than 500KB' }, { status: 400 })
     }
 
+    // The file's own bytes decide its type, never the browser's label: an
+    // SVG (which can carry script) used to pass as "image/svg+xml".
+    const bytes = new Uint8Array(await file.arrayBuffer())
+    const kind = imageKind(bytes)
+    if (!kind) {
+      return NextResponse.json({ error: 'Please choose a JPG, PNG, GIF or WebP picture.' }, { status: 400 })
+    }
+
     // Generate file path
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${resourceId}/${user.id}/${Date.now()}_${index}.${fileExt}`
+    const fileName = `${resourceId}/${user.id}/${Date.now()}_${index}.${kind}`
     const filePath = `ratings/${fileName}`
 
     // Upload to Supabase Storage
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from('resource-images')
-      .upload(filePath, file, {
+      .upload(filePath, bytes, {
+        contentType: TYPES[kind],
         cacheControl: '3600',
         upsert: false,
       })

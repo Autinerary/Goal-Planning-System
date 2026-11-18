@@ -20,6 +20,9 @@ export default function ResourceNote({
   const [note, setNote] = useState(initialNote || '')
   const [saving, setSaving] = useState(false)
   const [showInput, setShowInput] = useState(false)
+  // Said here when a save or delete doesn't work; it used to fail silently
+  // (bug audit, 17 November 2026, item 33). onSave and onDelete throw on failure.
+  const [problem, setProblem] = useState('')
 
   const handleSave = async () => {
     if (note.trim() === initialNote?.trim()) {
@@ -28,12 +31,14 @@ export default function ResourceNote({
     }
 
     setSaving(true)
+    setProblem('')
     try {
       await onSave(resourceId, note.trim())
       setIsEditing(false)
       setShowInput(false)
     } catch (error) {
       console.error('Error saving note:', error)
+      setProblem('Your note wasn’t saved. Please try again.')
     } finally {
       setSaving(false)
     }
@@ -45,6 +50,7 @@ export default function ResourceNote({
     }
 
     setSaving(true)
+    setProblem('')
     try {
       await onDelete(resourceId)
       setNote('')
@@ -52,6 +58,7 @@ export default function ResourceNote({
       setShowInput(false)
     } catch (error) {
       console.error('Error deleting note:', error)
+      setProblem('Your note wasn’t deleted. Please try again.')
     } finally {
       setSaving(false)
     }
@@ -60,10 +67,17 @@ export default function ResourceNote({
   const handleCancel = () => {
     setNote(initialNote || '')
     setIsEditing(false)
+    setProblem('')
     if (!initialNote) {
       setShowInput(false)
     }
   }
+
+  const problemLine = problem ? (
+    <p role="alert" className="mt-1 text-xs font-medium text-red-700">
+      {problem}
+    </p>
+  ) : null
 
   if (!showInput && !initialNote) {
     return (
@@ -80,14 +94,18 @@ export default function ResourceNote({
 
   if (!isEditing && initialNote) {
     return (
+      <div>
       <div className="group relative">
-        <div className="text-xs text-gray-600 max-w-xs truncate" title={initialNote}>
+        {/* Room on the right for Edit and Delete, which stay shown on touch screens. */}
+        <div className="text-xs text-gray-600 max-w-xs truncate pr-14" title={initialNote}>
           {initialNote}
         </div>
         <div className="absolute top-0 left-0 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-10 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity max-w-xs">
           <div className="text-sm text-gray-900 whitespace-pre-wrap break-words">{initialNote}</div>
         </div>
-        <div className="absolute top-0 right-0 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        {/* Shown on hover, and also when a button has keyboard focus or the
+            screen has no hover (touch): invisible buttons could still be tapped. */}
+        <div className="absolute top-0 right-0 z-20 flex gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity">
           <button
             onClick={() => setIsEditing(true)}
             className="p-1 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -103,6 +121,8 @@ export default function ResourceNote({
             <Trash2 className="w-3 h-3" aria-hidden="true" />
           </button>
         </div>
+      </div>
+      {problemLine}
       </div>
     )
   }
@@ -140,6 +160,7 @@ export default function ResourceNote({
           </button>
         </div>
       </div>
+      {problemLine}
     </div>
   )
 }

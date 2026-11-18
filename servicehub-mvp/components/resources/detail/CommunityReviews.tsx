@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Star, ThumbsUp, User, Clock, ChevronDown } from 'lucide-react'
 import type { Rating } from '@/types/database'
 import type { ReviewerProfile } from '@/types/database'
@@ -8,6 +8,7 @@ import AddRatingButton from './AddRatingButton'
 import EmptyState from '@/components/feedback/EmptyState'
 import { showToast } from '@/lib/toast'
 import { areaName } from '@/lib/ratings/areaNames'
+import { appSignInHref } from '@/lib/appSignIn'
 
 interface CommunityReviewsProps {
   resourceId: string
@@ -37,6 +38,17 @@ export default function CommunityReviews({ resourceId, userId }: CommunityReview
   useEffect(() => {
     fetchReviews()
   }, [resourceId, sort, page])
+
+  // Review cards in search ("From Tidbits") link to #reviews. The reviews
+  // load after the page does, so once they're in, the jump is made again
+  // in case the browser's own jump landed short.
+  const sectionRef = useRef<HTMLElement>(null)
+  const jumpedToReviews = useRef(false)
+  useEffect(() => {
+    if (loading || jumpedToReviews.current) return
+    jumpedToReviews.current = true
+    if (window.location.hash === '#reviews') sectionRef.current?.scrollIntoView({ block: 'start' })
+  }, [loading])
 
   const fetchReviews = async () => {
     setLoading(true)
@@ -124,9 +136,14 @@ export default function CommunityReviews({ resourceId, userId }: CommunityReview
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <section
+      id="reviews"
+      ref={sectionRef}
+      aria-labelledby="reviews-heading"
+      className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 scroll-mt-20"
+    >
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-        <h2 className="text-xl font-semibold text-gray-900">Community Reviews</h2>
+        <h2 id="reviews-heading" className="text-xl font-semibold text-gray-900">Community Reviews</h2>
         <div className="flex flex-wrap items-center gap-3">
           {userId && (
             <AddRatingButton
@@ -293,9 +310,18 @@ export default function CommunityReviews({ resourceId, userId }: CommunityReview
         </>
       ) : (
         <div className="text-center py-8">
+          {/* Signed out: the one Autinerary sign-in, coming back here to rate
+              (?then=rate, which ResourceHeader picks up), as its Rate button
+              does. The address is made on press, in the browser. */}
           <EmptyState
             type="ratings"
-            onAction={userId ? undefined : () => {}}
+            onAction={
+              userId
+                ? undefined
+                : () => {
+                    window.location.href = appSignInHref(`/resources/${resourceId}?then=rate`)
+                  }
+            }
             actionLabel={userId ? undefined : 'Sign in to rate'}
           />
           {userId && (
@@ -309,6 +335,6 @@ export default function CommunityReviews({ resourceId, userId }: CommunityReview
           )}
         </div>
       )}
-    </div>
+    </section>
   )
 }

@@ -6,14 +6,15 @@
  * lock is honored by the answer-creation + vote endpoints (they check
  * the flag before writing).
  *
- * Admins are the people in public.admin_users. The write runs as the
- * signed-in admin under RLS (community_posts_admin_update, STEP 58), not with
- * the service-role key.
+ * Admins are the people in public.admin_users, checked as the signed-in
+ * caller. The lock itself is then saved by the server: since STEP 105 the
+ * lock columns are the server's to write, so a post's author can't clear a
+ * moderator's lock (bug audit, 17 November 2026, item 13).
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { isCommunityAdmin } from '@/lib/community/client';
+import { getCommunityServiceClient, isCommunityAdmin } from '@/lib/community/client';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,7 +58,9 @@ export async function POST(
         locked_by: null,
         locked_at: null,
       };
-  const { data, error } = await supabase
+  const client = getCommunityServiceClient();
+  if (!client) return NextResponse.json({ error: 'Community is not configured' }, { status: 503 });
+  const { data, error } = await client
     .from('community_posts')
     .update(update)
     .eq('id', params.id)

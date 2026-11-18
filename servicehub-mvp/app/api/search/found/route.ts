@@ -5,6 +5,7 @@ import { markdownExcerpt } from '@/lib/community/markdown'
 import { contentNoteLabel } from '@/lib/community/contentNotes'
 import { INSTITUTIONS } from '@/lib/campus'
 import { APP_URL } from '@/lib/appSignIn'
+import { heldForReview } from '@/lib/moderation/queue'
 
 export const dynamic = 'force-dynamic'
 
@@ -61,8 +62,11 @@ export async function GET(req: NextRequest) {
       .order('helpful_count', { ascending: false })
       .order('created_at', { ascending: false })
       .limit(9)
-    const people = await getReviewerProfiles((reviews || []).map((r) => r.user_id))
-    for (const r of reviews || []) {
+    // A review waiting for a moderator isn't shown (item 25).
+    const held = await heldForReview('rating', (reviews || []).map((r) => r.id))
+    const shown = (reviews || []).filter((r) => !held.has(r.id))
+    const people = await getReviewerProfiles(shown.map((r) => r.user_id))
+    for (const r of shown) {
       const text = String(r.comment || '').trim()
       if (text.length < 10) continue
       const who = people.get(r.user_id)
@@ -95,7 +99,8 @@ export async function GET(req: NextRequest) {
           kind: 'tidbit',
           title: p.title,
           excerpt: note ? `Content note: ${note}` : p.solved_tldr || markdownExcerpt(p.body_markdown || '', 200),
-          href: `/community/${p.id}`,
+          // The Tidbit's own page (/community/<id> is a 404; bug audit, 17 November 2026, item 26).
+          href: `/community/post/${p.id}`,
           about: s.name,
           rank: 500 + (p.score || 0),
         })
@@ -159,7 +164,7 @@ export async function GET(req: NextRequest) {
         kind: 'tidbit',
         title: p.title,
         excerpt: note ? `Content note: ${note}` : p.solved_key_insight || p.solved_tldr || markdownExcerpt(p.body_markdown || '', 200),
-        href: `/community/${p.id}`,
+        href: `/community/post/${p.id}`,
         rank: 400 + (p.score || 0),
       })
     }

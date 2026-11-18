@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
+import { safeHref } from '@/components/ui/safeUrl'
 
 const WANT_LABELS: Record<string, string> = {
   edit_details: 'Edit our details',
@@ -120,13 +121,14 @@ export default function RequestsQueue() {
                   {p.price == null ? 'Price varies' : `${p.price} ${p.currency}`} · Qualities: {(p.qualities || []).join(', ') || 'none ticked'}
                 </p>
                 <p className="mt-1 text-sm">
-                  {(p.buy_links || []).map((l: any) => (
-                    <a key={l.url} href={l.url} target="_blank" rel="noopener noreferrer" className="mr-3 text-blue-800 underline">
+                  {/* Sent in by people, so only http(s) addresses become links: a "javascript:" one must not run for whoever reviews it. */}
+                  {(p.buy_links || []).filter((l: any) => safeHref(l?.url)).map((l: any) => (
+                    <a key={l.url} href={safeHref(l.url)!} target="_blank" rel="noopener noreferrer" className="mr-3 text-blue-800 underline">
                       {l.label}
                     </a>
                   ))}
-                  {p.maker_url && (
-                    <a href={p.maker_url} target="_blank" rel="noopener noreferrer" className="text-blue-800 underline">
+                  {safeHref(p.maker_url) && (
+                    <a href={safeHref(p.maker_url)!} target="_blank" rel="noopener noreferrer" className="text-blue-800 underline">
                       Maker&apos;s page
                     </a>
                   )}

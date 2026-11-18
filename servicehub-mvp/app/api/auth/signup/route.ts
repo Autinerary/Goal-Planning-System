@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { computeAge, MIN_SIGNUP_AGE } from '@/lib/age'
+import { clientIp, rateLimited, TOO_MANY_MESSAGE } from '@/lib/rateLimit'
+
+// Accounts made from one address: a basic limit so a script can't make
+// accounts in bulk or test which emails already have one (bug audit,
+// 17 November 2026). Per server instance (lib/rateLimit.ts).
+const PER_10_MINUTES = 5
+const PER_DAY = 20
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,6 +32,13 @@ export async function POST(req: NextRequest) {
         },
         { status: 403 }
       )
+    }
+
+    // Counted only for tries that would make an account, so a mistyped date
+    // of birth doesn't use one up.
+    const ip = clientIp(req.headers)
+    if (rateLimited('signup-10m', ip, PER_10_MINUTES, 10 * 60_000) || rateLimited('signup-day', ip, PER_DAY, 24 * 60 * 60_000)) {
+      return NextResponse.json({ error: TOO_MANY_MESSAGE }, { status: 429 })
     }
 
     const admin = createAdminClient()

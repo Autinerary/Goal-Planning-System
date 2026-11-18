@@ -1,117 +1,105 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { sendNotification } from '@/lib/notifications/service'
 import { onResourceCreated } from '@/lib/embeddings/auto-generate'
 import type { Resource } from '@/types/database'
 import { isAdminUser } from '@/lib/auth/admin'
+
+/**
+ * The signed-in person, when they are an admin; otherwise the response to
+ * send. Admin pages check this first; the writes below then use the admin
+ * client, because a listing's status is the server's to set (people may only
+ * change their own listings, and since STEP 105 never their status). With the
+ * person's session, approve, reject and delete changed nothing and still
+ * reported success (bug audit, 17 November 2026, items 4 and 25).
+ */
+async function adminOnly(): Promise<{ userId: string } | NextResponse> {
+  const supabase = createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (!(await isAdminUser(supabase, profile?.role))) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+  return { userId: user.id }
+}
+
+/** Close the listing's pending moderation entries with the decision (logged on failure; the listing is what counts). */
+async function closeQueueEntries(admin: ReturnType<typeof createAdminClient>, resourceId: string, status: 'approved' | 'rejected', reviewerId: string) {
+  const { error } = await admin
+    .from('moderation_queue')
+    .update({ status, reviewed_by: reviewerId, reviewed_at: new Date().toISOString() })
+    .eq('item_id', resourceId)
+    .eq('item_type', 'resource')
+    .eq('status', 'pending')
+  if (error) console.error('[admin/resources] moderation queue not updated:', error.message)
+}
 
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    const allowed = await adminOnly()
+    if (allowed instanceof NextResponse) return allowed
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Check if user is admin
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (!(await isAdminUser(supabase, profile?.role))) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
-
-    const { action } = await request.json()
+    const { action } = await request.json().catch(() => ({ action: null }))
     const resourceId = params.id
+    if (action !== 'approve' && action !== 'reject') {
+      return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
+    }
 
-    if (action === 'approve') {
-      // Get full resource (need all fields for embedding generation)
-      const { data: resource } = await supabase
-        .from('resources')
-        .select('*')
-        .eq('id', resourceId)
-        .single()
+    const admin = createAdminClient()
+    const status = action === 'approve' ? 'approved' : 'rejected'
 
-      // Update resource status
-      const { error } = await supabase
-        .from('resources')
-        .update({ status: 'approved' })
-        .eq('id', resourceId)
+    // The whole row comes back: approval needs it for the embedding.
+    const { data: changed, error } = await admin
+      .from('resources')
+      .update({ status })
+      .eq('id', resourceId)
+      .select('*')
 
-      if (error) throw error
+    if (error) throw error
+    const resource = (changed || [])[0] as Resource | undefined
+    if (!resource) {
+      return NextResponse.json({ error: 'That listing was not found, so nothing changed.' }, { status: 404 })
+    }
 
-      // Update moderation queue
-      await supabase
-        .from('moderation_queue')
-        .update({ status: 'approved', reviewed_by: user.id, reviewed_at: new Date().toISOString() })
-        .eq('item_id', resourceId)
-        .eq('item_type', 'resource')
+    await closeQueueEntries(admin, resourceId, status, allowed.userId)
 
+    if (status === 'approved') {
       // Generate embedding now that resource is live (so it shows up in semantic search).
       // Awaited so it actually runs to completion on Vercel serverless — admin actions are
       // infrequent enough that the extra latency is acceptable. Failure is logged but does
       // not roll back the approval; the batch backfill can pick it up later.
-      if (resource) {
-        try {
-          await onResourceCreated(resource as Resource)
-        } catch (embeddingError) {
-          console.error(`Embedding generation failed for resource ${resourceId}:`, embeddingError)
-        }
+      try {
+        await onResourceCreated(resource)
+      } catch (embeddingError) {
+        console.error(`Embedding generation failed for resource ${resourceId}:`, embeddingError)
       }
-
-      // Send notification to submitter
-      if (resource?.submitted_by) {
-        await sendNotification(resource.submitted_by, 'resource_approved', {
-          resourceId,
-          resourceName: resource.name,
-        })
-      }
-
-      return NextResponse.json({ success: true })
-    } else if (action === 'reject') {
-      // Get resource details
-      const { data: resource } = await supabase
-        .from('resources')
-        .select('name, submitted_by')
-        .eq('id', resourceId)
-        .single()
-
-      // Update resource status
-      const { error } = await supabase
-        .from('resources')
-        .update({ status: 'rejected' })
-        .eq('id', resourceId)
-
-      if (error) throw error
-
-      // Update moderation queue
-      await supabase
-        .from('moderation_queue')
-        .update({ status: 'rejected', reviewed_by: user.id, reviewed_at: new Date().toISOString() })
-        .eq('item_id', resourceId)
-        .eq('item_type', 'resource')
-
-      // Send notification to submitter
-      if (resource?.submitted_by) {
-        await sendNotification(resource.submitted_by, 'resource_rejected', {
-          resourceId,
-          resourceName: resource.name,
-        })
-      }
-
-      return NextResponse.json({ success: true })
     }
 
-    return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
+    // Send notification to submitter
+    if (resource.submitted_by) {
+      await sendNotification(resource.submitted_by, status === 'approved' ? 'resource_approved' : 'resource_rejected', {
+        resourceId,
+        resourceName: resource.name,
+      })
+    }
+
+    return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error updating resource:', error)
     return NextResponse.json({ error: 'Failed to update resource' }, { status: 500 })
@@ -123,35 +111,22 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Check if user is admin
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (!(await isAdminUser(supabase, profile?.role))) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
+    const allowed = await adminOnly()
+    if (allowed instanceof NextResponse) return allowed
 
     const resourceId = params.id
 
     // Soft delete: set status to 'deleted' instead of actually deleting
-    const { error } = await supabase
+    const { data: changed, error } = await createAdminClient()
       .from('resources')
       .update({ status: 'deleted' })
       .eq('id', resourceId)
+      .select('id')
 
     if (error) throw error
+    if (!changed || changed.length === 0) {
+      return NextResponse.json({ error: 'That listing was not found, so nothing changed.' }, { status: 404 })
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

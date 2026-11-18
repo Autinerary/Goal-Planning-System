@@ -6,6 +6,7 @@ import Footer from '@/components/layout/Footer'
 import { createClient } from '@/lib/supabase/server'
 import { formatPrice } from '@/types/shop'
 import StartReturn from './StartReturn'
+import { safeHref } from '@/components/ui/safeUrl'
 
 export const dynamic = 'force-dynamic'
 
@@ -54,8 +55,8 @@ export default async function OrdersPage({ searchParams }: { searchParams: { don
                       </li>
                     ))}
                 </ul>
-                {o.tracking_url && (
-                  <a href={o.tracking_url} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block text-sm font-medium text-blue-800 underline underline-offset-2">
+                {safeHref(o.tracking_url) && (
+                  <a href={safeHref(o.tracking_url)!} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block text-sm font-medium text-blue-800 underline underline-offset-2">
                     Track it
                   </a>
                 )}

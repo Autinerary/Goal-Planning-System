@@ -18,9 +18,35 @@ import { lifeAreaKeywords } from '@/lib/search/lifeAreas'
 import { searchProducts } from '@/lib/search/products'
 import { conditionStems } from '@/lib/search/conditions'
 import { isShopFilterId } from '@/lib/shop/categories'
-import { understandByWords, understandWithAI, withoutParts, searchFor, type Understood } from '@/lib/search/understand'
+import { understandByWords, understandWithAI, withoutParts, searchFor, isSentence, type Understood } from '@/lib/search/understand'
+import { clientIp, rateLimited } from '@/lib/rateLimit'
 import { teamStates } from '@/lib/team'
 import { tagGroupsFor, wantsLocalGroups, isTag, SERVICE_AGES } from '@/lib/filters/tags'
+
+// Reading a sentence with AI (ai=1) is a paid call (lib/llm.ts). Signed-out
+// searches get a tighter limit per address, signed-in ones a looser one per
+// person; past it, the sentence is read by its words alone, so the search
+// still works (bug audit, 17 November 2026, item 16).
+const AI_READS_SIGNED_OUT = 15
+const AI_READS_SIGNED_IN = 60
+const AI_WINDOW_MS = 10 * 60_000
+
+async function mayReadWithAI(request: NextRequest, typed: string): Promise<boolean> {
+  // Only a sentence goes to the AI at all (lib/search/understand.ts).
+  if (!isSentence(typed)) return false
+  let userId: string | null = null
+  try {
+    const {
+      data: { user },
+    } = await createClient().auth.getUser()
+    userId = user?.id ?? null
+  } catch {
+    userId = null
+  }
+  return userId
+    ? !rateLimited('search-ai-user', userId, AI_READS_SIGNED_IN, AI_WINDOW_MS)
+    : !rateLimited('search-ai-ip', clientIp(request.headers), AI_READS_SIGNED_OUT, AI_WINDOW_MS)
+}
 
 const VALID_SORT_KEYS: SortOption[] = [
   'relevance',
@@ -72,7 +98,8 @@ export async function GET(request: NextRequest) {
     const drop = (searchParams.get('drop') || '').split(',').filter(Boolean)
     let understood: Understood | null = null
     if (typed && !exact) {
-      const read = searchParams.get('ai') === '1' ? await understandWithAI(typed) : understandByWords(typed)
+      const withAI = searchParams.get('ai') === '1' && (await mayReadWithAI(request, typed))
+      const read = withAI ? await understandWithAI(typed) : understandByWords(typed)
       const kept = withoutParts(read, drop)
       // Worth using only when it found something more than words.
       if (read.intents.length || read.place || read.norms.length || read.ages.length) understood = kept

@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import type { Notification } from '@/types/database'
 
 type NotificationInsert = {
@@ -28,14 +29,27 @@ interface NotificationData {
 }
 
 /**
- * Send a notification to a user
+ * Send a notification to a user.
+ *
+ * Written as the service: people can't add notifications for anyone, even
+ * themselves (STEP 105 drops the open INSERT policy that let anyone with the
+ * public key put a "Resource approved" with any link in anyone's bell; bug
+ * audit, 17 November 2026, item 1). The text and the link are always made
+ * here, from the type, never taken from a request. Call this only after the
+ * route has checked that the event really happened.
  */
 export async function sendNotification(
   userId: string,
   type: NotificationType,
   data: NotificationData
 ): Promise<Notification | null> {
-  const supabase = createClient()
+  let supabase
+  try {
+    supabase = createAdminClient()
+  } catch (err) {
+    console.error('Error sending notification: service client not configured', err)
+    return null
+  }
 
   // Generate title and message based on type
   const { title, message, link } = generateNotificationContent(type, data)
@@ -64,6 +78,41 @@ export async function sendNotification(
 }
 
 /**
+ * The same notification to several people at once (for example everyone who
+ * saved a resource that just got a new rating), as the service, in one write.
+ * Returns how many were written. Capped, so one event can't flood the table.
+ */
+export async function sendNotificationToMany(
+  userIds: string[],
+  type: NotificationType,
+  data: NotificationData,
+  max = 500
+): Promise<number> {
+  const ids = Array.from(new Set(userIds.filter(Boolean))).slice(0, max)
+  if (ids.length === 0) return 0
+  let supabase
+  try {
+    supabase = createAdminClient()
+  } catch (err) {
+    console.error('Error sending notifications: service client not configured', err)
+    return 0
+  }
+  const { title, message, link } = generateNotificationContent(type, data)
+  const rows: NotificationInsert[] = ids.map((user_id) => ({ user_id, type, title, message, link, read: false }))
+  const { error } = await supabase.from('notifications').insert(rows)
+  if (error) {
+    console.error('Error sending notifications:', error)
+    return 0
+  }
+  return rows.length
+}
+
+/** A link inside ResourceHub only, to the resource's page. */
+function resourceLink(resourceId?: string): string | null {
+  return resourceId ? `/resources/${encodeURIComponent(resourceId)}` : null
+}
+
+/**
  * Generate notification content based on type
  */
 function generateNotificationContent(
@@ -75,35 +124,35 @@ function generateNotificationContent(
       return {
         title: 'Resource Approved! 🎉',
         message: `Your resource "${data.resourceName || 'Resource'}" has been approved and is now live on the platform.`,
-        link: data.resourceId ? `/resources/${data.resourceId}` : null,
+        link: resourceLink(data.resourceId),
       }
 
     case 'resource_rejected':
       return {
         title: 'Resource Not Approved',
         message: `Your resource "${data.resourceName || 'Resource'}" could not be approved at this time. Please review the guidelines and try again.`,
-        link: data.resourceId ? `/resources/${data.resourceId}` : null,
+        link: resourceLink(data.resourceId),
       }
 
     case 'rating_helpful':
       return {
         title: 'Your Rating was Helpful! ⭐',
         message: `${data.helpfulCount || 1} person${(data.helpfulCount || 1) > 1 ? 's have' : ' has'} found your rating helpful.`,
-        link: data.resourceId ? `/resources/${data.resourceId}` : null,
+        link: resourceLink(data.resourceId),
       }
 
     case 'new_rating':
       return {
         title: 'New Rating Added',
         message: `Someone added a new rating to a resource you follow.`,
-        link: data.resourceId ? `/resources/${data.resourceId}` : null,
+        link: resourceLink(data.resourceId),
       }
 
     case 'resource_saved_new_rating':
       return {
         title: 'New Rating on Saved Resource',
         message: `"${data.resourceName || 'A resource'}" you saved has received a new rating.`,
-        link: data.resourceId ? `/resources/${data.resourceId}` : null,
+        link: resourceLink(data.resourceId),
       }
 
     default:
@@ -204,7 +253,12 @@ export async function getUserNotifications(
 }
 
 /**
- * Delete a notification
+ * Delete one of the signed-in person's own notifications. Until STEP 105
+ * there was no delete policy, so with the person's session this deleted
+ * nothing and still said it had (bug audit, 17 November 2026, item 33). The
+ * person is read from their session; the delete is limited to their own row
+ * and made as the service, so it works before and after STEP 105. False when
+ * nothing was deleted.
  */
 export async function deleteNotification(notificationId: string): Promise<boolean> {
   const supabase = createClient()
@@ -216,11 +270,18 @@ export async function deleteNotification(notificationId: string): Promise<boolea
     return false
   }
 
-  const { error } = await supabase
+  let admin
+  try {
+    admin = createAdminClient()
+  } catch {
+    admin = supabase
+  }
+  const { data, error } = await admin
     .from('notifications')
     .delete()
     .eq('id', notificationId)
     .eq('user_id', user.id)
+    .select('id')
 
-  return !error
+  return !error && (data?.length ?? 0) > 0
 }

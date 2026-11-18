@@ -11,11 +11,23 @@
  * Runs as the signed-in caller: community_accept_answer takes who is acting
  * from the session and allows the post's author or an admin
  * (public.admin_users), not the service-role key and an id we pass (STEP 58).
+ * The Solved line is the author's own words on the post, so it goes through
+ * the same word filter as a post (no slurs; swear words bleeped), and a
+ * banned or suspended author, or a locked post, can't take one.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { validateSolvedPayload } from '@/lib/community/solved';
+import {
+  CANT_POST_MESSAGE,
+  getCommunityServiceClient,
+  isCommunityAdmin,
+  isPostingBlockedError,
+  postingBlockedReason,
+} from '@/lib/community/client';
+import { LOCKED_MESSAGE, loadPostState } from '@/lib/community/locks';
+import { moderateFields, SLUR_MESSAGE } from '@/lib/community/moderation';
+import { KEY_INSIGHT_MAX, TLDR_MAX, validateSolvedPayload } from '@/lib/community/solved';
 
 export const dynamic = 'force-dynamic';
 
@@ -51,15 +63,29 @@ export async function POST(
   if (validation) {
     return NextResponse.json({ error: validation }, { status: 400 });
   }
+  const moderated = moderateFields({ tldr, keyInsight });
+  if (moderated.slur) return NextResponse.json({ error: SLUR_MESSAGE, code: 'slur' }, { status: 400 });
+
+  const isAdmin = await isCommunityAdmin(client);
+  if (!isAdmin) {
+    const blocked = await postingBlockedReason(user.id);
+    if (blocked) return NextResponse.json({ error: blocked, code: 'blocked' }, { status: 403 });
+    const service = getCommunityServiceClient();
+    const post = service ? await loadPostState(service, params.id) : null;
+    if (post?.is_locked) return NextResponse.json({ error: LOCKED_MESSAGE, code: 'locked' }, { status: 403 });
+  }
 
   const { error } = await client.rpc('community_accept_answer', {
     p_post_id: params.id,
     p_answer_id: answerId,
     p_acting_user_id: user.id,
-    p_tldr: tldr,
-    p_key_insight: keyInsight,
+    p_tldr: moderated.fields.tldr.slice(0, TLDR_MAX),
+    p_key_insight: moderated.fields.keyInsight.slice(0, KEY_INSIGHT_MAX),
   });
   if (error) {
+    if (isPostingBlockedError(error)) {
+      return NextResponse.json({ error: CANT_POST_MESSAGE, code: 'blocked' }, { status: 403 });
+    }
     // The RPC raises descriptive errors which are safe to surface.
     console.error('[community] accept_answer failed:', error.message);
     return NextResponse.json({ error: error.message || 'Accept failed' }, { status: 400 });

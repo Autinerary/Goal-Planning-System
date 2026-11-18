@@ -103,8 +103,11 @@ export default function ResourceHeader({ resource, userId }: ResourceHeaderProps
     setShowRatingModal(true)
   }
 
-  const handleRatingAdded = () => {
+  const handleRatingAdded = (result?: { held: boolean }) => {
     setShowRatingModal(false)
+    // Held for a quick review: nothing on the page changes yet, and the
+    // modal has said so. Reloading would wipe that message.
+    if (result?.held) return
     showToast.success('Thanks! Your rating has been added.')
     // Reload so RatingsBreakdown + CommunityReviews refresh.
     window.location.reload()

@@ -66,23 +66,42 @@ export async function GET(request: NextRequest) {
   const reports = (data || []) as unknown as Report[]
 
   // Names, addresses and roles of everyone in these reports, and how often
-  // each sender has been reported.
+  // each sender has been reported. Counted by the database: reading the rows
+  // to count them stopped at its 1,000-row limit (bug audit, 17 November 2026).
   const ids = Array.from(new Set(reports.flatMap((r) => [r.reporter_id, r.reported_user_id, r.resolved_by]).filter(Boolean))) as string[]
-  const [{ data: people }, { data: all }] = await Promise.all([
-    ids.length ? admin.from('profiles').select('id, display_name, full_name, email, role').in('id', ids) : Promise.resolve({ data: [] as any[] }),
-    admin.from('message_reports').select('reported_user_id, resolved_at'),
-  ])
-  const byId = new Map(((people || []) as { id: string; display_name: string | null; full_name: string | null; email: string | null; role: string | null }[]).map((p) => [p.id, p]))
+  const senders = Array.from(new Set(reports.map((r) => r.reported_user_id).filter(Boolean))) as string[]
+  const count = async (filter: (q: any) => any): Promise<number> => {
+    const { count: n, error: countError } = await filter(admin.from('message_reports').select('id', { count: 'exact', head: true }))
+    if (countError) throw new Error(countError.message)
+    return n || 0
+  }
+  let people: { id: string; display_name: string | null; full_name: string | null; email: string | null; role: string | null }[] = []
+  let open = 0, resolved = 0
+  const timesReported = new Map<string, number>()
+  try {
+    const [peopleResult, openCount, resolvedCount] = await Promise.all([
+      ids.length ? admin.from('profiles').select('id, display_name, full_name, email, role').in('id', ids) : Promise.resolve({ data: [] as any[] }),
+      count((q) => q.is('resolved_at', null)),
+      count((q) => q.not('resolved_at', 'is', null)),
+    ])
+    people = ((peopleResult as { data: any[] | null }).data || []) as typeof people
+    open = openCount
+    resolved = resolvedCount
+    // A few at a time: one count per sender on this page (at most 100).
+    for (let i = 0; i < senders.length; i += 10) {
+      const batch = senders.slice(i, i + 10)
+      const counts = await Promise.all(batch.map((id) => count((q) => q.eq('reported_user_id', id))))
+      batch.forEach((id, n) => timesReported.set(id, counts[n]))
+    }
+  } catch (e) {
+    console.error('[admin/message-reports] counts:', (e as Error).message)
+    return NextResponse.json({ error: 'Reports could not be loaded.' }, { status: 500 })
+  }
+  const byId = new Map(people.map((p) => [p.id, p]))
   const person = (id: string | null) => {
     if (!id) return null
     const p = byId.get(id)
     return { id, name: p?.display_name || p?.full_name || 'Deleted account', email: p?.email || null, role: p?.role || null }
-  }
-  const timesReported = new Map<string, number>()
-  let open = 0, resolved = 0
-  for (const r of (all || []) as { reported_user_id: string | null; resolved_at: string | null }[]) {
-    if (r.resolved_at) resolved++; else open++
-    if (r.reported_user_id) timesReported.set(r.reported_user_id, (timesReported.get(r.reported_user_id) || 0) + 1)
   }
 
   return NextResponse.json({

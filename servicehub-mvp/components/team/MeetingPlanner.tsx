@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { CalendarPlus, Gift, Mail, MapPin, Phone, Video } from 'lucide-react'
 import { MEETING_TYPES, meetingTaskName, newVideoLink, nextMeeting, type Meeting, type MeetingType } from '@/lib/team'
 import type { ContactInfo } from '@/types/database'
+import { safeHref } from '@/components/ui/safeUrl'
 
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
@@ -167,8 +168,8 @@ export default function MeetingPlanner({
           </p>
         )}
         <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
-          {scheduled.type === 'video' && scheduled.link && (
-            <a href={scheduled.link} target="_blank" rel="noopener noreferrer" className="font-medium text-blue-800 underline">
+          {scheduled.type === 'video' && safeHref(scheduled.link) && (
+            <a href={safeHref(scheduled.link)!} target="_blank" rel="noopener noreferrer" className="font-medium text-blue-800 underline">
               Video link{named}
             </a>
           )}

@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Sparkles, X } from 'lucide-react'
+import { useDialogFocus } from '@/components/ui/useDialogFocus'
 import {
   validateSolvedPayload,
   KEY_INSIGHT_MAX,
@@ -29,6 +30,10 @@ export default function AcceptSolutionModal({
   const [tldr, setTldr] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Escape closes it; focus goes to the first box and back to the button after.
+  const box = useRef<HTMLDivElement>(null)
+  const firstField = useRef<HTMLInputElement>(null)
+  useDialogFocus(open, box, onClose, firstField)
 
   if (!open) return null
 
@@ -53,24 +58,26 @@ export default function AcceptSolutionModal({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Mark as solution"
+      aria-labelledby="accept-solution-title"
       className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-xl max-w-xl w-full overflow-hidden"
+        ref={box}
+        tabIndex={-1}
+        className="bg-white rounded-2xl shadow-xl max-w-xl w-full overflow-hidden outline-none"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 bg-emerald-600 text-white flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4" />
-            <h2 className="font-semibold">Mark this as the solution</h2>
+            <Sparkles className="w-4 h-4" aria-hidden="true" />
+            <h2 id="accept-solution-title" className="font-semibold">Mark this as the solution</h2>
           </div>
           <button
             type="button"
             aria-label="Close"
             onClick={onClose}
-            className="opacity-80 hover:opacity-100"
+            className="opacity-80 hover:opacity-100 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
           >
             <X className="w-4 h-4" />
           </button>
@@ -94,7 +101,9 @@ export default function AcceptSolutionModal({
               The one sentence that captures the moment it clicked.
             </p>
             <input
+              ref={firstField}
               type="text"
+              aria-label="Key insight"
               value={keyInsight}
               onChange={(e) => setKeyInsight(e.target.value)}
               maxLength={KEY_INSIGHT_MAX}
@@ -111,6 +120,7 @@ export default function AcceptSolutionModal({
             </label>
             <p className="text-xs text-gray-500 mb-1">1-3 sentences that summarise what to do.</p>
             <textarea
+              aria-label="TL;DR"
               value={tldr}
               onChange={(e) => setTldr(e.target.value)}
               maxLength={TLDR_MAX}

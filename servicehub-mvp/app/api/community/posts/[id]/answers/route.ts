@@ -10,9 +10,13 @@
 import { authorRelationshipSnapshot } from '@/lib/trust/authorRelationship'
 import { NextRequest, NextResponse } from 'next/server';
 import {
+  CANT_POST_MESSAGE,
   getCommunityServiceClient,
   getCommunityViewer,
+  isPostingBlockedError,
 } from '@/lib/community/client';
+import { keptImageUrls } from '@/lib/community/images';
+import { LOCKED_MESSAGE } from '@/lib/community/locks';
 import { generatePseudonym } from '@/lib/community/pseudonym';
 import { moderateText, reviewFlag, SLUR_MESSAGE } from '@/lib/community/moderation';
 import { rulesAccepted } from '@/lib/community/tidbitsServer';
@@ -35,8 +39,9 @@ export async function POST(
   if (!client) {
     return NextResponse.json({ error: 'Community is not configured' }, { status: 503 });
   }
-  const viewer = await getCommunityViewer();
+  const viewer = await getCommunityViewer({ forWriting: true });
   if (!viewer) return NextResponse.json({ error: 'Sign-in required' }, { status: 401 });
+  if (viewer.blocked) return NextResponse.json({ error: viewer.blocked, code: 'blocked' }, { status: 403 });
 
   const postId = params.id;
   let { data: post, error: postError } = (await client
@@ -50,7 +55,7 @@ export async function POST(
     return NextResponse.json({ error: 'Post not found' }, { status: 404 });
   }
   if (post.is_locked) {
-    return NextResponse.json({ error: 'Post is locked' }, { status: 403 });
+    return NextResponse.json({ error: LOCKED_MESSAGE, code: 'locked' }, { status: 403 });
   }
 
   let body: Body = {};
@@ -82,9 +87,8 @@ export async function POST(
       return NextResponse.json({ error: 'Parent answer not found in this post' }, { status: 400 });
     }
   }
-  const imageUrls = (body.image_urls ?? [])
-    .filter((u) => typeof u === 'string' && /^https?:\/\//i.test(u))
-    .slice(0, 6);
+  // Pictures from our own storage only (/api/community/upload).
+  const imageUrls = keptImageUrls(body.image_urls);
 
   // Lazily create the community profile (mirrors POST /posts).
   const { data: existing } = await client
@@ -127,6 +131,9 @@ export async function POST(
     .select('id')
     .single();
   if (error || !answer) {
+    if (isPostingBlockedError(error)) {
+      return NextResponse.json({ error: CANT_POST_MESSAGE, code: 'blocked' }, { status: 403 });
+    }
     console.error('[community] POST /answers failed:', error?.message);
     return NextResponse.json({ error: 'Failed to create answer' }, { status: 500 });
   }

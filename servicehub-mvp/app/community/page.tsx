@@ -1,7 +1,7 @@
 'use client'
 
 import RelationshipBadge from '@/components/community/RelationshipBadge'
-import { Suspense, useCallback, useEffect, useState } from 'react'
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { contentNoteLabel } from '@/lib/community/contentNotes'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -31,6 +31,9 @@ import Footer from '@/components/layout/Footer'
 import Breadcrumbs from '@/components/layout/Breadcrumbs'
 import TidbitsFilterSidebar from '@/components/community/TidbitsFilterSidebar'
 import { lengthOf } from '@/lib/community/tidbits'
+
+/** Posts per page of the feed (the posts API's own default). */
+const FEED_PAGE_SIZE = 20
 
 interface FeedResponse {
   posts: CommunityPostSummary[]
@@ -166,10 +169,8 @@ function FeedInner() {
     [router, searchParams]
   )
 
-  useEffect(() => {
-    let cancelled = false
-    setLoading(true)
-    setError(null)
+  // The feed's filters, as the posts API reads them.
+  const feedParams = () => {
     const params = new URLSearchParams()
     params.set('sort', sort)
     if (q) params.set('q', q)
@@ -186,14 +187,38 @@ function FeedInner() {
       if (integrated) params.set('integrated', '1')
       if (group) params.set('group', group)
     }
+    params.set('page_size', String(FEED_PAGE_SIZE))
+    return params
+  }
+
+  // "Show more": the next page of the same feed. Only the first 20 posts
+  // ever loaded (bug audit, 17 November 2026, item 33). A full page means
+  // there may be more. feedVersion changes with the filters, so a page that
+  // arrives after they changed is dropped.
+  const [feedPage, setFeedPage] = useState(1)
+  const [hasMore, setHasMore] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [moreError, setMoreError] = useState<string | null>(null)
+  const feedVersion = useRef(0)
+
+  useEffect(() => {
+    let cancelled = false
+    const version = ++feedVersion.current
+    setLoading(true)
+    setError(null)
+    setLoadingMore(false)
+    setMoreError(null)
+    const params = feedParams()
     fetch(`/api/community/posts?${params.toString()}`)
       .then(async (res) => {
         if (!res.ok) throw new Error(`Load failed (${res.status})`)
         return (await res.json()) as FeedResponse
       })
       .then((data) => {
-        if (cancelled) return
+        if (cancelled || version !== feedVersion.current) return
         setPosts(data.posts ?? [])
+        setFeedPage(1)
+        setHasMore((data.posts ?? []).length >= FEED_PAGE_SIZE)
         setTidbitsOpen(data.tidbits !== false)
         setChefsPick(data.chefs_pick ?? null)
       })
@@ -204,7 +229,37 @@ function FeedInner() {
     return () => {
       cancelled = true
     }
+    // feedParams reads exactly these.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sort, q, barriers, conditions, lifeAreas, kind, length, source, integrated, group])
+
+  const showMore = async () => {
+    if (loadingMore) return
+    const version = feedVersion.current
+    const next = feedPage + 1
+    setLoadingMore(true)
+    setMoreError(null)
+    try {
+      const params = feedParams()
+      params.set('page', String(next))
+      const res = await fetch(`/api/community/posts?${params.toString()}`)
+      if (!res.ok) throw new Error(`Load failed (${res.status})`)
+      const data = (await res.json()) as FeedResponse
+      if (version !== feedVersion.current) return
+      const more = data.posts ?? []
+      // Activity can move a post between pages while reading: never twice.
+      setPosts((cur) => {
+        const seen = new Set(cur.map((p) => p.id))
+        return [...cur, ...more.filter((p) => !seen.has(p.id))]
+      })
+      setFeedPage(next)
+      setHasMore(more.length >= FEED_PAGE_SIZE)
+    } catch {
+      if (version === feedVersion.current) setMoreError('More posts couldn’t be loaded just now. Please try again.')
+    } finally {
+      if (version === feedVersion.current) setLoadingMore(false)
+    }
+  }
 
   const activeFilterCount = barriers.length + conditions.length + lifeAreas.length
 
@@ -572,6 +627,26 @@ function FeedInner() {
           </li>
         ))}
         </ul>
+        {hasMore && !loading && !error && (
+          <div className="mt-4 flex flex-col items-center gap-2">
+            <button
+              type="button"
+              onClick={() => void showMore()}
+              disabled={loadingMore}
+              className="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
+            >
+              {loadingMore ? 'Loading…' : 'Show more'}
+            </button>
+            {moreError && (
+              <p role="alert" className="text-sm text-rose-700">
+                {moreError}
+              </p>
+            )}
+          </div>
+        )}
+        <p className="sr-only" aria-live="polite">
+          {feedPage > 1 ? `Showing ${posts.length} posts.` : ''}
+        </p>
           </div>
         </div>
         <RulesDialog

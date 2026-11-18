@@ -2,13 +2,23 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { orchestrator } from '@/lib/agents/orchestrator'
 import { getUserBarriers } from '@/lib/supabase/queries'
-import { getUserHistory } from '@/lib/agents/validation-agent/trust-scorer'
-import type { UserRequest } from '@/lib/agents/orchestrator/types'
+import type { RequestType, UserRequest } from '@/lib/agents/orchestrator/types'
+import { rateLimited, TOO_MANY_MESSAGE } from '@/lib/rateLimit'
+
+const REQUEST_TYPES: RequestType[] = ['recommendations', 'search', 'validate_submission', 'pattern_discovery']
+
+// Each request can make several paid AI calls (lib/llm.ts).
+const PER_10_MINUTES = 30
 
 /**
  * POST /api/orchestrator
  * Main entry point for all agent requests
  * Routes requests to orchestrator and returns combined agent results
+ *
+ * Signed-in only, and always as the signed-in person: it used to run for
+ * anyone and took `userId` from the body, so anyone could run paid AI calls
+ * and have the agents' decisions recorded against someone else's account
+ * (bug audit, 17 November 2026, item 16).
  */
 export async function POST(request: NextRequest) {
   try {
@@ -17,21 +27,30 @@ export async function POST(request: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser()
 
-    // Some requests don't require authentication (e.g., public search)
-    // But we'll check if userId is provided
-    const body = await request.json()
-    const { requestType, context, userId: providedUserId } = body
+    if (!user) {
+      return NextResponse.json({ error: 'Please sign in first.' }, { status: 401 })
+    }
 
-    // Use authenticated user ID or provided user ID
-    const userId = user?.id || providedUserId || 'anonymous'
+    const body = await request.json().catch(() => null)
+    // A `userId` in the body is ignored: it is always the signed-in person.
+    const requestType = body?.requestType
+    const context = body?.context && typeof body.context === 'object' && !Array.isArray(body.context) ? body.context : {}
+    const userId = user.id
 
     if (!requestType) {
       return NextResponse.json({ error: 'Missing requestType' }, { status: 400 })
     }
+    if (!REQUEST_TYPES.includes(requestType)) {
+      return NextResponse.json({ error: 'Unknown requestType' }, { status: 400 })
+    }
+
+    if (rateLimited('orchestrator', userId, PER_10_MINUTES, 10 * 60_000)) {
+      return NextResponse.json({ error: TOO_MANY_MESSAGE }, { status: 429 })
+    }
 
     // Get user barriers if user is authenticated and request needs them
     let barriers: any[] = []
-    if (user && (requestType === 'recommendations' || requestType === 'search')) {
+    if (requestType === 'recommendations' || requestType === 'search') {
       const userBarriers = await getUserBarriers(user.id)
       barriers = userBarriers.map((b) => ({
         category: b.barrier_category,
@@ -47,7 +66,7 @@ export async function POST(request: NextRequest) {
       requestType,
       context: {
         ...context,
-        isNewUser: user ? false : true, // Determine if new user
+        isNewUser: false,
       },
       barriers,
     }

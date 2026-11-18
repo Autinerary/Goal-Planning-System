@@ -1,7 +1,7 @@
 'use client'
 
 import { AlertTriangle, RefreshCw, Wifi, WifiOff, Server } from 'lucide-react'
-import Link from 'next/link'
+import { APP_URL } from '@/lib/appSignIn'
 
 interface ErrorStateProps {
   title?: string
@@ -77,13 +77,15 @@ export default function ErrorState({
             Check your internet connection and try again
           </div>
         )}
+        {/* ResourceHub has no /contact page: the app's Help page, at "Tell us
+            what's hard", is where to reach the team (it's open signed out too). */}
         {errorType === 'server' && (
-          <Link
-            href="/contact"
+          <a
+            href={`${APP_URL}/help#tell-us`}
             className="text-sm text-blue-600 hover:text-blue-700 underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
           >
             Contact Support
-          </Link>
+          </a>
         )}
       </div>
     </div>

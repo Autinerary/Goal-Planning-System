@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useId, useRef, useState } from 'react'
 import { Flag } from 'lucide-react'
+import { useDialogFocus } from '@/components/ui/useDialogFocus'
 
 interface ReportButtonProps {
   targetType: 'post' | 'answer' | 'user'
@@ -15,6 +16,12 @@ export default function ReportButton({ targetType, targetId, className }: Report
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Escape closes it; focus goes to the reason box, and back to Report after.
+  const box = useRef<HTMLDivElement>(null)
+  const reasonBox = useRef<HTMLTextAreaElement>(null)
+  const close = useCallback(() => setOpen(false), [])
+  const titleId = useId()
+  useDialogFocus(open, box, close, reasonBox)
 
   const submit = async () => {
     setSubmitting(true)
@@ -59,18 +66,22 @@ export default function ReportButton({ targetType, targetId, className }: Report
           className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
           role="dialog"
           aria-modal="true"
-          aria-label="Report content"
+          aria-labelledby={titleId}
           onClick={() => setOpen(false)}
         >
           <div
-            className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4"
+            ref={box}
+            tabIndex={-1}
+            className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4 outline-none"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-lg font-semibold text-gray-900">Report this {targetType}</h2>
+            <h2 id={titleId} className="text-lg font-semibold text-gray-900">Report this {targetType}</h2>
             <p className="text-sm text-gray-600">
               Tell our moderators what's wrong. They'll review and take action.
             </p>
             <textarea
+              ref={reasonBox}
+              aria-label="Why you are reporting it"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Why are you reporting this? (5-1000 characters)"

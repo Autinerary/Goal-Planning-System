@@ -10,6 +10,10 @@
 
 const BASE = 'https://places.googleapis.com/v1'
 
+// How long a Places call may take. Without a limit, a slow answer from Google held the request (and the
+// person's page) open until the platform gave up (bug audit, 17 November 2026).
+export const PLACES_TIMEOUT_MS = 8000
+
 export interface Lookup {
   name: string
   city?: string | null
@@ -40,13 +44,18 @@ export function sameService(listing: Lookup, place: { displayName?: { text?: str
   return nameOk && placeOk
 }
 
-/** The place id for a listing (the one thing we may keep), or null when none matches. Costs one "IDs only" search. */
+/**
+ * The place id for a listing (the one thing we may keep), or null when none matches. Costs one "IDs only" search.
+ * A timeout or network failure throws rather than answering null, so the caller doesn't record "no match" for
+ * 90 days because Google was slow once.
+ */
 export async function findPlaceId(listing: Lookup, key: string, fetchFn: typeof fetch = fetch): Promise<string | null> {
   const query = [listing.name, listing.city, listing.province, 'Canada'].filter(Boolean).join(' ')
   const res = await fetchFn(`${BASE}/places:searchText`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': key, 'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress' },
     body: JSON.stringify({ textQuery: query, maxResultCount: 3, regionCode: 'CA' }),
+    signal: AbortSignal.timeout(PLACES_TIMEOUT_MS),
   })
   if (!res.ok) return null
   const body = await res.json().catch(() => ({}))
@@ -54,10 +63,18 @@ export async function findPlaceId(listing: Lookup, key: string, fetchFn: typeof 
   return hit ? String(hit.id) : null
 }
 
-/** Google's rating for a place, fetched now; null when it has none. Never stored. */
+/** Google's rating for a place, fetched now; null when it has none, or when Google doesn't answer in time. Never stored. */
 export async function fetchGoogleRating(placeId: string, key: string, fetchFn: typeof fetch = fetch): Promise<GoogleRating | null> {
   if (!/^[A-Za-z0-9_-]{10,200}$/.test(placeId)) return null
-  const res = await fetchFn(`${BASE}/places/${placeId}`, { headers: { 'X-Goog-Api-Key': key, 'X-Goog-FieldMask': 'rating,userRatingCount,googleMapsUri' } })
+  let res: Response
+  try {
+    res = await fetchFn(`${BASE}/places/${placeId}`, {
+      headers: { 'X-Goog-Api-Key': key, 'X-Goog-FieldMask': 'rating,userRatingCount,googleMapsUri' },
+      signal: AbortSignal.timeout(PLACES_TIMEOUT_MS),
+    })
+  } catch {
+    return null
+  }
   if (!res.ok) return null
   const b = await res.json().catch(() => ({}))
   if (typeof b.rating !== 'number' || !b.userRatingCount) return null

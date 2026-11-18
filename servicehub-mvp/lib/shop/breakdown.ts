@@ -1,5 +1,6 @@
 import type { ProductReview } from '@/types/shop'
 import type { DiagnosticBreakdown, AreaAverages, RelationshipMix } from '@/lib/supabase/queries'
+import { MIN_BREAKDOWN_GROUP } from '@/lib/ratings/groups'
 
 /**
  * Turn raw product reviews into the same breakdown shape the service side
@@ -9,6 +10,13 @@ import type { DiagnosticBreakdown, AreaAverages, RelationshipMix } from '@/lib/s
  * All of it is computed from snapshots written at review time — the reviewer's
  * own diagnostics, relationships and organisations. Nothing here reads another
  * user's profile, which RLS would block anyway.
+ *
+ * Server only: the reviews must come from getProductReviews (lib/shop/
+ * queries.ts), which reads the snapshots with the admin client and keeps them
+ * off the rows that could reach the browser. Only the aggregates below are
+ * shown, and groups smaller than MIN_BREAKDOWN_GROUP are left out, since a
+ * group of one would say which named reviewer has which norm (bug audit,
+ * 17 November 2026, item 2).
  */
 
 export interface ProductBreakdown {
@@ -154,12 +162,14 @@ export function buildProductBreakdown(reviews: ProductReview[]): ProductBreakdow
   }
 
   const diagnosticBreakdown: DiagnosticBreakdown[] = Array.from(diagAgg.entries())
+    .filter(([, f]) => f.count >= MIN_BREAKDOWN_GROUP)
     .map(([feature, f]) => ({
       feature,
       count: f.count,
       average: f.count ? f.stars / f.count : 0,
       areas: toAreas(f.areas),
       levels: Array.from(f.levels.entries())
+        .filter(([, lv]) => lv.count >= MIN_BREAKDOWN_GROUP)
         .map(([level, lv]) => ({ level, count: lv.count, average: lv.count ? lv.stars / lv.count : 0, areas: toAreas(lv.areas) }))
         .sort((a, b) => a.level - b.level),
     }))
@@ -172,7 +182,7 @@ export function buildProductBreakdown(reviews: ProductReview[]): ProductBreakdow
     barrierScores,
     diagnosticBreakdown,
     weightedRating: weightTotal > 0 ? weightedSum / weightTotal : 0,
-    relationshipMix: CONNECTION_ORDER.filter((r) => relAgg[r]).map((r) => ({
+    relationshipMix: CONNECTION_ORDER.filter((r) => relAgg[r] && relAgg[r].count >= MIN_BREAKDOWN_GROUP).map((r) => ({
       relationship: r,
       count: relAgg[r].count,
       average: relAgg[r].sum / relAgg[r].count,
@@ -184,8 +194,9 @@ export function buildProductBreakdown(reviews: ProductReview[]): ProductBreakdow
  * "Based on those who matched your Diagnostics profile."
  *
  * Only counts reviewers who share at least one norm with the viewer, and only
- * returns something when there are at least two — a banner built on a single
- * stranger's review would imply a consensus that does not exist.
+ * returns something when there are at least MIN_BREAKDOWN_GROUP of them — a
+ * banner built on a single stranger's review would imply a consensus that
+ * does not exist, and would say which reviewer shares the viewer's norm.
  */
 export function matchForProfile(
   reviews: ProductReview[],
@@ -197,7 +208,7 @@ export function matchForProfile(
   const matched = reviews.filter((r) =>
     Object.keys((r as any).rater_diagnostics || {}).some((n) => mine.has(n.toLowerCase()))
   )
-  if (matched.length < 2) return null
+  if (matched.length < MIN_BREAKDOWN_GROUP) return null
 
   const shared = new Set<string>()
   for (const r of matched) {

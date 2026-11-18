@@ -19,7 +19,7 @@ interface AddRatingButtonProps {
    */
   hasRated?: boolean
   resourceName?: string
-  onRatingAdded?: () => void
+  onRatingAdded?: (result?: { held: boolean }) => void
 }
 
 export default function AddRatingButton({
@@ -30,10 +30,10 @@ export default function AddRatingButton({
 }: AddRatingButtonProps) {
   const [showModal, setShowModal] = useState(false)
 
-  const handleRatingAdded = () => {
+  const handleRatingAdded = (result?: { held: boolean }) => {
     setShowModal(false)
     if (onRatingAdded) {
-      onRatingAdded()
+      onRatingAdded(result)
     }
   }
 

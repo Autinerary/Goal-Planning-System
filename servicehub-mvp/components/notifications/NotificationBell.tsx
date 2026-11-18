@@ -6,6 +6,7 @@ import { Bell } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import NotificationList from './NotificationList'
 import type { Notification } from '@/types/database'
+import { showToast } from '@/lib/toast'
 
 interface NotificationBellProps {
   userId: string
@@ -21,7 +22,10 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
 
   useEffect(() => {
     loadNotifications()
-    subscribeToNotifications()
+    // The channel is removed when the bell goes away (sign-out, another
+    // account), so updates stop and channels don't pile up.
+    return subscribeToNotifications()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId])
 
   // Close dropdown when clicking outside
@@ -71,7 +75,9 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
 
   const subscribeToNotifications = () => {
     const channel = supabase
-      .channel(`notifications:${userId}`)
+      // A name of its own each time: the client hands back a channel that is
+      // still closing under the same name, which never joins again.
+      .channel(`notifications:${userId}:${Math.random().toString(36).slice(2)}`)
       .on(
         'postgres_changes',
         {
@@ -147,24 +153,32 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
     }
   }
 
+  // Gone from the list at once, and put back with a short message if the
+  // delete doesn't happen. It goes through the server (DELETE
+  // /api/notifications/[id]), which answers with an error unless a row was
+  // really deleted; deleting from the browser needs a database change first.
   const handleDelete = async (id: string) => {
+    const index = notifications.findIndex((n) => n.id === id)
+    if (index < 0) return
+    const removed = notifications[index]
+    setNotifications((prev) => prev.filter((n) => n.id !== id))
+    if (!removed.read) setUnreadCount((prev) => Math.max(0, prev - 1))
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', userId)
-
-      if (error) throw error
-
-      const deletedNotification = notifications.find((n) => n.id === id)
-      if (deletedNotification && !deletedNotification.read) {
-        setUnreadCount((prev) => Math.max(0, prev - 1))
-      }
-
-      setNotifications((prev) => prev.filter((n) => n.id !== id))
+      const res = await fetch(`/api/notifications/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+      if (!res.ok) throw new Error(`Delete failed (${res.status})`)
     } catch (error) {
       console.error('Error deleting notification:', error)
+      setNotifications((prev) => {
+        if (prev.some((n) => n.id === id)) return prev
+        const next = [...prev]
+        next.splice(Math.min(index, next.length), 0, removed)
+        return next
+      })
+      if (!removed.read) setUnreadCount((prev) => prev + 1)
+      showToast.error('We couldn’t remove that notification just now. Please try again later.')
     }
   }
 

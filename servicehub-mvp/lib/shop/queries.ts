@@ -2,19 +2,23 @@ import { createClient } from '@/lib/supabase/server'
 import type { Product, ProductReview } from '@/types/shop'
 import { SHOP_CATEGORIES, canonicalCategory, expandShopFilter } from '@/lib/shop/categories'
 import { tasteScore } from '@/lib/shop/taste'
+import { loadRaterContext, withHiddenRaterFields } from '@/lib/ratings/raterContext'
+import { heldForReview } from '@/lib/moderation/queue'
 
 /** Attach rating_avg / rating_count to a set of products (one round-trip). */
 async function withRatings(products: Product[]): Promise<Product[]> {
   if (products.length === 0) return products
   const supabase = createClient()
   const ids = products.map((p) => p.id)
-  const { data } = await supabase
-    .from('product_reviews')
-    .select('product_id, rating')
-    .in('product_id', ids)
+  const [{ data }, held] = await Promise.all([
+    supabase.from('product_reviews').select('id, product_id, rating').in('product_id', ids),
+    // A flagged review waits for a moderator before it counts.
+    heldForReview('product_review'),
+  ])
 
   const agg = new Map<string, { sum: number; count: number }>()
   for (const r of data || []) {
+    if (held.has(r.id)) continue
     const cur = agg.get(r.product_id) || { sum: 0, count: 0 }
     cur.sum += r.rating
     cur.count += 1
@@ -109,14 +113,37 @@ export async function getProduct(id: string): Promise<Product | null> {
   return withR
 }
 
+// What a product review may show: never `select('*')`, since the rater_*
+// snapshot (the reviewer's norms, relationships and groups) is private (bug
+// audit, 17 November 2026, item 2).
+const PRODUCT_REVIEW_COLUMNS = 'id, product_id, user_id, rating, comment, barrier_scores, helpful_count, created_at'
+const PRODUCT_REVIEW_BASE = 'id, product_id, user_id, rating, comment, created_at'
+
+/**
+ * A product's reviews, newest first, for the product page (server only).
+ * Each carries the reviewer's snapshot for the breakdowns (lib/shop/
+ * breakdown.ts, lib/shop/patterns.ts) as hidden properties, read with the
+ * admin client: they are not enumerable, so they stay on the server even if
+ * the list is passed to a client component. A review flagged by the
+ * moderation check is left out until a moderator has looked at it.
+ */
 export async function getProductReviews(productId: string): Promise<ProductReview[]> {
   const supabase = createClient()
-  const { data } = await supabase
-    .from('product_reviews')
-    .select('*')
-    .eq('product_id', productId)
-    .order('created_at', { ascending: false })
-  return (data as ProductReview[]) || []
+  const read = (columns: string) =>
+    supabase.from('product_reviews').select(columns).eq('product_id', productId).order('created_at', { ascending: false })
+  let { data, error } = await read(PRODUCT_REVIEW_COLUMNS)
+  // Before the products round's columns (barrier_scores, helpful_count).
+  if (error && (error.code === '42703' || /barrier_scores|helpful_count/.test(error.message || ''))) ({ data, error } = await read(PRODUCT_REVIEW_BASE))
+  if (error) {
+    console.error('Error fetching product reviews:', error.message)
+    return []
+  }
+  const rows = (data || []) as unknown as ProductReview[]
+  if (rows.length === 0) return rows
+  const held = await heldForReview('product_review', rows.map((r) => r.id))
+  const visible = rows.filter((r) => !held.has(r.id))
+  const context = await loadRaterContext('product_reviews', visible.map((r) => r.id))
+  return withHiddenRaterFields(visible, context)
 }
 
 /** Distinct categories that actually have active products (for the Shop filter). */

@@ -8,6 +8,7 @@ import Footer from '@/components/layout/Footer'
 import NotificationItem from './NotificationItem'
 import { createClient } from '@/lib/supabase/client'
 import type { Notification } from '@/types/database'
+import { showToast } from '@/lib/toast'
 
 interface NotificationsPageClientProps {
   userId: string
@@ -21,7 +22,9 @@ export default function NotificationsPageClient({ userId }: NotificationsPageCli
 
   useEffect(() => {
     loadNotifications()
-    subscribeToNotifications()
+    // Removed again when the page closes, so channels don't pile up.
+    return subscribeToNotifications()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId])
 
   const loadNotifications = async () => {
@@ -48,7 +51,9 @@ export default function NotificationsPageClient({ userId }: NotificationsPageCli
 
   const subscribeToNotifications = () => {
     const channel = supabase
-      .channel(`notifications:${userId}:page`)
+      // A name of its own each time: the client hands back a channel that is
+      // still closing under the same name, which never joins again.
+      .channel(`notifications:${userId}:page:${Math.random().toString(36).slice(2)}`)
       .on(
         'postgres_changes',
         {
@@ -105,24 +110,30 @@ export default function NotificationsPageClient({ userId }: NotificationsPageCli
     }
   }
 
+  // As in the bell: gone at once, through the server, and put back with a
+  // short message if the delete doesn't happen.
   const handleDelete = async (id: string) => {
+    const index = notifications.findIndex((n) => n.id === id)
+    if (index < 0) return
+    const removed = notifications[index]
+    setNotifications((prev) => prev.filter((n) => n.id !== id))
+    if (!removed.read) setUnreadCount((prev) => Math.max(0, prev - 1))
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', userId)
-
-      if (error) throw error
-
-      const deletedNotification = notifications.find((n) => n.id === id)
-      if (deletedNotification && !deletedNotification.read) {
-        setUnreadCount((prev) => Math.max(0, prev - 1))
-      }
-
-      setNotifications((prev) => prev.filter((n) => n.id !== id))
+      const res = await fetch(`/api/notifications/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+      if (!res.ok) throw new Error(`Delete failed (${res.status})`)
     } catch (error) {
       console.error('Error deleting notification:', error)
+      setNotifications((prev) => {
+        if (prev.some((n) => n.id === id)) return prev
+        const next = [...prev]
+        next.splice(Math.min(index, next.length), 0, removed)
+        return next
+      })
+      if (!removed.read) setUnreadCount((prev) => prev + 1)
+      showToast.error('We couldn’t remove that notification just now. Please try again later.')
     }
   }
 

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { ExternalLink } from 'lucide-react'
+import { safeHref } from '@/components/ui/safeUrl'
 
 interface Batch {
   batch: string
@@ -123,13 +124,14 @@ export default function SpotGuideQueue() {
                       <td className="py-2 pr-2 text-gray-900">
                         {p.name}
                         <span className="block text-xs">
-                          {p.contact_info?.website && (
-                            <a href={p.contact_info.website} target="_blank" rel="noopener noreferrer" className="mr-3 text-blue-700 underline">
+                          {/* Only real web addresses become links ("example.ca" gets https://). */}
+                          {safeHref(p.contact_info?.website) && (
+                            <a href={safeHref(p.contact_info?.website)!} target="_blank" rel="noopener noreferrer" className="mr-3 text-blue-700 underline">
                               Website<span className="sr-only"> of {p.name}</span>
                             </a>
                           )}
-                          {p.source_url && (
-                            <a href={p.source_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-blue-700 underline">
+                          {safeHref(p.source_url) && (
+                            <a href={safeHref(p.source_url)!} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-blue-700 underline">
                               On the map<span className="sr-only"> ({p.name})</span>
                               <ExternalLink className="h-3 w-3" aria-hidden="true" />
                             </a>

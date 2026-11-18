@@ -24,6 +24,14 @@ export default function ServiceComments({ resourceId, resourceName, signedIn }: 
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [status, setStatus] = useState('')
+  // "Sign in to comment": the Autinerary sign-in coming back here. It needs
+  // this page's address, which only the browser knows, so it is made after
+  // the page loads; made during render, the server's version (back to "/")
+  // was the one kept. Until then, ResourceHub's sign-in, which goes on to it.
+  const [signInHref, setSignInHref] = useState(`/login?next=${encodeURIComponent(`/resources/${resourceId}`)}`)
+  useEffect(() => {
+    setSignInHref(appSignInHref(window.location.pathname))
+  }, [])
 
   useEffect(() => {
     fetch(`/api/resources/${resourceId}/comments`, { cache: 'no-store' })
@@ -108,7 +116,7 @@ export default function ServiceComments({ resourceId, resourceName, signedIn }: 
         </form>
       ) : (
         <p className="mt-3 text-sm">
-          <a href={appSignInHref(typeof window === 'undefined' ? '/' : window.location.pathname)} className="font-medium text-blue-800 underline">
+          <a href={signInHref} className="font-medium text-blue-800 underline">
             Sign in to comment
           </a>
         </p>

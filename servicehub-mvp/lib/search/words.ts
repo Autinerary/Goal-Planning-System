@@ -42,3 +42,16 @@ export function inNameDescriptionOrCategory(terms: string[]): string {
     .flatMap((t) => [`name.ilike.%${t}%`, `description.ilike.%${t}%`, `category.ilike.%${t}%`])
     .join(',')
 }
+
+/**
+ * A value for an `ilike` inside a PostgREST `or(...)` filter, matching `text`
+ * anywhere, as typed. LIKE's own wildcards (% and _) and the backslash are
+ * escaped so they match themselves, and the whole pattern is double-quoted
+ * (escaping " and \ inside) so commas, dots, colons and brackets can't end
+ * the filter or add conditions of their own (bug audit, 17 November 2026,
+ * item 33). Use for raw user text: `.or(\`name.ilike.${v},category.ilike.${v}\`)`.
+ */
+export function orIlikeValue(text: string): string {
+  const like = `%${text.replace(/[\\%_]/g, (c) => `\\${c}`)}%`
+  return `"${like.replace(/[\\"]/g, (c) => `\\${c}`)}"`
+}

@@ -44,6 +44,7 @@ import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import Breadcrumbs from '@/components/layout/Breadcrumbs'
 import { lengthOf } from '@/lib/community/tidbits'
+import { safeHref } from '@/components/ui/safeUrl'
 
 export default function PostDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter()
@@ -290,13 +291,14 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
             <KeepButton kind="post" id={post.id} signedIn={me.signedIn} />
           </div>
         )}
-        {post.source === 'external' && post.external_url && (
+        {/* Written by the author, so only an http(s) address becomes a link. */}
+        {post.source === 'external' && safeHref(post.external_url) && (
           <p className="flex flex-wrap gap-4 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm">
-            <a href={post.external_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-blue-800 underline underline-offset-2">
+            <a href={safeHref(post.external_url)!} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-blue-800 underline underline-offset-2">
               Read the article here <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
             </a>
-            {post.external_platform_url && (
-              <a href={post.external_platform_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-medium text-blue-800 underline underline-offset-2">
+            {safeHref(post.external_platform_url) && (
+              <a href={safeHref(post.external_platform_url)!} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-medium text-blue-800 underline underline-offset-2">
                 See more from {post.external_platform || 'its site'} here <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
               </a>
             )}

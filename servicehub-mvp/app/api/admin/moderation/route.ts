@@ -3,6 +3,17 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isAdminUser } from '@/lib/auth/admin'
 
+const STATUSES = ['pending', 'approved', 'rejected'] as const
+
+/**
+ * GET /api/admin/moderation?status=pending|approved|rejected|all — the
+ * moderation queue, for admins. Read as the service after the admin check.
+ *
+ * What each entry is about comes with it: a listing, a rating or a product
+ * review, with the fields the dashboard shows only (a rating's score and
+ * words, never the rater's private details; bug audit, 17 November 2026,
+ * item 2), and who sent it.
+ */
 export async function GET(request: NextRequest) {
   try {
     const supabase = createClient()
@@ -25,73 +36,88 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
+    const admin = createAdminClient()
     const searchParams = request.nextUrl.searchParams
     const status = searchParams.get('status') || 'pending'
 
     // Build query
-    let query = supabase.from('moderation_queue').select('*')
+    let query = admin.from('moderation_queue').select('*')
 
     if (status && status !== 'all') {
       query = query.eq('status', status)
     }
 
-    // Get moderation items with user emails
     const { data: items, error } = await query.order('created_at', { ascending: false }).limit(100)
 
     if (error) {
       throw error
     }
 
-    // Get user emails for each item
-    const userIds = [...new Set(items?.map((item) => item.submitted_by) || [])]
-    // Other people's emails need the admin client (the caller was checked to
-    // be an admin above): a session reads only its own profile row (STEP 64).
-    const { data: profiles } = await createAdminClient()
-      .from('profiles')
-      .select('id, email')
-      .in('id', userIds)
+    const list = (items || []) as Record<string, any>[]
+    const idsOf = (type: string) => list.filter((i) => i.item_type === type).map((i) => String(i.item_id))
 
-    const emailMap = new Map(profiles?.map((p) => [p.id, p.email]) || [])
-
-    // Get item data (rating or resource)
-    const enrichedItems = await Promise.all(
-      (items || []).map(async (item) => {
-        let itemData = null
-
-        if (item.item_type === 'rating') {
-          const { data: rating } = await supabase
-            .from('ratings')
-            .select('*')
-            .eq('id', item.item_id)
-            .single()
-          itemData = rating
-        } else if (item.item_type === 'resource') {
-          const { data: resource } = await supabase
-            .from('resources')
-            .select('*')
-            .eq('id', item.item_id)
-            .single()
-          itemData = resource
-        }
-
-        return {
-          ...item,
-          user_email: emailMap.get(item.submitted_by) || item.submitted_by,
-          item_data: itemData,
-        }
+    // What each entry is about, in one read per kind. Ratings come from
+    // ratings_all, so a test account's flagged rating is shown to moderators too.
+    const readRatings = async (ids: string[]) => {
+      if (ids.length === 0) return [] as any[]
+      const cols = 'id, resource_id, user_id, overall_score, barrier_scores, comment, created_at'
+      let { data, error: e } = await admin.from('ratings_all').select(cols).in('id', ids)
+      if (e) ({ data, error: e } = await admin.from('ratings').select(cols).in('id', ids))
+      if (e) console.error('[admin/moderation] ratings not read:', e.message)
+      return data || []
+    }
+    const [ratings, resources, reviews] = await Promise.all([
+      readRatings(idsOf('rating')),
+      idsOf('resource').length
+        ? admin.from('resources').select('*').in('id', idsOf('resource')).then((r) => r.data || [])
+        : Promise.resolve([] as any[]),
+      idsOf('product_review').length
+        ? admin.from('product_reviews').select('id, product_id, user_id, rating, comment, created_at').in('id', idsOf('product_review')).then((r) => r.data || [])
+        : Promise.resolve([] as any[]),
+    ])
+    const byId = new Map<string, { data: Record<string, any>; owner: string | null }>()
+    for (const r of ratings as any[]) {
+      const { user_id, ...shown } = r
+      byId.set(`rating:${r.id}`, { data: shown, owner: user_id ?? null })
+    }
+    for (const r of resources as any[]) byId.set(`resource:${r.id}`, { data: r, owner: r.submitted_by ?? null })
+    for (const r of reviews as any[]) {
+      // Shown like a rating: its words and its score.
+      byId.set(`product_review:${r.id}`, {
+        data: { id: r.id, product_id: r.product_id, comment: r.comment, overall_score: r.rating, created_at: r.created_at },
+        owner: r.user_id ?? null,
       })
+    }
+
+    // Who sent each one: submitted_by since STEP 105, otherwise the item's own author.
+    const ownerOf = (item: Record<string, any>) => item.submitted_by || byId.get(`${item.item_type}:${item.item_id}`)?.owner || null
+    const userIds = [...new Set(list.map(ownerOf).filter(Boolean))] as string[]
+    const { data: profiles } = userIds.length
+      ? await admin.from('profiles').select('id, email').in('id', userIds)
+      : { data: [] as { id: string; email: string | null }[] }
+
+    const emailMap = new Map((profiles || []).map((p: { id: string; email: string | null }) => [p.id, p.email]))
+
+    const enrichedItems = list.map((item) => {
+      const owner = ownerOf(item)
+      return {
+        ...item,
+        submitted_by: item.submitted_by ?? owner,
+        user_email: (owner && emailMap.get(owner)) || owner,
+        item_data: byId.get(`${item.item_type}:${item.item_id}`)?.data ?? null,
+      }
+    })
+
+    // Counts by status, counted by the database (no row limit).
+    const counted = await Promise.all(
+      STATUSES.map((s) => admin.from('moderation_queue').select('id', { count: 'exact', head: true }).eq('status', s))
     )
-
-    // Calculate stats
-    const { data: allItems } = await supabase
-      .from('moderation_queue')
-      .select('status')
-
+    const total = await admin.from('moderation_queue').select('id', { count: 'exact', head: true })
     const stats = {
-      pending: allItems?.filter((i) => i.status === 'pending').length || 0,
-      approved: allItems?.filter((i) => i.status === 'approved').length || 0,
-      rejected: allItems?.filter((i) => i.status === 'rejected').length || 0,
-      total: allItems?.length || 0,
+      pending: counted[0].count || 0,
+      approved: counted[1].count || 0,
+      rejected: counted[2].count || 0,
+      total: total.count || 0,
     }
 
     return NextResponse.json({

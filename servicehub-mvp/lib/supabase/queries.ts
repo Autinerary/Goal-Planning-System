@@ -6,9 +6,12 @@ import { lifeAreaKeywords } from '@/lib/search/lifeAreas'
 import { conditionStems } from '@/lib/search/conditions'
 import { SHORT_WAITS } from '@/lib/waits'
 import { sharedCache, cacheKey } from '@/lib/cache/shared'
-import { searchWords, cleanTerm, inNameDescriptionOrCategory } from '@/lib/search/words'
+import { searchWords, cleanTerm, inNameDescriptionOrCategory, orIlikeValue } from '@/lib/search/words'
 import { weightFor, RELATIONSHIP_ORDER, type Relationship } from '@/lib/trust/relationship'
 import { teamStates, type TeamState } from '@/lib/team'
+import { createAdminClient } from './admin'
+import { loadRaterContext, MIN_BREAKDOWN_GROUP, type RaterContext } from '@/lib/ratings/raterContext'
+import { heldForReview } from '@/lib/moderation/queue'
 
 type SupabaseLike = SupabaseClient<any, any, any>
 
@@ -180,10 +183,14 @@ export async function deleteUserBarrier(barrierId: string): Promise<boolean> {
 export async function getResources(filters?: {
   status?: Resource['status']
   category?: string
+  /** Words in the name or description (the admin list's search box). */
+  search?: string
   limit?: number
   offset?: number
-}): Promise<Resource[]> {
-  const supabase = createClient()
+}, client?: SupabaseLike): Promise<Resource[]> {
+  // Pass the admin client for lists that must see every listing (the admin
+  // area, after its admin check); otherwise the person's own session.
+  const supabase = client ?? createClient()
   let query = supabase
     .from('resources')
     .select('*')
@@ -195,6 +202,13 @@ export async function getResources(filters?: {
 
   if (filters?.category) {
     query = query.eq('category', filters.category)
+  }
+
+  // The search box used to be ignored (bug audit, 17 November 2026, item 33).
+  const search = filters?.search?.trim().slice(0, 200)
+  if (search) {
+    const like = orIlikeValue(search)
+    query = query.or(`name.ilike.${like},description.ilike.${like}`)
   }
 
   if (filters?.limit) {
@@ -231,6 +245,14 @@ export async function getResourceById(resourceId: string): Promise<Resource | nu
   return data
 }
 
+/**
+ * A new listing from a signed-in person, saved with their own session and
+ * always as pending: since STEP 105 people may only add pending listings that
+ * aren't "Autinerary's Own" (bug audit, 17 November 2026, item 4). Approving
+ * one is the server's job (app/api/resources/new, with the admin client).
+ * It is not put in the moderation queue here; the route does that, with what
+ * the validation agent found.
+ */
 export async function createResource(resource: {
   name: string
   description?: string
@@ -240,32 +262,17 @@ export async function createResource(resource: {
   price?: number | null
   image_url?: string
   submitted_by: string
-  status?: 'pending' | 'approved' | 'rejected'
 }): Promise<Resource | null> {
   const supabase = createClient()
   const { data, error } = await supabase
     .from('resources')
-    .insert(resource)
+    .insert({ ...resource, status: 'pending' })
     .select()
     .single()
 
   if (error) {
     console.error('Error creating resource:', error)
     return null
-  }
-
-  // Add to moderation queue
-  if (data) {
-    await supabase.from('moderation_queue').insert({
-      item_type: 'resource',
-      item_id: data.id,
-      status: 'pending',
-    })
-
-    // Generate embedding in background (non-blocking)
-    // Uncomment to enable automatic embedding generation:
-    // import { generateResourceEmbeddingJob } from '@/lib/embeddings/background-jobs'
-    // generateResourceEmbeddingJob(data.id).catch(console.error)
   }
 
   return data
@@ -349,11 +356,20 @@ export async function getResourceDetail(resourceId: string, userId?: string): Pr
     return null
   }
 
-  // Get all ratings for this resource
-  const { data: ratings } = await supabase
+  // Get all ratings for this resource: the public fields only. Who the
+  // raters are (their norms, relationships and groups) is read below, on the
+  // server, and only aggregates leave it (bug audit, 17 November 2026, item 2).
+  const { data: ratingRows } = await supabase
     .from('ratings')
-    .select('*')
+    .select(RATING_COLUMNS)
     .eq('resource_id', resourceId)
+  // A rating flagged by the validation agent waits for a moderator before it
+  // counts (item 25); its author still sees their own.
+  const held = await heldForReview('rating', (ratingRows || []).map((r: any) => r.id))
+  const ratings = ((ratingRows || []) as unknown as Rating[]).filter((r) => !held.has(r.id) || (!!userId && r.user_id === userId))
+  const raters = await loadRaterContext('ratings', ratings.map((r) => r.id))
+  const raterOf = (r: Rating): RaterContext =>
+    raters.get(r.id) || { diagnostics: {}, relationships: {}, orgIds: [], connectionTypes: [] }
 
   const ratingCount = ratings?.length || 0
   const averageRating =
@@ -410,7 +426,7 @@ export async function getResourceDetail(resourceId: string, userId?: string): Pr
   }> = {}
   if (ratings) {
     for (const rating of ratings) {
-      const diags = ((rating as any).rater_diagnostics || {}) as Record<string, unknown>
+      const diags = raterOf(rating).diagnostics as Record<string, unknown>
       const scores = (rating.barrier_scores || {}) as BarrierScores
       const dims = Object.entries(scores).filter(([, s]) => typeof s === 'number') as [string, number][]
       for (const [feature, rawSev] of Object.entries(diags)) {
@@ -437,13 +453,17 @@ export async function getResourceDetail(resourceId: string, userId?: string): Pr
     for (const [k, v] of Object.entries(m)) out[k] = { average: v.count ? v.sum / v.count : 0, count: v.count }
     return out
   }
+  // Small groups are left out (MIN_BREAKDOWN_GROUP): a group of one would say
+  // which named reviewer has which norm.
   const diagnosticBreakdown = Object.entries(featureAgg)
+    .filter(([, f]) => f.count >= MIN_BREAKDOWN_GROUP)
     .map(([feature, f]) => ({
       feature,
       count: f.count,
       average: f.count ? f.stars / f.count : 0,
       areas: toAvg(f.areas),
       levels: Object.entries(f.levels)
+        .filter(([, l]) => l.count >= MIN_BREAKDOWN_GROUP)
         .map(([lvl, l]) => ({ level: Number(lvl), count: l.count, average: l.count ? l.stars / l.count : 0, areas: toAvg(l.areas) }))
         .sort((a, b) => a.level - b.level),
     }))
@@ -451,15 +471,14 @@ export async function getResourceDetail(resourceId: string, userId?: string): Pr
 
   // Rating groups (Odosa): the same shape, grouped by the rater's ORGANISATION
   // instead of their diagnostic — "how this org's members rate this resource".
-  // Org ids are snapshotted on each rating (rater_org_ids), so no cross-user
-  // membership reads are needed. Only admin-verified orgs are surfaced, so an
-  // unverified org can't present itself as a trusted rating group.
+  // Org ids are snapshotted on each rating (rater_org_ids, read above with
+  // the admin client), so no cross-user membership reads are needed. Only
+  // admin-verified orgs are surfaced, so an unverified org can't present
+  // itself as a trusted rating group.
   const orgAgg: Record<string, { sum: number; count: number; areas: Record<string, { sum: number; count: number }> }> = {}
   if (ratings) {
     for (const rating of ratings) {
-      const orgIds: string[] = Array.isArray((rating as any).rater_org_ids)
-        ? (rating as any).rater_org_ids.filter((x: any) => typeof x === 'string' && x)
-        : []
+      const orgIds: string[] = raterOf(rating).orgIds
       if (orgIds.length === 0) continue
       const scores = (rating.barrier_scores || {}) as BarrierScores
       const dims = Object.entries(scores).filter(([, sc]) => typeof sc === 'number') as [string, number][]
@@ -477,7 +496,7 @@ export async function getResourceDetail(resourceId: string, userId?: string): Pr
   }
 
   let orgBreakdown: OrgBreakdown[] = []
-  const orgIdList = Object.keys(orgAgg)
+  const orgIdList = Object.keys(orgAgg).filter((id) => orgAgg[id].count >= MIN_BREAKDOWN_GROUP)
   if (orgIdList.length > 0) {
     const { data: orgRows } = await supabase
       .from('organizations')
@@ -509,7 +528,7 @@ export async function getResourceDetail(resourceId: string, userId?: string): Pr
   let weightTotal = 0
   if (ratings) {
     for (const rating of ratings) {
-      const rels = ((rating as any).rater_relationships || {}) as Record<string, string>
+      const rels = raterOf(rating).relationships
       const values = Object.values(rels).filter((r) => typeof r === 'string')
       // A rater's strongest tie to any norm decides the weight — someone with
       // lived experience of one norm isn't demoted for also being an ally to
@@ -526,7 +545,7 @@ export async function getResourceDetail(resourceId: string, userId?: string): Pr
     }
   }
   const weightedRating = weightTotal > 0 ? weightedSum / weightTotal : 0
-  const relationshipMix: RelationshipMix[] = RELATIONSHIP_ORDER.filter((r) => relAgg[r]).map((r) => ({
+  const relationshipMix: RelationshipMix[] = RELATIONSHIP_ORDER.filter((r) => relAgg[r] && relAgg[r].count >= MIN_BREAKDOWN_GROUP).map((r) => ({
     relationship: r,
     count: relAgg[r].count,
     average: relAgg[r].count ? relAgg[r].sum / relAgg[r].count : 0,
@@ -553,31 +572,19 @@ export async function getResourceDetail(resourceId: string, userId?: string): Pr
     if (isSaved) teamState = (await teamStates(supabase, userId, [resourceId]))[resourceId] || 'saved'
   }
 
-  // Check if recommended by autism community (high ratings from users with autism barriers)
+  // Recommended by the autism community: at least 3 ratings from raters who
+  // had autism among their norms when they rated, averaging 4 or more. From
+  // the raters' snapshots (read on the server above); it used to read other
+  // people's norms with the viewer's session, which only ever found their own.
   let recommendedByAutismCommunity = false
   if (ratings && ratings.length > 0) {
-    // Get user IDs who rated this resource
-    const ratingUserIds = ratings.map((r) => r.user_id)
-    
-    // Get users with autism barriers who rated this resource
-    const { data: autismUsers } = await supabase
-      .from('user_barriers')
-      .select('user_id')
-      .eq('barrier_type', 'autism')
-      .in('user_id', ratingUserIds)
-    
-    if (autismUsers && autismUsers.length > 0) {
-      const autismUserIds = [...new Set(autismUsers.map((u) => u.user_id))]
-      // Get ratings from autism users
-      const autismRatings = ratings.filter((r) => autismUserIds.includes(r.user_id))
-      
-      if (autismRatings.length >= 3) {
-        // Calculate average rating from autism users
-        const autismAverage =
-          autismRatings.reduce((sum, r) => sum + r.overall_score, 0) / autismRatings.length
-        // Recommended if average >= 4.0 and at least 3 ratings
-        recommendedByAutismCommunity = autismAverage >= 4.0
-      }
+    const autismRatings = ratings.filter((r) =>
+      Object.keys(raterOf(r).diagnostics).some((k) => k.trim().toLowerCase() === 'autism')
+    )
+    if (autismRatings.length >= 3) {
+      const autismAverage =
+        autismRatings.reduce((sum, r) => sum + r.overall_score, 0) / autismRatings.length
+      recommendedByAutismCommunity = autismAverage >= 4.0
     }
   }
 
@@ -640,11 +647,29 @@ export async function getSimilarResources(
 
 // ==================== Rating Queries ====================
 
-export async function getRatingsByResource(resourceId: string): Promise<Rating[]> {
+/**
+ * The columns of a rating that may leave the server: what the review card,
+ * the rating form and the counts use. Never `select('*')`: the rater_*
+ * snapshot (the reviewer's norms, relationships and groups) is private and
+ * read only through lib/ratings/raterContext.ts (bug audit, 17 November 2026,
+ * item 2).
+ */
+export const RATING_COLUMNS = 'id, resource_id, user_id, overall_score, barrier_scores, comment, helpful_count, created_at'
+
+/** A column the code asks for isn't there yet (wait_bucket before STEP 83). */
+const columnMissing = (e: { code?: string; message?: string } | null | undefined) =>
+  !!e && (e.code === '42703' || e.code === 'PGRST204' || /wait_bucket/.test(e.message || ''))
+
+/**
+ * A resource's ratings, newest first. A rating flagged by the validation
+ * agent is left out until a moderator has looked at it (item 25), except for
+ * its own author when `viewerId` is given.
+ */
+export async function getRatingsByResource(resourceId: string, viewerId?: string): Promise<Rating[]> {
   const supabase = createClient()
   const { data, error } = await supabase
     .from('ratings')
-    .select('*')
+    .select(RATING_COLUMNS)
     .eq('resource_id', resourceId)
     .order('created_at', { ascending: false })
 
@@ -653,31 +678,30 @@ export async function getRatingsByResource(resourceId: string): Promise<Rating[]
     return []
   }
 
-  return data || []
+  const rows = (data || []) as unknown as Rating[]
+  if (rows.length === 0) return rows
+  // Asked fresh for these ratings (not the 30-second shared list), so a rating flagged a moment ago is hidden at once.
+  const held = await heldForReview('rating', rows.map((r) => r.id))
+  return rows.filter((r) => !held.has(r.id) || (!!viewerId && r.user_id === viewerId))
 }
 
-export async function getRatingByUserAndResource(resourceId: string, userId: string): Promise<Rating | null> {
+/** The person's own rating of a resource (with how long they waited, after STEP 83), or null. */
+export async function getRatingByUserAndResource(resourceId: string, userId: string): Promise<(Rating & { wait_bucket?: string | null }) | null> {
   const supabase = createClient()
-  const { data, error } = await supabase
-    .from('ratings')
-    .select('*')
-    .eq('resource_id', resourceId)
-    .eq('user_id', userId)
-    .single()
+  const read = (columns: string) =>
+    supabase.from('ratings').select(columns).eq('resource_id', resourceId).eq('user_id', userId).maybeSingle()
+  let { data, error } = await read(`${RATING_COLUMNS}, wait_bucket`)
+  if (error && columnMissing(error)) ({ data, error } = await read(RATING_COLUMNS))
 
   if (error) {
-    if (error.code === 'PGRST116') {
-      // No rows returned
-      return null
-    }
     console.error('Error fetching rating:', error)
     return null
   }
 
-  return data
+  return (data as unknown as (Rating & { wait_bucket?: string | null }) | null) ?? null
 }
 
-export async function createOrUpdateRating(rating: {
+type RatingWrite = {
   resource_id: string
   user_id: string
   overall_score: number
@@ -691,71 +715,71 @@ export async function createOrUpdateRating(rating: {
   rater_relationships?: Record<string, string>
   /** How the rater is connected to their norms (CONNECTION_TYPES ids) — the connection-type filter. */
   rater_connection_types?: string[]
-}): Promise<Rating | null> {
+}
+
+/**
+ * Save the person's rating of a resource: a new one, or their existing one
+ * changed. `id` sets a new rating's id in advance (the ratings route puts a
+ * flagged rating in the moderation queue before saving it, so it is never
+ * shown unreviewed). Returns the public columns only.
+ *
+ * It no longer puts every rating with a comment in the moderation queue:
+ * those inserts always failed (people can't write the queue), and the
+ * ratings route now queues exactly the ratings the validation agent flags,
+ * which stay hidden until a moderator looks (item 25).
+ */
+export async function createOrUpdateRating(rating: RatingWrite & { id?: string }): Promise<Rating | null> {
   const supabase = createClient()
+  const { id, ...fields } = rating
   // Check if rating exists
-  const existing = await getRatingByUserAndResource(rating.resource_id, rating.user_id)
+  const existing = await getRatingByUserAndResource(fields.resource_id, fields.user_id)
 
   if (existing) {
-    // Update existing rating
-    const { data, error } = await supabase
-      .from('ratings')
-      .update(rating)
-      .eq('id', existing.id)
-      .select()
-      .single()
-
-    if (error) {
-      console.error('Error updating rating:', error)
-      return null
-    }
-
-    // Add to moderation queue if comment was added/updated. moderation_queue
-    // has no composite unique key, so an upsert here always inserted anyway —
-    // use insert() so the code honestly reflects that. Guard against piling up
-    // duplicate pending rows when a comment is edited repeatedly.
-    if (rating.comment) {
-      const { data: existing } = await supabase
-        .from('moderation_queue')
-        .select('id')
-        .eq('item_type', 'rating')
-        .eq('item_id', data.id)
-        .eq('status', 'pending')
-        .limit(1)
-      if (!existing || existing.length === 0) {
-        await supabase.from('moderation_queue').insert({
-          item_type: 'rating',
-          item_id: data.id,
-          status: 'pending',
-        })
-      }
-    }
-
-    return data
-  } else {
-    // Create new rating
-    const { data, error } = await supabase
-      .from('ratings')
-      .insert(rating)
-      .select()
-      .single()
-
-    if (error) {
-      console.error('Error creating rating:', error)
-      return null
-    }
-
-    // Add to moderation queue
-    if (rating.comment) {
-      await supabase.from('moderation_queue').insert({
-        item_type: 'rating',
-        item_id: data.id,
-        status: 'pending',
-      })
-    }
-
-    return data
+    return updateOwnRating(existing.id, fields.user_id, fields)
   }
+
+  const { data, error } = await supabase
+    .from('ratings')
+    .insert(id ? { id, ...fields } : fields)
+    .select(RATING_COLUMNS)
+    .single()
+
+  if (error) {
+    console.error('Error creating rating:', error)
+    return null
+  }
+
+  return data as unknown as Rating
+}
+
+/**
+ * Change the person's own existing rating (by its id). Never creates one.
+ * Returns the public columns, or null when nothing was changed.
+ */
+export async function updateOwnRating(
+  ratingId: string,
+  userId: string,
+  fields: Partial<Omit<RatingWrite, 'resource_id' | 'user_id'>> & { resource_id?: string; user_id?: string }
+): Promise<Rating | null> {
+  const supabase = createClient()
+  // The rating stays on its resource and with its author.
+  const changes: Record<string, unknown> = { ...fields }
+  delete changes.resource_id
+  delete changes.user_id
+  const { data, error } = await supabase
+    .from('ratings')
+    .update(changes)
+    .eq('id', ratingId)
+    .eq('user_id', userId)
+    .select(RATING_COLUMNS)
+    .maybeSingle()
+
+  if (error) {
+    console.error('Error updating rating:', error)
+    return null
+  }
+
+  return (data as unknown as Rating | null) ?? null
 }
 
 /**
@@ -1142,23 +1166,41 @@ const ratingIndexCache = sharedCache<RatingIndex>({ ttlMs: 60_000, maxEntries: 1
 
 function ratingIndex(): Promise<RatingIndex> {
   return ratingIndexCache('all', async () => {
-    const supabase = createClient()
-    const rows = await readAll((from, to, withCount) =>
-      supabase
-        .from('ratings')
-        .select('resource_id, overall_score, barrier_scores, rater_connection_types', withCount ? { count: 'exact' } : undefined)
-        .order('id')
-        .range(from, to)
-    )
+    // Shared by everyone, so read as the service: the public ratings (the
+    // view leaves out test accounts' for anyone but themselves), not whatever
+    // the first visitor's session happened to see.
+    let supabase: SupabaseLike
+    try {
+      supabase = createAdminClient()
+    } catch {
+      supabase = createClient()
+    }
+    const [rows, held, raters] = await Promise.all([
+      readAll((from, to, withCount) =>
+        supabase
+          .from('ratings')
+          .select('id, resource_id, overall_score, barrier_scores', withCount ? { count: 'exact' } : undefined)
+          .order('id')
+          .range(from, to)
+      ),
+      heldForReview('rating'),
+      // How raters are connected to their norms is private: read on the
+      // server (lib/ratings/raterContext.ts); only "some raters of this
+      // resource are X" is used, and only for groups of MIN_BREAKDOWN_GROUP.
+      loadRaterContext('ratings', 'all'),
+    ])
     const sums = new Map<string, { sum: number; count: number }>()
     const normKeys = new Map<string, Set<string>>()
     const normCounts = new Map<string, Map<string, number>>()
-    const raterTypes = new Map<string, Set<string>>()
+    const typeCounts = new Map<string, Map<string, number>>()
     for (const r of rows) {
-      if (Array.isArray(r.rater_connection_types) && r.rater_connection_types.length > 0) {
-        const types = raterTypes.get(r.resource_id) || new Set<string>()
-        for (const t of r.rater_connection_types) types.add(t)
-        raterTypes.set(r.resource_id, types)
+      // Flagged ratings wait for a moderator before they count (item 25).
+      if (held.has(r.id)) continue
+      const types = raters.get(r.id)?.connectionTypes || []
+      if (types.length > 0) {
+        const counts = typeCounts.get(r.resource_id) || new Map<string, number>()
+        for (const t of new Set(types)) counts.set(t, (counts.get(t) || 0) + 1)
+        typeCounts.set(r.resource_id, counts)
       }
       const s = sums.get(r.resource_id) || { sum: 0, count: 0 }
       s.sum += r.overall_score
@@ -1177,6 +1219,11 @@ function ratingIndex(): Promise<RatingIndex> {
     }
     const stats = new Map<string, { averageRating: number; ratingCount: number }>()
     for (const [id, s] of sums) stats.set(id, { averageRating: s.sum / s.count, ratingCount: s.count })
+    const raterTypes = new Map<string, Set<string>>()
+    for (const [id, counts] of typeCounts) {
+      const kept = Array.from(counts).filter(([, n]) => n >= MIN_BREAKDOWN_GROUP).map(([t]) => t)
+      if (kept.length > 0) raterTypes.set(id, new Set(kept))
+    }
     return { stats, normKeys, normCounts, raterTypes }
   })
 }
@@ -1854,11 +1901,14 @@ export async function getSearchSuggestions(query: string, limit: number = 5): Pr
   if (!query || query.length < 2) return []
 
   const supabase = createClient()
+  // Escaped and quoted (lib/search/words.ts): a comma, bracket, % or _ in what
+  // someone typed used to change the filter itself.
+  const like = orIlikeValue(query.slice(0, 200))
   const { data, error } = await supabase
     .from('resources')
     .select('name, category')
     .eq('status', 'approved')
-    .or(`name.ilike.%${query}%,category.ilike.%${query}%`)
+    .or(`name.ilike.${like},category.ilike.${like}`)
     .limit(limit * 2) // Get more to filter unique
 
   if (error) {

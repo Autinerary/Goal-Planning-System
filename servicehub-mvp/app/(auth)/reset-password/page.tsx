@@ -21,7 +21,9 @@ export default function ResetPasswordPage() {
     const errorParam = searchParams.get('error')
     
     if (errorParam === 'invalid_token') {
-      setError('Invalid or expired reset token. Please request a new password reset.')
+      // The link is single-use and only works in the browser that asked for
+      // it (app/auth/reset-password waits for it to be used).
+      setError('This reset link didn’t work. It may have expired or been used already, or been opened in a different browser from the one that asked for it. Please ask for a new link, in this browser.')
       return
     }
     
@@ -247,12 +249,18 @@ export default function ResetPasswordPage() {
             </button>
           </div>
 
-          <div className="text-center">
+          <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-center">
             <Link
               href="/login"
               className="text-sm font-medium text-blue-600 hover:text-blue-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               Back to login
+            </Link>
+            <Link
+              href="/forgot-password"
+              className="text-sm font-medium text-blue-600 hover:text-blue-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Ask for a new link
             </Link>
           </div>
         </form>

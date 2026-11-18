@@ -111,12 +111,15 @@ async function isDuplicate(item: any, itemType: 'rating' | 'resource' | 'user'):
         return false
       }
 
-      const { data: existing } = await supabase
+      let query = supabase
         .from('ratings')
         .select('id')
         .eq('user_id', item.user_id)
         .eq('resource_id', item.resource_id)
-        .limit(1)
+      // Changing one's own rating isn't a duplicate of it (item.id is the
+      // rating being changed).
+      if (typeof item.id === 'string' && item.id) query = query.neq('id', item.id)
+      const { data: existing } = await query.limit(1)
 
       return (existing?.length || 0) > 0
     } else if (itemType === 'resource') {

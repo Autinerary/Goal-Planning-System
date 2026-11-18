@@ -53,12 +53,29 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
   // "Based on those who matched your Diagnostics profile" — needs the viewer's
   // own norms, which they are always allowed to read.
   let viewerNorms: string[] = []
-  let myReview: number | undefined
+  let myReview: { rating: number; comment: string | null; barrier_scores: Record<string, number> | null } | undefined
   if (user) {
     const { data: myBarriers } = await supabase
       .from('user_barriers').select('barrier_type').eq('user_id', user.id)
     viewerNorms = (myBarriers || []).map((b: any) => String(b.barrier_type || '')).filter(Boolean)
-    myReview = reviews.find((r: any) => r.user_id === user.id)?.rating
+    // Your own review, from its row, so editing starts from your words and
+    // per-norm scores (saving replaces the whole review; bug audit,
+    // 17 November 2026, item 33). The list above is the fallback.
+    const { data: mine } = await supabase
+      .from('product_reviews')
+      .select('rating, comment, barrier_scores')
+      .eq('product_id', product.id)
+      .eq('user_id', user.id)
+      .maybeSingle()
+    const listed = reviews.find((r: any) => r.user_id === user.id) as any
+    const row: any = mine || listed
+    if (row && Number(row.rating) >= 1) {
+      myReview = {
+        rating: Number(row.rating),
+        comment: typeof row.comment === 'string' ? row.comment : null,
+        barrier_scores: row.barrier_scores && typeof row.barrier_scores === 'object' ? row.barrier_scores : null,
+      }
+    }
   }
   const profileMatch = matchForProfile(reviews, viewerNorms)
 
@@ -316,7 +333,9 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
             <ProductReviewForm
               productId={product.id}
               signedIn={!!user}
-              existingRating={myReview}
+              existingRating={myReview?.rating}
+              existingComment={myReview?.comment}
+              existingScores={myReview?.barrier_scores}
             />
           </section>
 

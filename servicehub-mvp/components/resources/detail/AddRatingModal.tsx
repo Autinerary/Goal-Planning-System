@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { X, Star } from 'lucide-react'
-import { showToast } from '@/lib/toast'
+import { useDialogFocus } from '@/components/ui/useDialogFocus'
+import { showToast, toast } from '@/lib/toast'
 import { formatErrorForUser } from '@/lib/errors/handler'
 import type { BarrierScores } from '@/types/database'
 import { TRUST_META, VERIFICATION_META, type RaterTrust, type VerificationMethod } from '@/lib/trust'
@@ -15,7 +16,8 @@ interface AddRatingModalProps {
   /** For the proof email's subject, when someone cannot rate yet. */
   resourceName?: string
   onClose: () => void
-  onRatingAdded: () => void
+  /** `held`: saved, but waiting for a quick review before it shows. */
+  onRatingAdded: (result?: { held: boolean }) => void
 }
 
 // Named as the Rating Breakdown shows them ("Sensory-Friendliness").
@@ -117,12 +119,20 @@ export default function AddRatingModal({ resourceId, resourceName, onClose, onRa
       }
 
       const result = await response.json()
-      showToast.success(
-        result.validation?.decision === 'flag_for_review'
-          ? (existingRating ? 'Rating updated and is pending review' : 'Rating submitted and is pending review')
-          : (existingRating ? 'Rating updated successfully!' : 'Rating submitted successfully!')
-      )
-      onRatingAdded()
+      // Waiting for a moderator (the route reports a held rating this way):
+      // saved, but not on the page yet. Said plainly, and for long enough to read.
+      const held = result.validation?.decision === 'flag_for_review'
+      if (held) {
+        toast.success(
+          existingRating
+            ? 'Your changes are saved. They show on this page once they’ve had a quick review.'
+            : 'Thanks, your rating is saved. It shows on this page once it has had a quick review.',
+          { duration: 7000, position: 'top-right', ariaProps: { role: 'status', 'aria-live': 'polite' } }
+        )
+      } else {
+        showToast.success(existingRating ? 'Rating updated successfully!' : 'Rating submitted successfully!')
+      }
+      onRatingAdded({ held })
     } catch (error: any) {
       const errorMessage = error.message || 'Failed to submit rating. Please try again.'
       setError(errorMessage)
@@ -136,11 +146,23 @@ export default function AddRatingModal({ resourceId, resourceName, onClose, onRa
     setBarrierScores((prev) => ({ ...prev, [barrier]: score }))
   }
 
+  // Open whenever it's on screen: Escape closes it, focus moves in, Tab stays
+  // inside, and focus goes back to the button that opened it.
+  const box = useRef<HTMLDivElement>(null)
+  useDialogFocus(true, box, onClose)
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div
+        ref={box}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="add-rating-title"
+        tabIndex={-1}
+        className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto outline-none"
+      >
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
-          <h2 className="text-xl font-semibold text-gray-900">
+          <h2 id="add-rating-title" className="text-xl font-semibold text-gray-900">
             {access && access.signed_in && !access.can_rate ? 'Who can rate' : existingRating ? 'Edit Your Rating' : 'Add Your Rating'}
           </h2>
           <button

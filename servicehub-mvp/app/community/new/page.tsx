@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Sparkles } from 'lucide-react'
 import Markdown from '@/components/community/Markdown'
 import ImageUploader from '@/components/community/ImageUploader'
+import RulesDialog, { useCommunityRules } from '@/components/community/RulesDialog'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import Breadcrumbs from '@/components/layout/Breadcrumbs'
@@ -49,6 +50,25 @@ export default function NewPostPage() {
     try { setPostedBefore(localStorage.getItem(POSTED_KEY) === '1') } catch {}
   }, [])
 
+  // The community rules, before a first post (STEP 83), as on Write a Tidbit.
+  // Without them a first question was refused (403, code 'rules') with no way
+  // to agree from here (bug audit, 17 November 2026, item 27). What's typed
+  // stays in the form while the rules are open.
+  const rules = useCommunityRules()
+  const [rulesOpen, setRulesOpen] = useState(false)
+  // Set when the rules were asked for by "Publish question": agreeing then
+  // carries on and publishes.
+  const publishAfterRules = useRef(false)
+  const [rulesWaiting, setRulesWaiting] = useState(false)
+  useEffect(() => {
+    if (rules.needed) setRulesOpen(true)
+  }, [rules.needed])
+  // Stable, so the open dialog doesn't go back to its first page when this page re-renders.
+  const closeRules = useCallback(() => {
+    setRulesOpen(false)
+    publishAfterRules.current = false
+  }, [])
+
   const addTag = (raw: string, list: string[], setList: (l: string[]) => void) => {
     const tag = raw.trim().toLowerCase()
     if (!tag) return
@@ -57,10 +77,19 @@ export default function NewPostPage() {
     setList([...list, tag])
   }
 
-  const submit = async () => {
+  const askForRules = () => {
+    publishAfterRules.current = true
+    setRulesWaiting(true)
+    setRulesOpen(true)
+  }
+
+  // `rulesJustAgreed`: called straight after "I agree", when this render's
+  // `rules.needed` is still the old answer.
+  const submit = async (rulesJustAgreed = false) => {
     if (submitting) return
-    setSubmitting(true)
     setError(null)
+    if (rules.needed && !rulesJustAgreed) return askForRules()
+    setSubmitting(true)
     try {
       const res = await fetch('/api/community/posts', {
         method: 'POST',
@@ -78,6 +107,10 @@ export default function NewPostPage() {
       })
       if (!res.ok) {
         const j = await res.json().catch(() => null)
+        if (j?.code === 'rules') {
+          setSubmitting(false)
+          return askForRules()
+        }
         throw new Error(j?.error || `Create failed (${res.status})`)
       }
       const j = await res.json()
@@ -365,7 +398,16 @@ export default function NewPostPage() {
         <ImageUploader urls={imageUrls} onChange={setImageUrls} max={6} disabled={submitting} />
       </div>
 
-      {error && <p className="text-sm text-rose-600">{error}</p>}
+      {error && <p role="alert" className="text-sm text-rose-600">{error}</p>}
+
+      {rulesWaiting && !rulesOpen && (
+        <p role="status" className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-gray-900">
+          Your question is still here, and isn&apos;t published yet. To publish it, please read and agree to the community rules.{' '}
+          <button type="button" onClick={askForRules} className="font-medium text-blue-800 underline underline-offset-2">
+            Read the rules
+          </button>
+        </p>
+      )}
 
       {!canSubmit && (
         <p className="text-sm text-gray-500 text-right" aria-live="polite">
@@ -382,13 +424,30 @@ export default function NewPostPage() {
         </Link>
         <button
           type="button"
-          onClick={submit}
+          onClick={() => void submit()}
           disabled={!canSubmit || submitting}
           className="px-4 py-2 text-sm rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
         >
           {submitting ? 'Publishing…' : 'Publish question'}
         </button>
       </div>
+      <RulesDialog
+        open={rulesOpen}
+        reason="post"
+        onClose={closeRules}
+        onAgree={async () => {
+          const ok = await rules.accept()
+          if (ok) {
+            setRulesOpen(false)
+            setRulesWaiting(false)
+            if (publishAfterRules.current) {
+              publishAfterRules.current = false
+              if (canSubmit) void submit(true)
+            }
+          }
+          return ok
+        }}
+      />
       </main>
       <Footer />
     </div>

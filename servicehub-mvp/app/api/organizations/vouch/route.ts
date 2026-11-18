@@ -18,6 +18,9 @@ export const dynamic = 'force-dynamic'
  *   - the norm must already be on the member's profile (a leader confirms
  *     what the person said about themselves; they can't add norms for them)
  *   - never downgrades a professional verification
+ *   - an organisation takes back only its own vouch, and doesn't replace
+ *     another organisation's: revoking used to clear whichever organisation
+ *     had vouched (bug audit, 17 November 2026, item 16)
  */
 export async function POST(request: NextRequest) {
   const supabase = createClient()
@@ -78,7 +81,7 @@ export async function POST(request: NextRequest) {
   // The norm must already be self-declared by the member.
   const { data: norm } = await admin
     .from('user_barriers')
-    .select('id, verification_method')
+    .select('id, verification_method, verified_by_org_id')
     .eq('user_id', memberId)
     .eq('barrier_type', barrierType)
     .maybeSingle()
@@ -92,6 +95,25 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  const vouchedByOther =
+    norm.verification_method === 'organization' && !!norm.verified_by_org_id && norm.verified_by_org_id !== orgId
+  if (revoke && (norm.verification_method !== 'organization' || norm.verified_by_org_id !== orgId)) {
+    return NextResponse.json(
+      {
+        error: vouchedByOther
+          ? 'Another organisation vouched for this, so only they can take it back.'
+          : "There's no vouch from your organisation to take back.",
+      },
+      { status: 409 }
+    )
+  }
+  if (!revoke && vouchedByOther) {
+    return NextResponse.json(
+      { error: 'Another organisation has already vouched for this.' },
+      { status: 409 }
+    )
+  }
+
   const update = revoke
     ? { verification_method: 'self', verified_at: null, verified_by_org_id: null }
     : {
@@ -100,10 +122,22 @@ export async function POST(request: NextRequest) {
         verified_by_org_id: orgId,
       }
 
-  const { error } = await admin.from('user_barriers').update(update).eq('id', norm.id)
+  // Changed only if it is still as it was read: a revoke clears this
+  // organisation's vouch and nothing else, even if someone vouched meanwhile.
+  let write = admin.from('user_barriers').update(update).eq('id', norm.id)
+  // (orgId is a real organisation's id by now: it was found above.)
+  write = revoke
+    ? write.eq('verification_method', 'organization').eq('verified_by_org_id', orgId)
+    : write
+        .neq('verification_method', 'professional')
+        .or(`verification_method.neq.organization,verified_by_org_id.is.null,verified_by_org_id.eq.${org.id}`)
+  const { data: changed, error } = await write.select('id')
   if (error) {
     console.error('[org] vouch failed:', error.message)
     return NextResponse.json({ error: 'Could not record the vouch.' }, { status: 500 })
+  }
+  if (!changed || changed.length === 0) {
+    return NextResponse.json({ error: 'That changed just now. Please refresh and try again.' }, { status: 409 })
   }
   return NextResponse.json({ ok: true, method: update.verification_method })
 }

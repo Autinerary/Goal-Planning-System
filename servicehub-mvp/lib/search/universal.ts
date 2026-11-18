@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { searchProducts } from './products'
+import { orIlikeValue } from './words'
 
 /**
  * Search across every kind of thing ResourceHub holds (Odosa).
@@ -69,7 +70,9 @@ export async function universalSearch(
   const normFilterActive = norms.length > 0
 
   const supabase = createClient()
-  const like = `%${term}%`
+  // Escaped and quoted: a comma or bracket in what someone typed used to end
+  // the filter or add conditions to it (lib/search/words.ts).
+  const like = orIlikeValue(term.slice(0, 200))
 
   // All three in parallel — one slow source should not hold up the others.
   // Each is caught individually so a single failure degrades that section

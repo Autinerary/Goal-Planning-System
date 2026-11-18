@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { 
   Edit, 
@@ -19,6 +19,9 @@ interface ResourceTableProps {
   onDelete?: (resourceId: string) => void
   onApprove?: (resourceId: string) => void
   onReject?: (resourceId: string) => void
+  /** The bulk buttons: every selected row at once, with one question and one reload. */
+  onBulkApprove?: (resourceIds: string[]) => void | Promise<void>
+  onBulkDelete?: (resourceIds: string[]) => void | Promise<void>
   loading?: boolean
 }
 
@@ -28,9 +31,37 @@ export default function ResourceTable({
   onDelete,
   onApprove,
   onReject,
+  onBulkApprove,
+  onBulkDelete,
   loading = false,
 }: ResourceTableProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [bulkBusy, setBulkBusy] = useState(false)
+
+  // Another page, another filter or a reload shows other rows, so the
+  // selection starts again. It used to carry over, and the bulk buttons acted
+  // on rows no longer on screen (bug audit, 17 November 2026, item 33).
+  useEffect(() => {
+    setSelectedIds(new Set())
+  }, [resources])
+
+  const runBulk = async (
+    bulk: ((resourceIds: string[]) => void | Promise<void>) | undefined,
+    single: ((resourceId: string) => void) | undefined
+  ) => {
+    const ids = Array.from(selectedIds)
+    if (!bulk) {
+      ids.forEach((id) => single?.(id))
+      setSelectedIds(new Set())
+      return
+    }
+    setBulkBusy(true)
+    try {
+      await bulk(ids)
+    } finally {
+      setBulkBusy(false)
+    }
+  }
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -77,20 +108,16 @@ export default function ResourceTable({
           </span>
           <div className="flex gap-2">
             <button
-              onClick={() => {
-                selectedIds.forEach((id) => onApprove?.(id))
-                setSelectedIds(new Set())
-              }}
-              className="px-4 py-2 text-sm font-medium text-green-700 bg-green-100 hover:bg-green-200 rounded-lg transition-colors"
+              onClick={() => void runBulk(onBulkApprove, onApprove)}
+              disabled={bulkBusy}
+              className="px-4 py-2 text-sm font-medium text-green-700 bg-green-100 hover:bg-green-200 rounded-lg transition-colors disabled:opacity-60"
             >
               Approve Selected
             </button>
             <button
-              onClick={() => {
-                selectedIds.forEach((id) => onDelete?.(id))
-                setSelectedIds(new Set())
-              }}
-              className="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 rounded-lg transition-colors"
+              onClick={() => void runBulk(onBulkDelete, onDelete)}
+              disabled={bulkBusy}
+              className="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 rounded-lg transition-colors disabled:opacity-60"
             >
               Delete Selected
             </button>

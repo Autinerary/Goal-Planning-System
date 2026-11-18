@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import { User, Shield, Ban, Unlock, MoreVertical } from 'lucide-react'
 import TrustScoreBadge from '@/components/agents/TrustScoreBadge'
 import type { Profile } from '@/types/database'
@@ -117,14 +116,9 @@ export default function UserTable({
                     : 'N/A'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  {/* "View Details" went to /admin/users/<id>, which doesn't exist (bug audit,
+                      17 November 2026, item 33); the row already shows what there is. */}
                   <div className="flex items-center gap-2">
-                    <Link
-                      href={`/admin/users/${user.id}`}
-                      className="text-blue-600 hover:text-blue-900"
-                      title="View Details"
-                    >
-                      <User className="w-4 h-4" aria-hidden="true" />
-                    </Link>
                     {user.role !== 'banned' && onBan && (
                       <button
                         onClick={() => onBan(user.id)}

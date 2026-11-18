@@ -14,6 +14,7 @@ import ViewToggle from '@/components/search/ViewToggle'
 import Pagination from '@/components/search/Pagination'
 import EmptyState from '@/components/feedback/EmptyState'
 import ErrorState from '@/components/feedback/ErrorState'
+import { useDialogFocus } from '@/components/ui/useDialogFocus'
 import { findCondition, decodeCondition } from '@/lib/search/conditions'
 import { Search, Filter, X, MapPin } from 'lucide-react'
 import type { SearchResult } from '@/lib/supabase/queries'
@@ -189,8 +190,21 @@ function SearchResults() {
     [searchParams, router, pathname]
   )
 
-  // Fetch search results
+  // "Try Again" after an error: the same search, asked for again.
+  const [retryKey, setRetryKey] = useState(0)
+
+  // The filters drawer on small screens.
+  const filtersPanel = useRef<HTMLElement>(null)
+  const closeFilters = useCallback(() => setShowFilters(false), [])
+  useDialogFocus(showFilters, filtersPanel, closeFilters)
+
+  // Fetch search results. Only the newest search may change the page: when
+  // the filters changed quickly, a slower answer to an earlier search could
+  // land last and replace the newer results (bug audit, 17 November 2026,
+  // item 33). An answer that is no longer wanted is cancelled and ignored.
   useEffect(() => {
+    let stale = false
+    const controller = new AbortController()
     async function fetchResults() {
       setLoading(true)
       setError(null)
@@ -226,7 +240,8 @@ function SearchResults() {
           wait: shortWait ? 'short' : '',
           age: serviceAge || '',
         })
-        const response = await fetch(`/api/search?${apiParams.toString()}`)
+        const response = await fetch(`/api/search?${apiParams.toString()}`, { signal: controller.signal })
+        if (stale) return
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}))
@@ -234,6 +249,7 @@ function SearchResults() {
         }
 
         const data = await response.json()
+        if (stale) return
         setUnderstood(data.understood || null)
         setTeam(data.team || {})
         setMine(data.mine || {})
@@ -244,9 +260,10 @@ function SearchResults() {
         const ids = (data.results || []).filter((r: any) => r.kind !== 'product').map((r: any) => r.id)
         setTiers({})
         if (ids.length) {
-          fetch('/api/resources/badges', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ resourceIds: ids }) })
+          fetch('/api/resources/badges', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ resourceIds: ids }), signal: controller.signal })
             .then((r) => (r.ok ? r.json() : null))
             .then((j) => {
+              if (stale) return
               const next: Record<string, string> = {}
               for (const [id, b] of Object.entries((j?.badges || {}) as Record<string, { trendingTier?: string | null }>)) if (b.trendingTier) next[id] = b.trendingTier
               setTiers(next)
@@ -277,6 +294,8 @@ function SearchResults() {
         }
         setError(null)
       } catch (error) {
+        // Cancelled because a newer search started: nothing to say.
+        if (stale) return
         console.error('Error fetching search results:', error)
         const errorMessage = error instanceof Error ? error.message : 'Failed to fetch search results'
         const isNetworkError = errorMessage.includes('fetch') || errorMessage.includes('network')
@@ -289,11 +308,15 @@ function SearchResults() {
         setTotal(0)
         setProductCount(0)
       } finally {
-        setLoading(false)
+        if (!stale) setLoading(false)
       }
     }
 
     fetchResults()
+    return () => {
+      stale = true
+      controller.abort()
+    }
   }, [
     query,
     categories.join(','),
@@ -323,6 +346,7 @@ function SearchResults() {
     online,
     shortWait,
     serviceAge,
+    retryKey,
   ])
 
   // A new search starts a new reading: AI only on Enter.
@@ -920,9 +944,8 @@ function SearchResults() {
                     errorType={error.type as any}
                     onRetry={() => {
                       setError(null)
-                      // Trigger refetch by updating a dependency
-                      const params = new URLSearchParams(searchParams.toString())
-                      router.push(`${pathname}?${params.toString()}`)
+                      // Pushing the same address didn't fetch again; this does.
+                      setRetryKey((k) => k + 1)
                     }}
                     showRetry={true}
                   />
@@ -1029,10 +1052,18 @@ function SearchResults() {
               className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
               onClick={() => setShowFilters(false)}
             />
-            <aside className="fixed inset-y-0 left-0 w-64 bg-white shadow-xl z-50 lg:hidden overflow-y-auto">
+            {/* Escape closes it, focus moves in and stays in, and goes back to Filters after (useDialogFocus). */}
+            <aside
+              ref={filtersPanel}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="mobile-filters-heading"
+              tabIndex={-1}
+              className="fixed inset-y-0 left-0 w-64 bg-white shadow-xl z-50 lg:hidden overflow-y-auto outline-none"
+            >
               <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
+                  <h2 id="mobile-filters-heading" className="text-lg font-semibold text-gray-900">Filters</h2>
                   <button
                     onClick={() => setShowFilters(false)}
                     className="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"

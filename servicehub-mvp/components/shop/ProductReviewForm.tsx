@@ -20,26 +20,46 @@ const NORMS: { key: string; label: string }[] = [
   { key: 'cognitive', label: 'Ease of understanding' },
 ]
 
+/** Saved per-norm scores, keeping only whole numbers from 1 to 5 (what the review route accepts). */
+function validScores(raw: Record<string, number> | null | undefined): Record<string, number> {
+  const out: Record<string, number> = {}
+  if (!raw || typeof raw !== 'object') return out
+  for (const [k, v] of Object.entries(raw)) {
+    const n = Number(v)
+    if (k && Number.isInteger(n) && n >= 1 && n <= 5) out[k] = n
+  }
+  return out
+}
+
 export default function ProductReviewForm({
   productId,
   signedIn,
   existingRating,
+  existingComment,
+  existingScores,
 }: {
   productId: string
   signedIn: boolean
   existingRating?: number
+  /** Your review's words and per-norm scores, when you are editing it. */
+  existingComment?: string | null
+  existingScores?: Record<string, number> | null
 }) {
   const router = useRouter()
   const [rating, setRating] = useState(existingRating ?? 0)
   const [hover, setHover] = useState(0)
-  const [comment, setComment] = useState('')
-  const [scores, setScores] = useState<Record<string, number>>({})
+  // Editing starts from what you wrote. It used to start empty, and saving
+  // replaced the review, so its comment and scores were wiped (bug audit,
+  // 17 November 2026, item 33).
+  const [comment, setComment] = useState(existingComment ?? '')
+  const [scores, setScores] = useState<Record<string, number>>(() => validScores(existingScores))
   const [busy, setBusy] = useState(false)
 
   if (!signedIn) {
     return (
       <p className="text-sm text-gray-500">
-        <a href="/login" className="text-purple-700 font-medium underline underline-offset-2">Sign in</a>{' '}
+        {/* Back to this product after signing in, not the home page. */}
+        <a href={`/login?next=${encodeURIComponent(`/shop/${productId}`)}`} className="text-purple-700 font-medium underline underline-offset-2">Sign in</a>{' '}
         to rate this product.
       </p>
     )
@@ -61,7 +81,17 @@ export default function ProductReviewForm({
         const j = await res.json().catch(() => null)
         throw new Error(j?.error || 'Could not save your review')
       }
-      showToast.success(existingRating ? 'Review updated.' : 'Thanks — your review is live.')
+      const saved = await res.json().catch(() => null)
+      // Held for a quick look by a moderator first: saved, but not shown yet.
+      if (saved?.pending_review) {
+        showToast.success(
+          existingRating
+            ? 'Your changes are saved. They show once they’ve had a quick review.'
+            : 'Thanks, your review is saved. It shows once it has had a quick review.'
+        )
+      } else {
+        showToast.success(existingRating ? 'Review updated.' : 'Thanks — your review is live.')
+      }
       // Refresh so the breakdown above reflects this review immediately.
       router.refresh()
     } catch (e) {

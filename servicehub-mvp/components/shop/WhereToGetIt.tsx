@@ -1,6 +1,7 @@
 import { ExternalLink, MessageSquare } from 'lucide-react'
 import type { Product } from '@/types/shop'
 import { isAppCategory, isWatchCategory } from '@/lib/shop/categories'
+import { safeHref } from '@/components/ui/safeUrl'
 
 const host = (u: string) => {
   try {
@@ -53,8 +54,8 @@ export default function WhereToGetIt({ product, soldHere = false }: { product: P
         </ul>
       ) : (
         <p className="text-sm text-gray-800">
-          {product.maker_url ? (
-            <a href={product.maker_url} target="_blank" rel="noopener noreferrer" className="font-medium text-blue-800 underline underline-offset-2">
+          {safeHref(product.maker_url) ? (
+            <a href={safeHref(product.maker_url)!} target="_blank" rel="noopener noreferrer" className="font-medium text-blue-800 underline underline-offset-2">
               The maker&apos;s page
             </a>
           ) : (

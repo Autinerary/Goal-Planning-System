@@ -9,6 +9,7 @@ import ContactActions from './ContactActions'
 import type { Location, ContactInfo } from '@/types/database'
 import { costLabel } from '../ResourceCard'
 import { SERVICE_TAGS, tagLabel } from '@/lib/filters/tags'
+import { safeHref } from '@/components/ui/safeUrl'
 
 interface ResourceContentProps {
   resource: ResourceDetail
@@ -20,6 +21,8 @@ export default function ResourceContent({ resource }: ResourceContentProps) {
 
   const hasLocation = location && (location.lat || location.address)
   const hasContact = contactInfo && (contactInfo.phone || contactInfo.email || contactInfo.website)
+  const websiteHref = safeHref(contactInfo?.website)
+  const sourceHref = safeHref((resource as any).source_url)
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-8">
@@ -138,14 +141,19 @@ export default function ResourceContent({ resource }: ResourceContentProps) {
             {contactInfo.website && (
               <div className="flex items-center text-gray-700">
                 <Globe className="w-5 h-5 mr-3 text-gray-500 flex-shrink-0" aria-hidden="true" />
-                <a
-                  href={contactInfo.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded break-all"
-                >
-                  {contactInfo.website}
-                </a>
+                {/* "example.ca" opens https://example.ca, not a 404 here; anything that isn't a web address shows without a link. */}
+                {websiteHref ? (
+                  <a
+                    href={websiteHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded break-all"
+                  >
+                    {contactInfo.website}
+                  </a>
+                ) : (
+                  <span className="break-all">{contactInfo.website}</span>
+                )}
               </div>
             )}
           </div>
@@ -177,9 +185,9 @@ export default function ResourceContent({ resource }: ResourceContentProps) {
         <section className="border-t border-gray-200 pt-4 text-xs text-gray-500">
           <p>
             Listing from{' '}
-            {(resource as any).source_url ? (
+            {sourceHref ? (
               <a
-                href={(resource as any).source_url}
+                href={sourceHref}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="underline hover:text-gray-700"
@@ -191,7 +199,8 @@ export default function ResourceContent({ resource }: ResourceContentProps) {
             )}
             {(resource as any).last_verified_at && (
               <> · last checked against the source on{' '}
-                {new Date((resource as any).last_verified_at).toLocaleDateString()}</>
+                {/* One fixed format and time zone, so the server's page and the browser's agree (a locale-dependent date didn't, and React reported a mismatch). */}
+                {new Date((resource as any).last_verified_at).toLocaleDateString('en-CA', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })}</>
             )}
           </p>
           <p className="mt-1">

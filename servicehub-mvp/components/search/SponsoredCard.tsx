@@ -9,6 +9,8 @@ interface Item {
   body: string | null
   image_url: string | null
   resource: { id: string; name: string; category: string; city: string }
+  /** Signed for this listing, place and viewer (app/api/search/sponsored); an event counts only with it. */
+  token?: string
 }
 
 const WHY: Record<'search' | 'tidbits', string> = {
@@ -18,9 +20,9 @@ const WHY: Record<'search' | 'tidbits', string> = {
 
 const APP = (process.env.NEXT_PUBLIC_GOAL_PLANNING_URL || 'http://localhost:3000').replace(/\/$/, '')
 
-/** A view or a click, sent even as the page changes (app/api/sponsored/event). */
-function record(id: string, kind: 'impression' | 'click', placement: string) {
-  const body = JSON.stringify({ id, kind, placement })
+/** A view or a click, sent even as the page changes (app/api/sponsored/event), with the listing's token. */
+function record(id: string, kind: 'impression' | 'click', placement: string, token: string | undefined) {
+  const body = JSON.stringify({ id, kind, placement, token })
   try {
     if (navigator.sendBeacon?.('/api/sponsored/event', new Blob([body], { type: 'application/json' }))) return
   } catch {}
@@ -71,7 +73,7 @@ export default function SponsoredCard({
     const seen = new IntersectionObserver(
       (entries) => {
         if (entries.some((e) => e.isIntersecting)) {
-          record(item.id, 'impression', placement)
+          record(item.id, 'impression', placement, item.token)
           seen.disconnect()
         }
       },
@@ -93,7 +95,7 @@ export default function SponsoredCard({
         <div>
           <Link
             href={`/resources/${item.resource.id}`}
-            onClick={() => record(item.id, 'click', placement)}
+            onClick={() => record(item.id, 'click', placement, item.token)}
             className="text-lg font-semibold text-gray-900 underline underline-offset-2"
           >
             {item.headline}

@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { sendNotification } from '@/lib/notifications/service'
+import { CANT_POST_MESSAGE, isPostingBlockedError, postingBlockedReason } from '@/lib/community/client'
+import { heldForReview } from '@/lib/moderation/queue'
+import { rateLimited } from '@/lib/rateLimit'
 
 /**
  * POST /api/ratings/[id]/helpful — toggle your "helpful" vote on a review.
@@ -17,6 +21,10 @@ import { sendNotification } from '@/lib/notifications/service'
  *
  * Returns the new state so the UI can render the button accurately rather
  * than guessing with a local +1.
+ *
+ * The vote is written as the service, after the checks below (the review is
+ * shown, isn't yours, and your account may vote): since STEP 105 the helpful
+ * count is the server's to keep (bug audit, 17 November 2026, item 13).
  */
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -38,6 +46,10 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     if (ratingError || !rating) {
       return NextResponse.json({ error: 'Review not found' }, { status: 404 })
     }
+    // A review waiting for a moderator isn't shown, so it can't be voted on.
+    if ((await heldForReview('rating', [rating.id])).has(rating.id)) {
+      return NextResponse.json({ error: 'Review not found' }, { status: 404 })
+    }
 
     // You don't get to boost your own review.
     if (rating.user_id === user.id) {
@@ -47,7 +59,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       )
     }
 
-    const { data: existing } = await supabase
+    const admin = createAdminClient()
+    const { data: existing } = await admin
       .from('rating_helpful_votes')
       .select('rating_id')
       .eq('rating_id', params.id)
@@ -57,7 +70,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     let voted: boolean
 
     if (existing) {
-      const { error } = await supabase
+      // Taking a vote back is always allowed.
+      const { error } = await admin
         .from('rating_helpful_votes')
         .delete()
         .eq('rating_id', params.id)
@@ -68,12 +82,16 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       }
       voted = false
     } else {
-      const { error } = await supabase
+      // A banned or paused account can't vote (item 9).
+      const blocked = await postingBlockedReason(user.id, admin)
+      if (blocked) return NextResponse.json({ error: blocked, code: 'blocked' }, { status: 403 })
+      const { error } = await admin
         .from('rating_helpful_votes')
         .insert({ rating_id: params.id, user_id: user.id })
       // 23505 = someone double-clicked and both requests raced. The row the
       // other one wrote is the outcome we wanted, so treat it as success.
       if (error && error.code !== '23505') {
+        if (isPostingBlockedError(error)) return NextResponse.json({ error: CANT_POST_MESSAGE, code: 'blocked' }, { status: 403 })
         console.error('Error adding helpful vote:', error)
         return NextResponse.json({ error: 'Failed to update your vote' }, { status: 500 })
       }
@@ -81,16 +99,17 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     }
 
     // Read the trigger-maintained total back rather than computing it here.
-    const { data: updated } = await supabase
+    const { data: updated } = await admin
       .from('ratings')
       .select('helpful_count')
       .eq('id', params.id)
-      .single()
+      .maybeSingle()
 
     const helpfulCount = updated?.helpful_count ?? 0
 
-    // Only notify on a new vote, so toggling doesn't spam the author either.
-    if (voted) {
+    // Only notify on a new vote, and once a day per voter and review, so
+    // pressing it on and off doesn't fill the author's bell.
+    if (voted && !rateLimited('helpful-notify', `${user.id}:${params.id}`, 1, 24 * 60 * 60 * 1000)) {
       await sendNotification(rating.user_id, 'rating_helpful', {
         ratingId: params.id,
         resourceId: rating.resource_id,

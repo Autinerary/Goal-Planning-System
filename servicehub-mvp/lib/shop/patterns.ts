@@ -16,6 +16,10 @@ import type { DiscoveredPattern } from '@/lib/agents/pattern-agent/types'
  */
 
 // Below this, a difference is noise. Two reviewers agreeing is a coincidence.
+// It also keeps a group of one from saying which reviewer has which norm. The
+// reviews must come from getProductReviews (lib/shop/queries.ts), which reads
+// the reviewers' snapshots on the server with the admin client; only these
+// sentences reach the page.
 const MIN_GROUP = 3
 // A gap smaller than this is not worth telling someone about.
 const MIN_DELTA = 0.6

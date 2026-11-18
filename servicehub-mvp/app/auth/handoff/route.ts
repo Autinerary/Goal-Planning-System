@@ -1,6 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { A11Y_COOKIE, cleanA11y } from '@/lib/a11y'
+import { safeSameSitePath } from '@/lib/safeRedirect'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,8 +27,9 @@ const SENT_TO_APP = 'autinerary_sent_to_app'
 export async function GET(request: NextRequest) {
   const url = new URL(request.url)
   const tokenHash = url.searchParams.get('token_hash') || ''
-  const nextParam = url.searchParams.get('next') || '/'
-  const safeNext = nextParam.startsWith('/') && !nextParam.startsWith('//') && !nextParam.startsWith('/\\') ? nextParam : '/'
+  // Resolved and kept to this site (lib/safeRedirect.ts): a starts-with check
+  // let '/%09/evil.example' through, which browsers read as '//evil.example'.
+  const safeNext = safeSameSitePath(url.searchParams.get('next')) ?? '/'
   const response = NextResponse.redirect(new URL(safeNext, url.origin))
 
   // The app's accessibility settings come along (lib/a11y.ts).

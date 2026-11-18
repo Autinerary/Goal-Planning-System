@@ -1,5 +1,6 @@
 import { ExternalLink } from 'lucide-react'
 import { platformOf } from '@/lib/community/tidbits'
+import { safeHref } from '@/components/ui/safeUrl'
 
 /**
  * For a rated commentary that isn't ours (the Tidbits round's planning note,
@@ -14,8 +15,9 @@ export default function OriginalArticle({
   resource: { category: string; source_url?: string | null; contact_info?: { website?: string | null } | null }
 }) {
   if (resource.category !== 'commentary') return null
-  const url = resource.source_url || resource.contact_info?.website || null
-  if (!url || !/^https?:\/\//.test(url)) return null
+  // Only http(s) addresses; a website stored as "example.ca" gets https:// (components/ui/safeUrl.ts).
+  const url = safeHref(resource.source_url) || safeHref(resource.contact_info?.website)
+  if (!url) return null
   const platform = platformOf(url)
   return (
     <p className="flex flex-wrap gap-4 rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm">

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { RATING_COLUMNS } from '@/lib/supabase/queries'
 
 type SortOption = 'date' | 'rating' | 'newest'
 
@@ -24,15 +25,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Fetch ratings with resource details
+    // Fetch ratings with resource details: the rating's public fields only,
+    // never the whole row (its rater_* snapshot is private; bug audit,
+    // 17 November 2026, item 2).
     let query = supabase
       .from('ratings')
-      .select(
-        `
-        *,
-        resource:resources(*)
-      `
-      )
+      .select(`${RATING_COLUMNS}, resource:resources(*)`)
       .eq('user_id', userId)
 
     const { data: ratings, error } = await query

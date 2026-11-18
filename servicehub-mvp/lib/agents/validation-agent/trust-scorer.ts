@@ -1,6 +1,38 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getRatingsByResource } from '@/lib/supabase/queries'
+import { queueColumnMissing } from '@/lib/moderation/queue'
 import type { TrustScoreResult, UserHistory } from './types'
+
+/**
+ * How many of this person's contributions moderators turned down, from
+ * columns that exist: their listings with status 'rejected', plus (once
+ * STEP 105 adds moderation_queue.submitted_by) their other queue items marked
+ * rejected. Read as the service: people can't read the moderation queue, and
+ * the queue had no submitted_by, so this always came out as 0 (bug audit,
+ * 17 November 2026, item 25). A failure counts as none (logged).
+ */
+async function countViolations(userId: string): Promise<number> {
+  let admin
+  try {
+    admin = createAdminClient()
+  } catch {
+    return 0
+  }
+  const [listings, others] = await Promise.all([
+    admin.from('resources').select('id', { count: 'exact', head: true }).eq('submitted_by', userId).eq('status', 'rejected'),
+    admin
+      .from('moderation_queue')
+      .select('id', { count: 'exact', head: true })
+      .eq('submitted_by', userId)
+      .eq('status', 'rejected')
+      .neq('item_type', 'resource'),
+  ])
+  if (listings.error) console.warn('[trust] rejected listings not counted:', listings.error.message)
+  // Before STEP 105 the queue can't say whose an item was.
+  if (others.error && !queueColumnMissing(others.error)) console.warn('[trust] rejected items not counted:', others.error.message)
+  return (listings.error ? 0 : listings.count || 0) + (others.error ? 0 : others.count || 0)
+}
 
 /**
  * Calculate user trust score
@@ -55,14 +87,8 @@ export async function calculateUserTrust(userId: string): Promise<TrustScoreResu
     // Calculate helpful votes received
     const helpfulVotes = ratings?.reduce((sum, r) => sum + (r.helpful_count || 0), 0) || 0
 
-    // Get violations (from moderation queue rejections)
-    const { data: violations, error: violationsError } = await supabase
-      .from('moderation_queue')
-      .select('id')
-      .eq('submitted_by', userId)
-      .eq('status', 'rejected')
-
-    const violationsCount = violations?.length || 0
+    // Violations: what moderators turned down (read as the service).
+    const violationsCount = await countViolations(userId)
 
     // Calculate consistency score (how well user's ratings align with community)
     const consistencyScore = await calculateConsistency(userId, ratings || [])
@@ -209,12 +235,8 @@ export async function getUserHistory(userId: string): Promise<UserHistory> {
 
     const helpfulVotes = ratings?.reduce((sum, r) => sum + (r.helpful_count || 0), 0) || 0
 
-    // Get violations
-    const { count: violations } = await supabase
-      .from('moderation_queue')
-      .select('*', { count: 'exact', head: true })
-      .eq('submitted_by', userId)
-      .eq('status', 'rejected')
+    // Violations: what moderators turned down (read as the service).
+    const violations = await countViolations(userId)
 
     // Get recent activity
     const recentActivity = await getRecentActivity(userId)

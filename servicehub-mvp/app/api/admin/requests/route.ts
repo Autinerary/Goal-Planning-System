@@ -118,11 +118,16 @@ export async function POST(request: NextRequest) {
   const db = createAdminClient()
   const now = new Date().toISOString()
   let error: { message: string; code?: string } | null = null
+  // Rows a write changed: none means it was already handled (or is gone),
+  // which is said rather than reported as success.
+  let changed: unknown[] | null = null
+  const handled = () => NextResponse.json({ error: 'That was already handled, or it no longer exists.' }, { status: 404 })
 
   switch (b?.section) {
     case 'claims': {
-      ;({ error } = await db.from('listing_claims').update({ status: approve ? 'verified' : 'rejected', verified_at: approve ? now : null, reviewed_by: me.id }).eq('id', id).eq('status', 'pending'))
+      ;({ data: changed, error } = await db.from('listing_claims').update({ status: approve ? 'verified' : 'rejected', verified_at: approve ? now : null, reviewed_by: me.id }).eq('id', id).eq('status', 'pending').select('id'))
       if (error?.code === '23505') return NextResponse.json({ error: 'Someone else already manages this listing.' }, { status: 409 })
+      if (!error && !changed?.length) return handled()
       break
     }
     case 'edits': {
@@ -140,14 +145,17 @@ export async function POST(request: NextRequest) {
         }
         if (typeof c.address === 'string' && table === 'resources') update.location = { ...((row as any)?.location || {}), address: c.address }
         if (Array.isArray(c.qualities) && table === 'products') update.qualities = c.qualities
-        ;({ error } = await db.from(table).update(update).eq('id', edit.item_id))
+        ;({ data: changed, error } = await db.from(table).update(update).eq('id', edit.item_id).select('id'))
         if (error) break
+        if (!changed?.length) return handled()
       }
-      ;({ error } = await db.from('listing_edits').update({ status: approve ? 'applied' : 'rejected', reviewed_by: me.id, reviewed_at: now }).eq('id', id))
+      ;({ data: changed, error } = await db.from('listing_edits').update({ status: approve ? 'applied' : 'rejected', reviewed_by: me.id, reviewed_at: now }).eq('id', id).eq('status', 'pending').select('id'))
+      if (!error && !changed?.length) return handled()
       break
     }
     case 'promotions': {
-      ;({ error } = await db.from('promotions').update({ status: approve ? 'active' : 'rejected', reviewed_by: me.id, reviewed_at: now, updated_at: now }).eq('id', id).eq('status', 'submitted'))
+      ;({ data: changed, error } = await db.from('promotions').update({ status: approve ? 'active' : 'rejected', reviewed_by: me.id, reviewed_at: now, updated_at: now }).eq('id', id).eq('status', 'submitted').select('id'))
+      if (!error && !changed?.length) return handled()
       break
     }
     case 'guides': {
@@ -155,26 +163,32 @@ export async function POST(request: NextRequest) {
         ;({ error } = await db.from('spot_guides').upsert({ user_id: id, granted_by: me.email || me.id, note: 'Approved from an application' }, { onConflict: 'user_id', ignoreDuplicates: true }))
         if (error) break
       }
-      ;({ error } = await db.from('spot_guide_applications').update({ status: approve ? 'approved' : 'declined', reviewed_at: now }).eq('user_id', id))
+      ;({ data: changed, error } = await db.from('spot_guide_applications').update({ status: approve ? 'approved' : 'declined', reviewed_at: now }).eq('user_id', id).select('user_id'))
+      if (!error && !changed?.length) return handled()
       break
     }
     case 'access': {
       const ends = new Date()
       ends.setFullYear(ends.getFullYear() + 1)
-      ;({ error } = await db
+      ;({ data: changed, error } = await db
         .from('access_grants')
         .update(approve ? { status: 'active', starts_at: now, ends_at: ends.toISOString(), reviewed_at: now, reviewed_by: me.id } : { status: 'rejected', reviewed_at: now, reviewed_by: me.id })
         .eq('id', id)
-        .eq('status', 'pending'))
+        .eq('status', 'pending')
+        .select('id'))
+      if (!error && !changed?.length) return handled()
       break
     }
     case 'products': {
       const { data: product } = await db.from('products').select('id, source_type, submitted_by, status').eq('id', id).maybeSingle()
       if (!product || product.status !== 'pending') return NextResponse.json({ error: 'That product was already handled.' }, { status: 404 })
-      ;({ error } = await db
+      ;({ data: changed, error } = await db
         .from('products')
         .update(approve ? { status: 'active', last_verified_at: now, updated_at: now } : { status: 'rejected', updated_at: now })
-        .eq('id', id))
+        .eq('id', id)
+        .eq('status', 'pending')
+        .select('id'))
+      if (!error && !changed?.length) return handled()
       // A vendor's own product: once checked, they manage it (STEP 81's claims).
       if (!error && approve && product.source_type === 'vendor' && product.submitted_by) {
         await db.from('listing_claims').upsert(
@@ -187,7 +201,8 @@ export async function POST(request: NextRequest) {
     case 'services': {
       const { data: claim } = await db.from('listing_claims').select('id, item_id, user_id').eq('id', id).eq('status', 'pending').maybeSingle()
       if (!claim) return NextResponse.json({ error: 'That service was already handled.' }, { status: 404 })
-      ;({ error } = await db.from('resources').update({ status: approve ? 'approved' : 'rejected', updated_at: now }).eq('id', claim.item_id).eq('status', 'pending'))
+      ;({ data: changed, error } = await db.from('resources').update({ status: approve ? 'approved' : 'rejected', updated_at: now }).eq('id', claim.item_id).eq('status', 'pending').select('id'))
+      if (!error && !changed?.length) return handled()
       if (!error) {
         ;({ error } = await db.from('listing_claims').update({ status: approve ? 'verified' : 'rejected', verified_at: approve ? now : null, reviewed_by: me.id }).eq('id', id))
       }

@@ -7,6 +7,36 @@ import { onResourceCreated } from '@/lib/embeddings/auto-generate'
 import type { Location, ContactInfo } from '@/types/database'
 import type { ValidationAgentInput } from '@/lib/agents/validation-agent/types'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { enqueueModeration } from '@/lib/moderation/queue'
+import { imageKind } from '@/lib/visuals/aiCheck'
+
+const IMAGE_TYPES = { png: 'image/png', jpg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif' } as const
+
+/**
+ * A listing's website as a full http(s) address: "example.ca" or
+ * "www.example.ca/visit" gets https:// in front, so the link opens the site
+ * instead of a missing page inside ResourceHub, and anything with another
+ * scheme ("javascript:", "data:", "mailto:") is refused (bug audit,
+ * 17 November 2026, items 4 and 29). Returns null for an empty value and
+ * 'invalid' for one that can't be a web address.
+ */
+function normaliseWebsite(raw: unknown): string | null | 'invalid' {
+  if (typeof raw !== 'string') return null
+  const value = raw.trim()
+  if (!value) return null
+  if (value.length > 2000 || /[\s<>"]/.test(value)) return 'invalid'
+  // A scheme is letters before a colon ("https:", "javascript:"); "example.ca:8080" is a host and port.
+  const withScheme = /^[a-z][a-z0-9+-]*:/i.test(value) ? value : `https://${value.replace(/^\/+/, '')}`
+  let url: URL
+  try {
+    url = new URL(withScheme)
+  } catch {
+    return 'invalid'
+  }
+  if (url.protocol !== 'https:' && url.protocol !== 'http:') return 'invalid'
+  if (!url.hostname || !url.hostname.includes('.') || url.username || url.password) return 'invalid'
+  return url.toString()
+}
 
 // Recommending a service lets the person rate it (Goal 5; STEP 79), so the
 // recommendation is written here, by the service, not by the browser.
@@ -113,6 +143,16 @@ export async function POST(request: NextRequest) {
         console.error('Error parsing contact info:', error)
       }
     }
+    if (contactInfo && typeof contactInfo === 'object') {
+      const website = normaliseWebsite((contactInfo as { website?: unknown }).website)
+      if (website === 'invalid') {
+        return NextResponse.json(
+          { error: 'Please check the website', errors: { website: 'Please enter a web address, like example.ca or https://example.ca.' } },
+          { status: 400 }
+        )
+      }
+      contactInfo = { ...contactInfo, website: website ?? undefined }
+    }
 
     // Check for duplicate resources (same name + location).
     //
@@ -195,15 +235,25 @@ export async function POST(request: NextRequest) {
 
     // Upload image if provided
     let imageUrl: string | undefined = undefined
-    if (image) {
+    if (image instanceof File && image.size > 0) {
+      // The file's own bytes decide its type, never the browser's label (an
+      // SVG can carry script).
+      const bytes = new Uint8Array(await image.arrayBuffer())
+      const kind = imageKind(bytes)
+      if (!kind) {
+        return NextResponse.json(
+          { error: 'Please choose a JPG, PNG, GIF or WebP picture.', errors: { image: 'Please choose a JPG, PNG, GIF or WebP picture.' } },
+          { status: 400 }
+        )
+      }
       try {
-        const fileExt = image.name.split('.').pop()
-        const fileName = `${user.id}/${Date.now()}.${fileExt}`
+        const fileName = `${user.id}/${Date.now()}.${kind}`
         const filePath = `resources/${fileName}`
 
-        const { data, error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from('resource-images')
-          .upload(filePath, image, {
+          .upload(filePath, bytes, {
+            contentType: IMAGE_TYPES[kind],
             cacheControl: '3600',
             upsert: false,
           })
@@ -232,12 +282,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Determine resource status based on validation result
-    // Approved by agent: can be approved immediately (for high trust users)
+    // Approved by agent: can be approved immediately (for high trust users;
+    // never when a safety check failed, lib/agents/validation-agent)
     // Flagged: pending manual review
-    const resourceStatus =
-      validationResult.decision === 'approve' && validationResult.trustScore > 70
-        ? 'approved'
-        : 'pending'
+    const autoApprove = validationResult.decision === 'approve' && validationResult.trustScore > 70
 
     // Parse price
     let price: number | null = null
@@ -248,9 +296,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create resource
+    // Create resource, always as pending: people may only add pending
+    // listings (STEP 105), and could set any status before it (item 4).
     // Note: recommendation_reason is not stored separately - it can be included in description if needed
-    const resource = await createResource({
+    let resource = await createResource({
       name: name.trim(),
       category,
       description: description.trim(),
@@ -259,11 +308,26 @@ export async function POST(request: NextRequest) {
       price: price || undefined,
       image_url: imageUrl || undefined,
       submitted_by: user.id,
-      status: resourceStatus,
     })
 
     if (!resource) {
       return NextResponse.json({ error: 'Failed to create resource' }, { status: 500 })
+    }
+
+    // The validation agent approved it: the server approves it, as the service.
+    let resourceStatus: 'approved' | 'pending' = 'pending'
+    if (autoApprove) {
+      const { data: approved, error: approveError } = await createAdminClient()
+        .from('resources')
+        .update({ status: 'approved' })
+        .eq('id', resource.id)
+        .eq('submitted_by', user.id)
+        .select('*')
+      if (approveError) console.error('auto-approval not saved:', approveError.message)
+      if (approved && approved.length > 0) {
+        resource = approved[0] as typeof resource
+        resourceStatus = 'approved'
+      }
     }
 
     await recordRecommendation(user.id, resource.id, recommendation_reason)
@@ -273,13 +337,13 @@ export async function POST(request: NextRequest) {
       if (tagError) console.error('free_first_visit not tagged:', tagError.message)
     }
 
-    // Add to moderation queue if pending or flagged
+    // Add to moderation queue if pending or flagged. Written as the service
+    // (people can't write the queue, so this never arrived; item 25).
     if (resourceStatus === 'pending' || validationResult.decision === 'flag_for_review') {
-      await supabase.from('moderation_queue').insert({
+      await enqueueModeration({
         item_type: 'resource',
         item_id: resource.id,
         submitted_by: user.id,
-        status: 'pending',
         agent_decision: validationResult.decision,
         agent_confidence: validationResult.confidence,
         agent_reasons: validationResult.reasons,

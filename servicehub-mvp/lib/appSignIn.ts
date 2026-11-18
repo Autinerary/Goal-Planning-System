@@ -7,11 +7,14 @@
  * hand-off (app/auth/handoff); someone already signed in to the app is back
  * at once, signed in here too.
  */
+import { safeSameSitePath } from '@/lib/safeRedirect'
+
 const APP = (process.env.NEXT_PUBLIC_GOAL_PLANNING_URL || 'http://localhost:3000').replace(/\/$/, '')
 
 /** The app's sign-in, coming back to `back` (a ResourceHub path such as /resources/123?then=save). */
 export function appSignInHref(back: string): string {
-  const path = back.startsWith('/') && !back.startsWith('//') ? back : '/'
+  // Kept to this site (lib/safeRedirect.ts): a starts-with check let '/\\evil' through.
+  const path = safeSameSitePath(back) ?? '/'
   const origin = typeof window !== 'undefined' ? window.location.origin : ''
   return `${APP}/login?returnTo=${encodeURIComponent(`${origin}${path}`)}`
 }

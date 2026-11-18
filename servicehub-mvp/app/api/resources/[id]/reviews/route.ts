@@ -2,21 +2,43 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import {
   getRatingsByResource,
-  getRatingByUserAndResource,
   getReviewerProfiles,
 } from '@/lib/supabase/queries'
 
 type SortOption = 'helpful' | 'newest' | 'highest'
 
+/**
+ * GET /api/resources/[id]/reviews?sort=&page=&pageSize= — the review cards.
+ *
+ * Each review carries only what its card shows: the score, the per-area
+ * scores, the comment, the date, the helpful count, the writer's name and
+ * role, and whether the viewer wrote it or marked it helpful. It used to
+ * spread the whole rating row beside the writer's name, including the
+ * writer's own norms and their levels, how they relate to them and their
+ * organisations (bug audit, 17 November 2026, item 2). User ids no longer go
+ * out either.
+ */
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const searchParams = request.nextUrl.searchParams
-    const sort = (searchParams.get('sort') as SortOption) || 'newest'
-    const page = Number(searchParams.get('page') || '1')
-    const pageSize = Number(searchParams.get('pageSize') || '10')
+    const sortParam = searchParams.get('sort')
+    const sort: SortOption = sortParam === 'helpful' || sortParam === 'highest' ? sortParam : 'newest'
+    const page = Math.max(1, Math.floor(Number(searchParams.get('page') || '1')) || 1)
+    const pageSize = Math.min(50, Math.max(1, Math.floor(Number(searchParams.get('pageSize') || '10')) || 10))
 
-    // Get all ratings
-    const ratings = await getRatingsByResource(params.id)
+    let viewerId: string | null = null
+    const supabase = createClient()
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      viewerId = user?.id ?? null
+    } catch {
+      // Signed out: the public list.
+    }
+
+    // The public ratings; a flagged one waits for a moderator, except for its author.
+    const ratings = await getRatingsByResource(params.id, viewerId ?? undefined)
 
     // Sort reviews
     switch (sort) {
@@ -38,55 +60,42 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const offset = (page - 1) * pageSize
     const pageRatings = ratings.slice(offset, offset + pageSize)
 
-    // Attach the writer's name and role, which is all the review card shows,
-    // for this page's reviews only. This used to attach each reviewer's whole
-    // profile row, email and location included (Riipen Labs, Group 34).
+    // The writer's name and role, which is all the review card shows about
+    // them, for this page's reviews only (Riipen Labs, Group 34).
     const reviewers = await getReviewerProfiles(pageRatings.map((r) => r.user_id))
-    const paginatedReviews = pageRatings.map((rating) => ({
-      ...rating,
-      user: reviewers.get(rating.user_id),
-    }))
 
-    // Check if current user has rated, and which reviews on this page they
-    // have already marked helpful. Without the second part the button cannot
-    // render its own state, which is how it ended up looking like an endless
-    // +1 instead of a vote you either have cast or have not.
-    let userHasRated = false
-    let viewerId: string | null = null
+    // Which reviews on this page the viewer has already marked helpful, so
+    // the button can show its own state.
+    const userHasRated = viewerId !== null && ratings.some((r) => r.user_id === viewerId)
     let helpfulByViewer = new Set<string>()
-    try {
-      const supabase = createClient()
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      if (user) {
-        viewerId = user.id
-        const userRating = await getRatingByUserAndResource(params.id, user.id)
-        userHasRated = !!userRating
-
-        const pageIds = paginatedReviews.map((r) => r.id)
-        if (pageIds.length > 0) {
-          const { data: votes } = await supabase
-            .from('rating_helpful_votes')
-            .select('rating_id')
-            .eq('user_id', user.id)
-            .in('rating_id', pageIds)
-          helpfulByViewer = new Set((votes ?? []).map((v: any) => v.rating_id))
-        }
+    if (viewerId && pageRatings.length > 0) {
+      try {
+        const { data: votes } = await supabase
+          .from('rating_helpful_votes')
+          .select('rating_id')
+          .eq('user_id', viewerId)
+          .in('rating_id', pageRatings.map((r) => r.id))
+        helpfulByViewer = new Set((votes ?? []).map((v: { rating_id: string }) => v.rating_id))
+      } catch {
+        // The button shows as not pressed.
       }
-    } catch (error) {
-      // Silently fail if user check fails
     }
 
-    const reviewsForViewer = paginatedReviews.map((r) => ({
-      ...r,
+    const reviews = pageRatings.map((r) => ({
+      id: r.id,
+      overall_score: r.overall_score,
+      barrier_scores: r.barrier_scores,
+      comment: r.comment,
+      helpful_count: r.helpful_count || 0,
+      created_at: r.created_at,
+      user: reviewers.get(r.user_id),
       viewer_marked_helpful: helpfulByViewer.has(r.id),
       // You cannot vote your own review helpful, so the button is hidden.
       viewer_is_author: viewerId !== null && r.user_id === viewerId,
     }))
 
     return NextResponse.json({
-      reviews: reviewsForViewer,
+      reviews,
       total,
       page,
       pageSize,

@@ -129,8 +129,8 @@ export default function RatedTab({ userId }: RatedTabProps) {
                   ratingCount={1}
                 />
 
-                {/* Actions Overlay */}
-                <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                {/* Actions Overlay: also shown with keyboard focus and on touch screens (no hover), where an invisible button could still be tapped. */}
+                <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity">
                   <Link
                     href={`/resources/${resource.id}/rate`}
                     className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-lg"

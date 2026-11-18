@@ -17,11 +17,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isContentNote, missingContentNote } from '@/lib/community/contentNotes';
 import { createClient } from '@/lib/supabase/server';
 import {
+  CANT_POST_MESSAGE,
   getCommunityServiceClient,
   getCommunityViewer,
   isCommunityAdmin,
+  isPostingBlockedError,
+  postingBlockedReason,
 } from '@/lib/community/client';
 import { loadAuthorMap, loadViewerVotes } from '@/lib/community/hydrate';
+import { keptImageUrls } from '@/lib/community/images';
+import { LOCKED_MESSAGE } from '@/lib/community/locks';
 import { markdownExcerpt } from '@/lib/community/markdown';
 import { buildAnswerTree } from '@/lib/community/threading';
 import { moderateFields, reviewFlag, SLUR_MESSAGE } from '@/lib/community/moderation';
@@ -35,6 +40,11 @@ const BASE_COLUMNS =
   'id, author_id, title, body_markdown, unlocking_moment, what_didnt_work, author_relationships, barrier_tags, category_tags, image_urls, upvotes, downvotes, score, answer_count, view_count, accepted_answer_id, solved_tldr, solved_key_insight, is_locked, locked_reason, locked_by, locked_at, is_deleted, last_activity_at, created_at, updated_at'
 const TIDBIT_COLUMNS =
   'kind, length_type, status, is_anonymous, group_id, source, external_url, external_platform, external_platform_url, byline, word_count, published_at, bite_count, well_done_count, well_done_sum, item_count'
+
+/** The database doesn't have this function yet (before STEP 105). */
+function rpcMissing(error: { code?: string; message?: string }): boolean {
+  return error.code === 'PGRST202' || error.code === '42883' || /could not find the function|does not exist/i.test(error.message || '');
+}
 
 export async function GET(
   request: NextRequest,
@@ -66,13 +76,20 @@ export async function GET(
     return NextResponse.json({ error: 'Post not found' }, { status: 404 });
   }
 
-  // Best-effort view counter; ignore failures.
+  // Best-effort view counter; ignore failures. community_post_view (STEP 105)
+  // adds one in the database, so two readers at once both count; before it
+  // exists, the old read-then-write.
   if (post.status !== 'draft') {
     try {
-      await client
-        .from('community_posts')
-        .update({ view_count: post.view_count + 1 })
-        .eq('id', postId);
+      const { error: viewError } = await client.rpc('community_post_view', { p_post_id: postId });
+      if (viewError && rpcMissing(viewError)) {
+        await client
+          .from('community_posts')
+          .update({ view_count: post.view_count + 1 })
+          .eq('id', postId);
+      } else if (viewError) {
+        console.warn('[community] view counter failed:', viewError.message);
+      }
     } catch (err) {
       console.warn('[community] view counter failed:', err);
     }
@@ -233,12 +250,12 @@ export async function PATCH(
 
   let { data: post, error: readError } = (await supabase
     .from('community_posts')
-    .select('author_id, is_locked, is_deleted, title, body_markdown, kind, status, length_type, source')
+    .select('author_id, is_locked, is_deleted, title, body_markdown, image_urls, kind, status, length_type, source')
     .eq('id', postId)
     .maybeSingle()) as { data: any; error: any };
   const tidbits = !(readError && step83Missing(readError));
   if (!tidbits) {
-    ({ data: post } = (await supabase.from('community_posts').select('author_id, is_locked, is_deleted, title, body_markdown').eq('id', postId).maybeSingle()) as { data: any; error: any });
+    ({ data: post } = (await supabase.from('community_posts').select('author_id, is_locked, is_deleted, title, body_markdown, image_urls').eq('id', postId).maybeSingle()) as { data: any; error: any });
   }
   if (!post || post.is_deleted) {
     return NextResponse.json({ error: 'Post not found' }, { status: 404 });
@@ -247,10 +264,15 @@ export async function PATCH(
   // Ask only when it matters: a locked post, or someone else's.
   const isAdmin = post.is_locked || !isAuthor ? await isCommunityAdmin(supabase) : false;
   if (post.is_locked && !isAdmin) {
-    return NextResponse.json({ error: 'Post is locked' }, { status: 403 });
+    return NextResponse.json({ error: LOCKED_MESSAGE, code: 'locked' }, { status: 403 });
   }
   if (!isAuthor && !isAdmin) {
     return NextResponse.json({ error: 'Not your post' }, { status: 403 });
+  }
+  // A banned or suspended author can't change what their post says (they can still delete it).
+  if (!isAdmin) {
+    const blocked = await postingBlockedReason(user.id);
+    if (blocked) return NextResponse.json({ error: blocked, code: 'blocked' }, { status: 403 });
   }
 
   let body: PatchBody = {};
@@ -290,9 +312,8 @@ export async function PATCH(
       .slice(0, 5);
   }
   if (Array.isArray(body.image_urls)) {
-    update.image_urls = body.image_urls
-      .filter((u) => typeof u === 'string' && /^https?:\/\//i.test(u))
-      .slice(0, 6);
+    // Pictures from our own storage only; the ones it already had may stay.
+    update.image_urls = keptImageUrls(body.image_urls, Array.isArray(post.image_urls) ? post.image_urls : []);
   }
   if (body.content_note !== undefined) update.content_note = isContentNote(body.content_note) ? body.content_note : null;
   // The key sentence its writer highlights, shown under Solutions.
@@ -338,10 +359,17 @@ export async function PATCH(
   if (moderated.fields.title !== undefined) update.title = moderated.fields.title;
   if (moderated.fields.body !== undefined) update.body_markdown = moderated.fields.body;
   if (moderated.fields.key !== undefined) update.unlocking_moment = moderated.fields.key;
-  const publishing = tidbits && post.kind === 'tidbit' && !draft && (post.status === 'draft' || update.title !== undefined || update.body_markdown !== undefined);
+  // The same AI check as a new post, for questions as well as Tidbits: when
+  // the title or the words change, or a draft is published. Edits to
+  // questions used to skip it (bug audit, 17 November 2026, item 16).
+  const textChanged =
+    (update.title !== undefined && update.title !== post.title) ||
+    (update.body_markdown !== undefined && update.body_markdown !== post.body_markdown);
+  const publishing = !draft && (textChanged || (tidbits && post.kind === 'tidbit' && post.status === 'draft'));
   if (publishing) {
     const review = await reviewFlag(`${update.title ?? post.title}\n\n${update.body_markdown ?? post.body_markdown}`);
-    if (review.flag) Object.assign(update, { auto_flag: review.flag, auto_flag_reason: review.reason });
+    // auto_flag arrived with STEP 83; before it, there is nowhere to keep a flag.
+    if (review.flag && tidbits) Object.assign(update, { auto_flag: review.flag, auto_flag_reason: review.reason });
     if (review.selfHarm && body.content_note === undefined) update.content_note = 'self_harm';
   }
 
@@ -355,6 +383,9 @@ export async function PATCH(
     ({ data: updated, error } = await client.from('community_posts').update(update).eq('id', postId).select('id'));
   }
   if (error) {
+    if (isPostingBlockedError(error)) {
+      return NextResponse.json({ error: CANT_POST_MESSAGE, code: 'blocked' }, { status: 403 });
+    }
     const friendly = dbErrorMessage(error);
     if (friendly) return NextResponse.json({ error: friendly }, { status: 400 });
     console.error('[community] PATCH /posts/[id] failed:', error.message);

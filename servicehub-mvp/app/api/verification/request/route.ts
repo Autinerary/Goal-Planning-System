@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { generateToken, hashToken, VERIFICATION_TTL_DAYS } from '@/lib/trust/verificationToken'
+import { addSelfMark, generateToken, hashToken, SELF_MARK_COOKIE, VERIFICATION_TTL_DAYS } from '@/lib/trust/verificationToken'
 
 export const dynamic = 'force-dynamic'
 
@@ -68,9 +68,20 @@ export async function POST(request: NextRequest) {
   }
 
   const origin = request.nextUrl.origin
-  return NextResponse.json({
+  const response = NextResponse.json({
     url: `${origin}/verify/${token}`,
     expiresAt,
     expiresInDays: VERIFICATION_TTL_DAYS,
   })
+  // This browser asked for the link, so it can't fill it in (app/api/verification/[token]).
+  response.cookies.set({
+    name: SELF_MARK_COOKIE,
+    value: addSelfMark(request.cookies.get(SELF_MARK_COOKIE)?.value, user.id),
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/api/verification',
+    maxAge: VERIFICATION_TTL_DAYS * 86_400,
+  })
+  return response
 }

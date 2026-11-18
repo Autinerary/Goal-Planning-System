@@ -3,7 +3,8 @@
 import { useState, useEffect, FormEvent } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth/AuthContext'
-import { appSignInHref, APP_SIGNUP } from '@/lib/appSignIn'
+import { appSignInHref, APP_SIGNUP, APP_URL } from '@/lib/appSignIn'
+import { safeNext } from '@/components/ui/safeNext'
 import type { AuthError } from '@supabase/supabase-js'
 
 /**
@@ -22,10 +23,18 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [next, setNext] = useState('/')
+  // "Continue with Autinerary" comes back to this site, whose address only
+  // the browser knows, so the link is made after the page loads. Made during
+  // render, the server's version (coming back to the app's own home) was kept
+  // whenever there was no ?next=.
+  const [appHref, setAppHref] = useState(`${APP_URL}/login`)
   const { signIn } = useAuth()
   useEffect(() => {
-    const raw = new URLSearchParams(window.location.search).get('next') || '/'
-    setNext(raw.startsWith('/') && !raw.startsWith('//') ? raw : '/')
+    // Only a path on this site: '/\t/evil.example' and '/\\evil.example' passed
+    // the old string check and left it (bug audit, 17 November 2026, item 7).
+    const target = safeNext(new URLSearchParams(window.location.search).get('next'))
+    setNext(target)
+    setAppHref(appSignInHref(target))
   }, [])
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -65,7 +74,7 @@ export default function LoginPage() {
             It is one account for Autinerary and ResourceHub. If you are signed in to Autinerary, you&apos;ll come straight back here.
           </p>
           <a
-            href={appSignInHref(next)}
+            href={appHref}
             className="mt-6 flex w-full justify-center rounded-md bg-indigo-700 px-4 py-3 text-base font-semibold text-white hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             Continue with Autinerary

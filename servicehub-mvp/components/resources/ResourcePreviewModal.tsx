@@ -3,6 +3,7 @@
 import { X, CheckCircle, MapPin, Phone, Mail, Globe } from 'lucide-react'
 import type { ResourceFormData } from './ResourceForm'
 import type { Location, ContactInfo } from '@/types/database'
+import { safeHref } from '@/components/ui/safeUrl'
 
 interface ResourcePreviewModalProps {
   data: ResourceFormData
@@ -34,6 +35,8 @@ export default function ResourcePreviewModal({
 }: ResourcePreviewModalProps) {
   const location = data.location
   const contactInfo = data.contact_info
+  // "example.ca" previews as https://example.ca; anything that isn't a web address shows without a link.
+  const websiteHref = safeHref(contactInfo?.website)
   const imagePreview = data.image ? URL.createObjectURL(data.image) : null
 
   return (
@@ -143,14 +146,18 @@ export default function ResourcePreviewModal({
                 {contactInfo.website && (
                   <div className="flex items-center">
                     <Globe className="w-5 h-5 mr-2 text-gray-500 flex-shrink-0" aria-hidden="true" />
-                    <a
-                      href={contactInfo.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded break-all"
-                    >
-                      {contactInfo.website}
-                    </a>
+                    {websiteHref ? (
+                      <a
+                        href={websiteHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded break-all"
+                      >
+                        {contactInfo.website}
+                      </a>
+                    ) : (
+                      <span className="break-all">{contactInfo.website}</span>
+                    )}
                   </div>
                 )}
               </div>

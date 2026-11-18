@@ -1,6 +1,7 @@
 // Run from servicehub-mvp/: node --experimental-strip-types lib/sponsored.test.mjs
 import assert from 'node:assert/strict'
 import { adFree, isPlacement, pickPromotion, viewerKey } from './sponsored.ts'
+import { impressionToken, validImpressionToken, viewerKeyByIp, TOKEN_TTL_MS } from './sponsoredToken.ts'
 
 // A stand-in for the database: each table answers what the test gives it.
 function fakeDb(tables, { failColumns = [] } = {}) {
@@ -71,4 +72,31 @@ assert.match(viewerKey(null, h), /^[0-9a-f]{64}$/)
 assert.ok(!viewerKey(null, h).includes('203'))
 
 assert.ok(isPlacement('tidbits') && !isPlacement('billboards'))
+
+// ResourceHub's counting (lib/sponsoredToken.ts): a signed-out viewer is their address alone, and a
+// signed-in one has the same key as viewerKey.
+assert.equal(viewerKeyByIp(null, h), viewerKeyByIp(null, new Headers({ 'x-forwarded-for': '203.0.113.9', 'user-agent': 'Another browser' })))
+assert.notEqual(viewerKeyByIp(null, h), viewerKeyByIp(null, new Headers({ 'x-forwarded-for': '198.51.100.7' })))
+assert.equal(viewerKeyByIp('u1', h), viewerKey('u1', h))
+assert.match(viewerKeyByIp(null, h), /^[0-9a-f]{64}$/)
+
+// A view or a click counts only with the token served with the listing: for that promotion, place and
+// viewer, within a day.
+const P = '0b1f6c1e-8d2a-4c7e-9a10-3b5d7e9f1a2c'
+const now = Date.now()
+const t = impressionToken(P, 'search', null, h, now)
+assert.match(t, /^\d+\.[0-9a-f]{64}$/)
+assert.equal(validImpressionToken(t, P, 'search', null, h, now + 1000), true)
+assert.equal(validImpressionToken(t, P, 'search', null, new Headers({ 'x-forwarded-for': '203.0.113.9' }), now), true)   // same address, any browser
+assert.equal(validImpressionToken(t, P, 'search', null, new Headers({ 'x-forwarded-for': '198.51.100.7' }), now), false) // another address
+assert.equal(validImpressionToken(t, P, 'search', 'u1', h, now), false)                                                    // another viewer
+assert.equal(validImpressionToken(t, '1c2d3e4f-0000-4000-8000-000000000000', 'search', null, h, now), false)               // another promotion
+assert.equal(validImpressionToken(t, P, 'tidbits', null, h, now), false)                                                   // another place
+assert.equal(validImpressionToken(t, P, 'search', null, h, now + TOKEN_TTL_MS + 1), false)                                 // too old
+assert.equal(validImpressionToken(impressionToken(P, 'search', null, h, now + 60 * 60 * 1000), P, 'search', null, h, now), false) // from the future
+const u = impressionToken(P, 'tidbits', 'u1', new Headers(), now)
+assert.equal(validImpressionToken(u, P, 'tidbits', 'u1', h, now), true)                                                    // signed in: any address
+for (const bad of [undefined, null, '', 'x', 42, `${now}.${'0'.repeat(64)}`, `${now}.${t.split('.')[1].toUpperCase()}`, `${now + 1}.${t.split('.')[1]}`, t + '0']) {
+  assert.equal(validImpressionToken(bad, P, 'search', null, h, now), false, String(bad))
+}
 console.log('sponsored: ok')

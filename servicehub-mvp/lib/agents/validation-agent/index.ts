@@ -25,6 +25,9 @@ import type {
  *
  * Migration Path: Replace rule-based checks with ML algorithms and LLM calls
  */
+/** The checks about the content and behaviour itself; a failed one is never auto-approved. */
+const SAFETY_CHECKS = new Set(['Content Quality', 'Spam Detection', 'Behavioral Patterns'])
+
 export class ValidationAgent {
   /**
    * Main agent decision-making function
@@ -79,23 +82,33 @@ export class ValidationAgent {
         })
       }
 
+      // A failed safety check (the content check, which includes the AI
+      // safety review, spam, or behaviour) means a person looks at it: it
+      // is never approved automatically, however trusted the account. Above
+      // trust 70 an unsafe verdict used to become an approval (bug audit,
+      // 17 November 2026, item 25).
+      const safetyFailed = checks.some((c) => SAFETY_CHECKS.has(c.name) && !c.passed)
+
       // Agent makes autonomous decision based on the rules.
       const ruleDecision = this.makeDecision(
         checks,
         trustResult.trustScore,
-        spamCheck.spamScore
+        spamCheck.spamScore,
+        safetyFailed
       )
 
       // Bandit refinement: if this (trust, spam, length) bucket has
       // strong learned evidence that the opposite call is better, flip
       // gray-zone decisions. Conservative — we only flip flag_for_review,
-      // never override a clear approve/reject from the rule set.
+      // never override a clear approve/reject from the rule set, and never
+      // turn a failed safety check into an approval.
       // contentText already extracted above for the spam check; reuse it.
       const finalDecision = await this.refineWithBandit(
         ruleDecision,
         trustResult.trustScore,
         spamCheck.spamScore,
-        contentText
+        contentText,
+        safetyFailed
       )
 
       // Fire-and-forget trace write. Resource_id is only set for ratings
@@ -149,7 +162,8 @@ export class ValidationAgent {
     ruleDecision: ValidationAgentOutput,
     trustScore: number,
     spamScore: number,
-    contentText: string
+    contentText: string,
+    safetyFailed = false
   ): Promise<ValidationAgentOutput> {
     if (ruleDecision.decision !== 'flag_for_review') return ruleDecision
 
@@ -174,8 +188,9 @@ export class ValidationAgent {
       const approveAvg = scores.get(approveKey)?.rewardAvg ?? 0
       const rejectAvg = scores.get(rejectKey)?.rewardAvg ?? 0
 
-      // Strong positive history on approve in this bucket → upgrade.
-      if (approveAvg >= 0.4 && approveAvg - rejectAvg > 0.5) {
+      // Strong positive history on approve in this bucket → upgrade, unless
+      // a safety check failed: then a person decides.
+      if (!safetyFailed && approveAvg >= 0.4 && approveAvg - rejectAvg > 0.5) {
         return {
           ...ruleDecision,
           decision: 'approve',
@@ -222,16 +237,20 @@ export class ValidationAgent {
   private makeDecision(
     checks: ValidationCheck[],
     trustScore: number,
-    spamScore: number
+    spamScore: number,
+    safetyFailed = false
   ): ValidationAgentOutput {
     const totalScore = checks.reduce((sum, c) => sum + c.score, 0) / checks.length
     const failedChecks = checks.filter((c) => !c.passed)
 
     let decision: 'approve' | 'reject' | 'flag_for_review'
 
-    // Agent's decision logic:
-    if (trustScore > 70 && totalScore > 80 && spamScore < 30) {
-      // High trust user, good content, low spam
+    // Agent's decision logic. Moderation stays light (the team's choice): what passed every safety check (content,
+    // including the AI safety review, spam and behaviour) is published, whatever the account's age. A newer account
+    // (trust 30-70) is not held for that alone: before the queue worked (17 November 2026), held ratings went public
+    // anyway, and holding every new person's rating for a person to read would hide most new ratings.
+    if (!safetyFailed && spamScore < 30 && (trustScore > 70 ? totalScore > 80 : trustScore >= 30)) {
+      // Every safety check passed, low spam
       decision = 'approve'
     } else if (trustScore < 30 || totalScore < 40 || spamScore >= 70) {
       // Low trust OR bad content OR high spam

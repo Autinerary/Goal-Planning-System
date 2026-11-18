@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowLeft, Check, Palette, X } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import { showToast } from '@/lib/toast'
+import { safeHref } from '@/components/ui/safeUrl'
 
 interface Visual {
   id: string
@@ -69,7 +70,7 @@ export default function AdminVisualsPage() {
         <ul className="mt-6 space-y-4">
           {(items || []).map((v) => (
             <li key={v.id} className="flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-4 sm:flex-row">
-              <a href={v.image_url} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
+              <a href={safeHref(v.image_url) ?? undefined} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={v.image_url} alt={v.alt_text} className="h-48 w-full rounded-lg bg-gray-100 object-contain sm:w-64" />
               </a>

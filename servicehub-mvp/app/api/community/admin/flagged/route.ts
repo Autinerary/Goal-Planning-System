@@ -54,7 +54,9 @@ export async function POST(request: NextRequest) {
     body.action === 'remove'
       ? { auto_flag: null, auto_flag_reason: null, is_deleted: true, deleted_by: a.user.id, deleted_at: new Date().toISOString() }
       : { auto_flag: null, auto_flag_reason: null }
-  const { error } = await a.client.from(table).update(update).eq('id', body.id)
+  const { data, error } = await a.client.from(table).update(update).eq('id', body.id).select('id')
   if (error) return NextResponse.json({ error: 'Could not do that.' }, { status: 500 })
+  // Nothing changed means there was no such item: say so rather than "done".
+  if (!data?.length) return NextResponse.json({ error: 'That item is no longer there.' }, { status: 404 })
   return NextResponse.json({ ok: true })
 }

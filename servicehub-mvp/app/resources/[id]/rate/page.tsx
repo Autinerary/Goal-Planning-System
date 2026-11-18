@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useState, useEffect } from 'react'
+import { Suspense, useState, useEffect, useRef } from 'react'
 import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Navbar from '@/components/layout/Navbar'
@@ -41,6 +41,16 @@ function RateResourceContent() {
   const [userBarriers, setUserBarriers] = useState<UserBarrier[]>([])
   const [existingRating, setExistingRating] = useState<Rating | null>(null)
   const [loading, setLoading] = useState(true)
+  // Why the resource couldn't be loaded. Shown in the page, with the navbar:
+  // it used to be a toast on a blank page (bug audit, 17 November 2026, item 33).
+  const [loadError, setLoadError] = useState('')
+  // Saved, but held for a quick review before it shows on the listing. Said
+  // here in the page: a toast and a move to the listing implied it was live.
+  const [savedForReview, setSavedForReview] = useState(false)
+  const savedPanel = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (savedForReview) savedPanel.current?.focus()
+  }, [savedForReview])
 
   // Form state
   const [overallRating, setOverallRating] = useState(0)
@@ -126,7 +136,7 @@ function RateResourceContent() {
         }
       } catch (error) {
         console.error('Error fetching data:', error)
-        addToast('Failed to load resource data', 'error')
+        setLoadError('This resource couldn’t be loaded just now. Please try again in a moment.')
       } finally {
         setLoading(false)
       }
@@ -270,6 +280,14 @@ function RateResourceContent() {
         throw new Error(data.error || 'Failed to submit rating')
       }
 
+      const result = await response.json().catch(() => null)
+      // flag_for_review: waiting for a moderator (the route reports a held
+      // rating this way), so it isn't on the listing yet.
+      if (result?.validation?.decision === 'flag_for_review' || result?.held === true || result?.pending_review === true) {
+        setSavedForReview(true)
+        return
+      }
+
       addToast(
         existingRating ? 'Rating updated successfully!' : 'Rating submitted successfully!',
         'success'
@@ -300,7 +318,37 @@ function RateResourceContent() {
   }
 
   if (!resource) {
-    return null
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <Navbar />
+        <main className="flex-1">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            {loadError ? (
+              <div role="alert" className="rounded-lg border border-gray-200 bg-white p-6">
+                <h1 className="text-xl font-semibold text-gray-900">The rating page didn’t open</h1>
+                <p className="mt-2 text-gray-700">{loadError}</p>
+                <div className="mt-4 flex flex-wrap items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={() => window.location.reload()}
+                    className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  >
+                    Try again
+                  </button>
+                  <Link href={`/resources/${resourceId}`} className="text-sm font-medium text-blue-700 underline underline-offset-2">
+                    Back to the listing
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              // On the way to sign-in or to search.
+              <p className="text-gray-600">One moment…</p>
+            )}
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
   }
 
   if (access && access.signed_in && !access.can_rate) {
@@ -375,6 +423,27 @@ function RateResourceContent() {
               <p className="text-gray-600">{resource.name}</p>
             </div>
 
+            {savedForReview ? (
+              <div
+                ref={savedPanel}
+                tabIndex={-1}
+                role="status"
+                className="rounded-lg border border-blue-200 bg-blue-50 p-5 text-gray-900 outline-none"
+              >
+                <p className="font-semibold">Thanks, your rating is saved.</p>
+                <p className="mt-1 text-gray-800">
+                  It isn&apos;t on {resource.name}&apos;s page yet. It shows there once it has had a quick review.
+                </p>
+                <Link
+                  href={`/resources/${resource.id}`}
+                  className="mt-4 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+                  Back to {resource.name}
+                </Link>
+              </div>
+            ) : (
+            <>
             {proofRequired && (
               <div className="mb-6 flex items-start gap-3 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg">
                 <Camera className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
@@ -492,6 +561,8 @@ function RateResourceContent() {
                 </button>
               </div>
             </form>
+            </>
+            )}
           </div>
         </div>
       </main>

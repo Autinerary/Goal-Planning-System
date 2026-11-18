@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { User, Session, AuthError } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
+import { safeSameSitePath } from '@/lib/safeRedirect'
 
 interface AuthContextType {
   user: User | null
@@ -128,7 +129,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password })
       if (error) return { error }
 
-      router.push(next.startsWith('/') && !next.startsWith('//') ? next : '/')
+      // Resolved and kept to this site (lib/safeRedirect.ts): '/\\evil' and a
+      // tab after the slash used to get past a starts-with check.
+      router.push(safeSameSitePath(next) ?? '/')
       router.refresh()
       return { error: null }
     } catch (err: any) {

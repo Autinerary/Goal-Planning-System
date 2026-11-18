@@ -14,11 +14,14 @@
 import { authorRelationshipSnapshot } from '@/lib/trust/authorRelationship'
 import { NextRequest, NextResponse } from 'next/server';
 import {
+  CANT_POST_MESSAGE,
   getCommunityServiceClient,
   getCommunityViewer,
+  isPostingBlockedError,
 } from '@/lib/community/client';
 import { isContentNote, missingContentNote } from '@/lib/community/contentNotes';
 import { loadAuthorMap, loadViewerVotes } from '@/lib/community/hydrate';
+import { keptImageUrls } from '@/lib/community/images';
 import { generatePseudonym } from '@/lib/community/pseudonym';
 import { moderateFields, reviewFlag, SLUR_MESSAGE } from '@/lib/community/moderation';
 import { LENGTHS, isLengthType, platformOf, searchWords, step83Missing, wordCount } from '@/lib/community/tidbits';
@@ -190,9 +193,12 @@ export async function POST(request: NextRequest) {
   if (!client) {
     return NextResponse.json({ error: 'Community is not configured' }, { status: 503 });
   }
-  const viewer = await getCommunityViewer();
+  const viewer = await getCommunityViewer({ forWriting: true });
   if (!viewer) {
     return NextResponse.json({ error: 'Sign-in required' }, { status: 401 });
+  }
+  if (viewer.blocked) {
+    return NextResponse.json({ error: viewer.blocked, code: 'blocked' }, { status: 403 });
   }
 
   let body: CreatePostBody = {};
@@ -215,9 +221,8 @@ export async function POST(request: NextRequest) {
     .map((t) => String(t).trim().toLowerCase())
     .filter((t) => t && t.length <= 32)
     .slice(0, 5);
-  const image_urls = (body.image_urls ?? [])
-    .filter((u) => typeof u === 'string' && /^https?:\/\//i.test(u))
-    .slice(0, 6);
+  // Pictures from our own storage only (/api/community/upload).
+  const image_urls = keptImageUrls(body.image_urls);
   // Author-highlighted key sentence / unlocking moment (optional).
   const unlocking_moment = (body.unlocking_moment ?? '').trim().slice(0, 280) || null;
   // Author-highlighted things that did NOT work (optional).
@@ -346,6 +351,9 @@ export async function POST(request: NextRequest) {
     ({ data: post, error } = await client.from('community_posts').insert({ ...row, ...tidbitRow }).select('id').single());
   }
   if (error || !post) {
+    if (isPostingBlockedError(error)) {
+      return NextResponse.json({ error: CANT_POST_MESSAGE, code: 'blocked' }, { status: 403 });
+    }
     const friendly = dbErrorMessage(error);
     if (friendly) return NextResponse.json({ error: friendly }, { status: 400 });
     console.error('[community] POST /posts failed:', error?.message);

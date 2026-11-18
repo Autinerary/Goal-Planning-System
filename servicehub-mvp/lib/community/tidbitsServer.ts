@@ -75,10 +75,18 @@ export function summarize(
   };
 }
 
-/** Whether this person accepted the current community rules (STEP 83); null before it. */
+/**
+ * Whether this person accepted the current community rules (STEP 83); null
+ * before it. Any other database error counts as not accepted (they are asked
+ * again): it used to count as accepted (bug audit, 17 November 2026, item 33).
+ */
 export async function rulesAccepted(client: SupabaseClient, userId: string): Promise<boolean | null> {
   const { data, error } = await client.from('community_rules_acceptances').select('version').eq('user_id', userId).maybeSingle();
-  if (error) return step83Missing(error) ? null : true;
+  if (error) {
+    if (step83Missing(error)) return null;
+    console.warn('[community] rules check failed:', error.message);
+    return false;
+  }
   return !!data && data.version >= RULES_VERSION;
 }
 

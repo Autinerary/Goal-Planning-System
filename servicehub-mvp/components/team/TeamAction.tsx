@@ -7,6 +7,7 @@ import { appSignInHref, APP_CALENDAR } from '@/lib/appSignIn'
 import { nextMeeting, type Meeting, type TeamState } from '@/lib/team'
 import type { ContactInfo } from '@/types/database'
 import MeetingPlanner from './MeetingPlanner'
+import { safeHref } from '@/components/ui/safeUrl'
 
 /** "Mon 20 Oct, 10:00". */
 export function meetingWhen(m: Meeting): string {
@@ -166,6 +167,8 @@ export default function TeamAction({
         `Hello,\n\nI found ${resource.name} on ResourceHub and would like to book a first meeting. When would suit you?\n\nThank you,`
       )}`
     : ''
+  // "example.ca" opens https://example.ca, not a 404 in ResourceHub; anything that isn't a web address gets no link.
+  const website = safeHref(contact?.website)
   const named = <span className="sr-only">: {resource.name}</span>
 
   return (
@@ -226,7 +229,7 @@ export default function TeamAction({
               setMessage(`Your meeting with ${resource.name} is saved, and in your calendar for ${meetingWhen(m)}.`)
             }}
           />
-          {(contact?.phone || mail || contact?.website) && (
+          {(contact?.phone || mail || website) && (
             <p className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
               {contact?.phone && (
                 <a href={`tel:${contact.phone}`} className="inline-flex items-center gap-1 font-medium text-blue-700 underline">
@@ -240,8 +243,8 @@ export default function TeamAction({
                   {named}
                 </a>
               )}
-              {contact?.website && (
-                <a href={contact.website} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-medium text-blue-700 underline">
+              {website && (
+                <a href={website} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-medium text-blue-700 underline">
                   <Globe className="h-3.5 w-3.5" aria-hidden="true" /> Website
                   {named}
                 </a>

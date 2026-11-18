@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { adFree, isPlacement, pickPromotion, PAYMENTS_ON, SPONSORED_ON } from '@/lib/sponsored'
+import { impressionToken } from '@/lib/sponsoredToken'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,6 +13,10 @@ export const dynamic = 'force-dynamic'
  * topic, the kind of place and the province (lib/sponsored.ts). None for
  * people who pay or have free access. Off (an empty list) until the team
  * turns sponsored listings on.
+ *
+ * Each item comes with `token`, signed for this promotion, place and viewer
+ * (lib/sponsoredToken.ts): app/api/sponsored/event counts a view or a click
+ * only with it, so it must be sent back with both.
  */
 export async function GET(req: NextRequest) {
   const none = NextResponse.json({ items: [] }, { headers: { 'Cache-Control': 'no-store' } })
@@ -30,5 +35,6 @@ export async function GET(req: NextRequest) {
     categories: (sp.get('category') || '').split(',').slice(0, 5),
     province: sp.get('province') || '',
   })
-  return NextResponse.json({ items: item ? [item] : [], adFreeOffer: PAYMENTS_ON }, { headers: { 'Cache-Control': 'no-store' } })
+  const items = item ? [{ ...item, token: impressionToken(item.id, placement, user?.id ?? null, req.headers) }] : []
+  return NextResponse.json({ items, adFreeOffer: PAYMENTS_ON }, { headers: { 'Cache-Control': 'no-store' } })
 }

@@ -5,9 +5,12 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import {
+  CANT_POST_MESSAGE,
   getCommunityServiceClient,
   getCommunityViewer,
+  isPostingBlockedError,
 } from '@/lib/community/client';
+import { LOCKED_MESSAGE, loadPostState } from '@/lib/community/locks';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,8 +26,18 @@ export async function POST(
   if (!client) {
     return NextResponse.json({ error: 'Community is not configured' }, { status: 503 });
   }
-  const viewer = await getCommunityViewer();
+  const viewer = await getCommunityViewer({ forWriting: true });
   if (!viewer) return NextResponse.json({ error: 'Sign-in required' }, { status: 401 });
+  if (viewer.blocked) return NextResponse.json({ error: viewer.blocked, code: 'blocked' }, { status: 403 });
+
+  // Only a post people can see takes votes, and a locked one takes none.
+  const post = await loadPostState(client, params.id);
+  if (!post || post.is_deleted || post.status !== 'published') {
+    return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+  }
+  if (post.is_locked) {
+    return NextResponse.json({ error: LOCKED_MESSAGE, code: 'locked' }, { status: 403 });
+  }
 
   let body: Body = {};
   try {
@@ -44,15 +57,18 @@ export async function POST(
     p_value: value,
   });
   if (error) {
+    if (isPostingBlockedError(error)) {
+      return NextResponse.json({ error: CANT_POST_MESSAGE, code: 'blocked' }, { status: 403 });
+    }
     console.error('[community] vote post failed:', error.message);
     return NextResponse.json({ error: 'Vote failed' }, { status: 500 });
   }
 
   // Re-read score for client-side optimistic-reconciliation.
-  const { data: post } = await client
+  const { data: counts } = await client
     .from('community_posts')
     .select('upvotes, downvotes, score')
     .eq('id', params.id)
     .maybeSingle();
-  return NextResponse.json({ ok: true, ...(post ?? {}), viewer_vote: value });
+  return NextResponse.json({ ok: true, ...(counts ?? {}), viewer_vote: value });
 }

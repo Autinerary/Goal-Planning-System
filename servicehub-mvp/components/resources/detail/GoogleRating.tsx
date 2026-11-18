@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { safeHref } from '@/components/ui/safeUrl'
 
 interface Rating { rating: number; count: number; mapsUri: string | null }
 
@@ -28,7 +29,7 @@ export default function GoogleRating({ resourceId }: { resourceId: string }) {
       </p>
       <p className="mt-1 text-sm text-gray-600">
         This is Google's rating, not ours: it comes from people outside Autinerary and isn't part of the community ratings above.{' '}
-        {r.mapsUri ? <a className="underline" href={r.mapsUri} target="_blank" rel="noopener noreferrer">Google Maps</a> : <span>Google Maps</span>}
+        {safeHref(r.mapsUri) ? <a className="underline" href={safeHref(r.mapsUri)!} target="_blank" rel="noopener noreferrer">Google Maps</a> : <span>Google Maps</span>}
       </p>
     </section>
   )

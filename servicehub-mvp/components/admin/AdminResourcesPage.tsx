@@ -101,6 +101,31 @@ export default function AdminResourcesPage({
     }
   }
 
+  // The bulk buttons: one question before deleting, the requests together,
+  // one reload after and one message if any didn't work. Each row used to
+  // ask and reload on its own, once per selected row (bug audit,
+  // 17 November 2026, item 33).
+  const handleBulk = async (action: 'approve' | 'delete', resourceIds: string[]) => {
+    if (resourceIds.length === 0) return
+    const n = resourceIds.length
+    if (action === 'delete' && !confirm(`Delete ${n} resource${n === 1 ? '' : 's'}? This can't be undone.`)) return
+    const results = await Promise.allSettled(
+      resourceIds.map((id) =>
+        fetch(
+          `/api/admin/resources/${id}`,
+          action === 'delete'
+            ? { method: 'DELETE' }
+            : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'approve' }) }
+        )
+      )
+    )
+    const failed = results.filter((r) => r.status !== 'fulfilled' || !r.value.ok).length
+    await loadResources()
+    if (failed > 0) {
+      alert(`${failed} of ${n} couldn't be ${action === 'delete' ? 'deleted' : 'approved'}. Please try again.`)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Admin Navbar */}
@@ -214,6 +239,8 @@ export default function AdminResourcesPage({
             onApprove={handleApprove}
             onReject={handleReject}
             onDelete={handleDelete}
+            onBulkApprove={(ids) => handleBulk('approve', ids)}
+            onBulkDelete={(ids) => handleBulk('delete', ids)}
             loading={loading}
           />
 

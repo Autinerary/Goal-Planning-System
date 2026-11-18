@@ -13,7 +13,10 @@ import {
   getCommunityServiceClient,
   getCommunityViewer,
   isCommunityAdmin,
+  postingBlockedReason,
 } from '@/lib/community/client';
+import { isOwnImageUrl } from '@/lib/community/images';
+import { step83Missing } from '@/lib/community/tidbits';
 import { resolveVisibility } from '@/lib/community/visibility';
 import { validatePseudonym } from '@/lib/community/pseudonym';
 import { loadAuthorMap } from '@/lib/community/hydrate';
@@ -60,18 +63,32 @@ export async function GET(
     return NextResponse.json({ error: 'Profile is private' }, { status: 403 });
   }
 
+  // The owner and moderators see everything here; anyone else sees only
+  // published posts that carry the name. Drafts and anonymous Tidbits used to
+  // be listed on the author's public profile, which named the author of an
+  // anonymous one (bug audit, 17 November 2026, item 3).
+  const privileged = !!viewer && (viewer.user_id === targetId || viewer.is_admin);
+
   // Posts — only when allowed.
   let posts: CommunityPostSummary[] | null = null;
   if (v.can_view_posts) {
-    const { data: postRows } = await client
-      .from('community_posts')
-      .select(
-        'id, author_id, title, body_markdown, barrier_tags, category_tags, image_urls, upvotes, downvotes, score, answer_count, view_count, accepted_answer_id, solved_tldr, solved_key_insight, is_locked, last_activity_at, created_at'
-      )
-      .eq('author_id', targetId)
-      .eq('is_deleted', false)
-      .order('last_activity_at', { ascending: false })
-      .limit(20);
+    const postQuery = (shownOnly: boolean) => {
+      let q = client
+        .from('community_posts')
+        .select(
+          'id, author_id, title, body_markdown, barrier_tags, category_tags, image_urls, upvotes, downvotes, score, answer_count, view_count, accepted_answer_id, solved_tldr, solved_key_insight, is_locked, last_activity_at, created_at'
+        )
+        .eq('author_id', targetId)
+        .eq('is_deleted', false);
+      if (shownOnly) q = q.eq('status', 'published').eq('is_anonymous', false);
+      return q.order('last_activity_at', { ascending: false }).limit(20);
+    };
+    let { data: postRows, error: postsError } = await postQuery(!privileged);
+    // Before STEP 83 there are no drafts or anonymous posts to leave out.
+    if (postsError && !privileged && step83Missing(postsError)) {
+      ({ data: postRows, error: postsError } = await postQuery(false));
+    }
+    if (postsError) console.error('[community] GET /profiles/[id] posts failed:', postsError.message);
     const authorMap = await loadAuthorMap(client, [targetId]);
     posts = (postRows ?? []).map((r) => ({
       id: r.id,
@@ -115,7 +132,27 @@ export async function GET(
       .eq('is_deleted', false)
       .order('created_at', { ascending: false })
       .limit(20);
-    answers = (answerRows ?? []).map((r) => ({
+    // Only answers on posts this viewer may open: not on a deleted post or a
+    // draft (a Tidbit taken back to draft keeps its replies).
+    let shownAnswers = answerRows ?? [];
+    if (!privileged && shownAnswers.length > 0) {
+      const postIds = Array.from(new Set(shownAnswers.map((r) => r.post_id)));
+      let { data: open, error: openError } = (await client
+        .from('community_posts')
+        .select('id, is_deleted, status')
+        .in('id', postIds)) as { data: any[] | null; error: any };
+      if (openError && step83Missing(openError)) {
+        ({ data: open, error: openError } = (await client
+          .from('community_posts')
+          .select('id, is_deleted')
+          .in('id', postIds)) as { data: any[] | null; error: any });
+      }
+      const openIds = new Set(
+        (open ?? []).filter((p) => !p.is_deleted && (p.status ?? 'published') === 'published').map((p) => p.id)
+      );
+      shownAnswers = openError ? [] : shownAnswers.filter((r) => openIds.has(r.post_id));
+    }
+    answers = shownAnswers.map((r) => ({
       id: r.id,
       post_id: r.post_id,
       body_markdown: markdownExcerpt(r.body_markdown, 220),
@@ -178,7 +215,8 @@ export async function GET(
 interface PatchBody {
   pseudonym?: string;
   bio?: string;
-  avatar_url?: string;
+  /** A picture from /api/community/upload, or null (or '') to remove it. */
+  avatar_url?: string | null;
   is_public?: boolean;
   show_posts?: boolean;
   show_answers?: boolean;
@@ -218,11 +256,24 @@ export async function PATCH(
   if (typeof body.bio === 'string') {
     update.bio = body.bio.slice(0, 1000);
   }
-  if (typeof body.avatar_url === 'string') {
-    if (body.avatar_url && !/^https?:\/\//i.test(body.avatar_url)) {
-      return NextResponse.json({ error: 'avatar_url must be http(s)' }, { status: 400 });
+  // What the profile says now, to tell a change from the same values sent
+  // again (the settings page saves the whole form).
+  const { data: currentRow } = await supabase
+    .from('community_profiles')
+    .select('pseudonym, bio, avatar_url')
+    .eq('user_id', params.id)
+    .maybeSingle();
+  const current = (currentRow ?? {}) as { pseudonym?: string | null; bio?: string | null; avatar_url?: string | null };
+
+  // null (or '') removes the picture; it used to be ignored, so a removed
+  // picture came back (bug audit, item 33). A new one must come from our own
+  // storage (/api/community/upload); the one already there may be kept.
+  if (body.avatar_url === null || typeof body.avatar_url === 'string') {
+    const wanted = body.avatar_url ? body.avatar_url.trim() : '';
+    if (wanted && !isOwnImageUrl(wanted) && wanted !== current.avatar_url) {
+      return NextResponse.json({ error: 'Please upload the picture here, rather than linking to one.' }, { status: 400 });
     }
-    update.avatar_url = body.avatar_url || null;
+    update.avatar_url = wanted || null;
   }
   for (const k of [
     'is_public',
@@ -237,6 +288,17 @@ export async function PATCH(
 
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ ok: true });
+  }
+
+  // Someone who can't post right now (banned or suspended) can still hide
+  // their profile or clear it, but not give it a new name, words or picture.
+  const changesWords =
+    (update.pseudonym !== undefined && update.pseudonym !== current.pseudonym) ||
+    (!!update.bio && update.bio !== (current.bio ?? '')) ||
+    (!!update.avatar_url && update.avatar_url !== current.avatar_url);
+  if (isOwner && changesWords) {
+    const blocked = await postingBlockedReason(user.id);
+    if (blocked) return NextResponse.json({ error: blocked, code: 'blocked' }, { status: 403 });
   }
 
   if (isOwner) {

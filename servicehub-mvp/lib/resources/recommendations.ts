@@ -3,6 +3,7 @@ import { findSimilarUsers } from '@/lib/supabase/vector-queries'
 import { getResources, calculateDistance } from '@/lib/supabase/queries'
 import { fetchNearbyApprovedResources } from '@/lib/agents/recommendation-agent/nearby'
 import { isSelfListing, SELF_LISTING_SLACK } from './selfListing'
+import { heldForReview } from '@/lib/moderation/queue'
 import type { Location } from '@/types/database'
 
 interface Recommendation {
@@ -280,15 +281,21 @@ export async function getAvoidancesResources(limit: number = 12) {
   const supabase = createClient()
 
   try {
-    // Get all ratings with low scores (1-2 stars)
-    const { data: ratings } = await supabase
-      .from('ratings')
-      .select('resource_id, overall_score, comment')
-      .lte('overall_score', 2)
-      .not('comment', 'is', null)
-      .limit(1000)
+    // Get all ratings with low scores (1-2 stars). Their words are shown, so
+    // a rating waiting for a moderator is left out (bug audit, 17 November
+    // 2026, item 25).
+    const [{ data: lowRatings }, held] = await Promise.all([
+      supabase
+        .from('ratings')
+        .select('id, resource_id, overall_score, comment')
+        .lte('overall_score', 2)
+        .not('comment', 'is', null)
+        .limit(1000),
+      heldForReview('rating'),
+    ])
+    const ratings = (lowRatings || []).filter((r) => !held.has(r.id))
 
-    if (!ratings || ratings.length === 0) {
+    if (ratings.length === 0) {
       return []
     }
 

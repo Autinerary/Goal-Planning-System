@@ -61,6 +61,10 @@ function WriteInner() {
   const [saved, setSaved] = useState('')
   const [overLimit, setOverLimit] = useState(false)
   const warnedAt = useRef<number | null>(null)
+  // Why the Tidbit in ?id= can't be edited here; set, the form isn't shown.
+  const [loadError, setLoadError] = useState('')
+  // The id a new draft got from its first save here.
+  const savedHere = useRef<string | null>(null)
 
   const limit = LENGTHS[lengthType].words
   const words = wordCount(body)
@@ -79,17 +83,31 @@ function WriteInner() {
       .catch(() => setGroups([]))
   }, [])
 
-  // Editing one of yours.
+  // Editing one of yours. If it can't be loaded, or isn't yours to edit, the
+  // form isn't shown: an empty form saved over it would have blanked the post
+  // (bug audit, 17 November 2026, item 33). The one exception is the fetch
+  // that follows the first save of a new draft here (the address gets its
+  // ?id=): the form already holds what was saved, so a failure there is ignored.
   useEffect(() => {
     if (!editId) return
+    const afterOwnSave = editId === savedHere.current
+    const fail = (message: string) => {
+      if (!afterOwnSave) setLoadError(message)
+    }
     fetch(`/api/community/posts/${editId}`, { credentials: 'include' })
-      .then((r) => r.json())
-      .then((d) => {
-        const p = d.post
-        if (!p) return setError(d.error || 'That Tidbit wasn’t found.')
-        if (!p.viewer_can_edit || p.kind !== 'tidbit') return setError('You can only edit your own Tidbits here.')
+      .then(async (r) => ({ ok: r.ok, status: r.status, d: await r.json().catch(() => null) }))
+      .then(({ ok, status, d }) => {
+        const p = d?.post
+        if (!ok || !p) {
+          return fail(
+            status === 404 || (ok && !p)
+              ? 'That Tidbit wasn’t found. It may have been deleted.'
+              : 'That Tidbit couldn’t be loaded just now. Please try again in a moment.'
+          )
+        }
+        if (!p.viewer_can_edit || p.kind !== 'tidbit') return fail('You can only edit your own Tidbits here.')
         // The team's guides are longer than a Tadbit, and kept up to date from their Learning pages.
-        if (p.length_type === 'guide') return setError('This is one of the team’s guides: it’s updated from the Learning page it comes from.')
+        if (p.length_type === 'guide') return fail('This is one of the team’s guides: it’s updated from the Learning page it comes from.')
         setTitle(p.title || '')
         setBody(p.body_markdown || '')
         setKeySentence(p.unlocking_moment || '')
@@ -102,7 +120,7 @@ function WriteInner() {
         setContentNote(p.content_note || '')
         setItems(((p.items as any[]) ?? []).map((i) => ({ kind: i.kind, id: i.id, name: i.name })))
       })
-      .catch(() => setError('That Tidbit couldn’t be loaded.'))
+      .catch(() => fail('That Tidbit couldn’t be loaded just now. Please try again in a moment.'))
       .finally(() => setLoaded(true))
   }, [editId])
 
@@ -121,7 +139,7 @@ function WriteInner() {
   }, [words, limit])
 
   const save = async (publish: boolean) => {
-    if (busy) return
+    if (busy || loadError) return
     setError('')
     setSaved('')
     if (publish && words > limit) return setOverLimit(true)
@@ -166,7 +184,10 @@ function WriteInner() {
       setId(newId)
       setStatus('draft')
       setSaved(d?.bleeped ? 'Saved as a draft. A swear word was bleeped (community rule 3).' : 'Saved as a draft. Only you can see it, in My Tidbits.')
-      if (!editId && newId) router.replace(`/community/write?id=${newId}`)
+      if (!editId && newId) {
+        savedHere.current = newId
+        router.replace(`/community/write?id=${newId}`)
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'That didn’t save.')
     } finally {
@@ -192,7 +213,7 @@ function WriteInner() {
         </Link>
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900 sm:text-3xl">
-            <ChefHat className="h-7 w-7 text-amber-700" aria-hidden="true" /> {id ? (status === 'published' ? 'Edit your Tidbit' : 'Your draft') : 'Write a Tidbit'}
+            <ChefHat className="h-7 w-7 text-amber-700" aria-hidden="true" /> {loadError ? 'Edit a Tidbit' : id ? (status === 'published' ? 'Edit your Tidbit' : 'Your draft') : 'Write a Tidbit'}
           </h1>
           {/* Goal 5: "Let the users know before they start creating their post about the character limit, with a 'Short & Sweet' rule". */}
           <p className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-gray-900">
@@ -208,6 +229,22 @@ function WriteInner() {
           <p className="rounded-xl border border-gray-300 bg-white p-4 text-gray-900">Tidbits open soon. Until then, you can ask the community a question.</p>
         ) : !loaded ? (
           <p className="text-sm text-gray-700">Loading…</p>
+        ) : loadError ? (
+          <div role="alert" className="rounded-xl border border-gray-300 bg-white p-4 text-gray-900">
+            <p className="font-semibold">{loadError}</p>
+            <p className="mt-1 text-sm text-gray-800">Nothing has been changed.</p>
+            <p className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm">
+              <Link href="/community/mine" className="font-medium text-blue-800 underline underline-offset-2">
+                Back to My Tidbits
+              </Link>
+              <Link href="/community" className="font-medium text-blue-800 underline underline-offset-2">
+                Back to Tidbits
+              </Link>
+              <button type="button" onClick={() => window.location.reload()} className="font-medium text-blue-800 underline underline-offset-2">
+                Try again
+              </button>
+            </p>
+          </div>
         ) : (
           <form
             onSubmit={(e) => {

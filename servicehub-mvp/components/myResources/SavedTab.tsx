@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Star, Trash2, MapPin, Calendar, FileDown, Share2, Plus } from 'lucide-react'
 import Link from 'next/link'
 import ResourceCard from '@/components/resources/ResourceCard'
@@ -32,6 +32,20 @@ export default function SavedTab({ userId }: SavedTabProps) {
   const [categories, setCategories] = useState<string[]>([])
   // Rows whose resource we are not allowed to read (see UnavailableNotice).
   const [unavailable, setUnavailable] = useState(0)
+  // Removed from the wishlist here (by resource id). Each stays in its place
+  // as a short line with Undo until the list next loads (bug audit,
+  // 17 November 2026, item 33).
+  const [removed, setRemoved] = useState<Set<string>>(new Set())
+  const [undoing, setUndoing] = useState<string | null>(null)
+  // After Undo, focus goes back to that card's Remove button.
+  const removeButtons = useRef<Record<string, HTMLButtonElement | null>>({})
+  const [focusRemoveFor, setFocusRemoveFor] = useState<string | null>(null)
+  useEffect(() => {
+    if (!focusRemoveFor) return
+    removeButtons.current[focusRemoveFor]?.focus()
+    setFocusRemoveFor(null)
+  }, [focusRemoveFor])
+  const shown = resources.filter((r) => !removed.has(r.resource.id))
 
   useEffect(() => {
     fetchSavedResources()
@@ -57,6 +71,7 @@ export default function SavedTab({ userId }: SavedTabProps) {
       // down over one bad row again.
       const rows = (data.resources || []).filter((r: any) => r && r.resource)
       setResources(rows)
+      setRemoved(new Set())
       setCategories(data.categories || [])
       setUnavailable(
         Number(data.unavailable) || Math.max(0, (data.resources || []).length - rows.length)
@@ -94,17 +109,42 @@ export default function SavedTab({ userId }: SavedTabProps) {
         method: 'DELETE',
       })
 
-      if (response.ok) {
-        setResources((prev) => prev.filter((r) => r.resource_id !== resourceId))
-      }
       if (!response.ok) {
         throw new Error('Failed to remove from wishlist')
       }
-      showToast.success('Removed from wishlist')
-      setResources((prev) => prev.filter((r) => r.resource_id !== resourceId))
+      // Shown in its place as "removed", with Undo.
+      setRemoved((prev) => new Set(prev).add(resourceId))
     } catch (error) {
       console.error('Error removing saved resource:', error)
       showToast.error('Failed to remove from wishlist. Please try again.')
+    }
+  }
+
+  // Undo: saved again, with its note. It comes back as a wishlist item.
+  const handleUndoRemove = async (item: SavedResourceWithData) => {
+    const resourceId = item.resource.id
+    setUndoing(resourceId)
+    try {
+      const response = await fetch(`/api/resources/${resourceId}/save`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(item.notes ? { notes: item.notes } : {}),
+      })
+      if (!response.ok) {
+        throw new Error('Failed to put it back')
+      }
+      setRemoved((prev) => {
+        const next = new Set(prev)
+        next.delete(resourceId)
+        return next
+      })
+      setFocusRemoveFor(resourceId)
+      showToast.success('It’s back on your wishlist')
+    } catch (error) {
+      console.error('Error undoing remove:', error)
+      showToast.error('That didn’t put it back. Please try again.')
+    } finally {
+      setUndoing(null)
     }
   }
 
@@ -151,7 +191,7 @@ export default function SavedTab({ userId }: SavedTabProps) {
   }
 
   const handleExportJSON = () => {
-    const data = resources.map((r) => ({
+    const data = shown.map((r) => ({
       name: r.resource.name,
       category: r.resource.category,
       location: r.resource.location,
@@ -172,7 +212,7 @@ export default function SavedTab({ userId }: SavedTabProps) {
 
   const handleExportCSV = () => {
     const headers = ['Name', 'Category', 'City', 'Province', 'Saved Date', 'Note']
-    const rows = resources.map((r) => {
+    const rows = shown.map((r) => {
       const location = r.resource.location as any
       return [
         r.resource.name,
@@ -203,11 +243,11 @@ export default function SavedTab({ userId }: SavedTabProps) {
         <div>
           <h2 className="text-xl font-semibold text-gray-900">Wishlist</h2>
           <p className="text-sm text-gray-600 mt-1">
-            {resources.length} {resources.length === 1 ? 'resource' : 'resources'} you want to try
+            {shown.length} {shown.length === 1 ? 'resource' : 'resources'} you want to try
           </p>
         </div>
 
-        {resources.length > 0 && (
+        {shown.length > 0 && (
           <div className="flex items-center gap-2">
             <button
               onClick={handleExportJSON}
@@ -276,6 +316,30 @@ export default function SavedTab({ userId }: SavedTabProps) {
             const resource = savedResource.resource
             const location = resource.location as any
 
+            if (removed.has(resource.id)) {
+              // Focus moves to Undo, as the Remove button that had it is gone.
+              return (
+                <div
+                  key={savedResource.id}
+                  className="flex flex-col items-start justify-center gap-3 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-6 text-sm text-gray-800"
+                >
+                  <p>
+                    <span className="font-medium text-gray-900">{resource.name}</span> was removed from your wishlist.
+                  </p>
+                  <button
+                    type="button"
+                    autoFocus
+                    onClick={() => handleUndoRemove(savedResource)}
+                    disabled={undoing === resource.id}
+                    aria-label={`Undo: put ${resource.name} back on your wishlist`}
+                    className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
+                  >
+                    {undoing === resource.id ? 'Putting it back…' : 'Undo'}
+                  </button>
+                </div>
+              )
+            }
+
             return (
               <div key={savedResource.id} className="relative group">
                 <ResourceCard
@@ -284,9 +348,13 @@ export default function SavedTab({ userId }: SavedTabProps) {
                   ratingCount={savedResource.ratingCount || 0}
                 />
 
-                {/* Actions Overlay */}
-                <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                {/* Actions Overlay: also shown with keyboard focus and on touch
+                    screens (no hover), where an invisible button could still be tapped. */}
+                <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity">
                   <button
+                    ref={(el) => {
+                      removeButtons.current[resource.id] = el
+                    }}
                     onClick={() => handleRemoveSaved(resource.id)}
                     className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 shadow-lg"
                     aria-label="Remove from wishlist"

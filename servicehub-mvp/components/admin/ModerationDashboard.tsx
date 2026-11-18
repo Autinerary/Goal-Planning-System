@@ -5,6 +5,14 @@ import { Shield, CheckCircle, XCircle, AlertCircle, RefreshCw } from 'lucide-rea
 import AgentDecision from '@/components/agents/AgentDecision'
 import TrustScoreBadge from '@/components/agents/TrustScoreBadge'
 import type { ValidationAgentOutput } from '@/lib/agents/validation-agent/types'
+import Link from 'next/link'
+
+/** What each kind of queue item is, in words. */
+const ITEM_TYPE_LABELS: Record<string, string> = {
+  rating: 'Rating',
+  product_review: 'Product review',
+  resource: 'Listing',
+}
 
 interface ModerationItem {
   id: string
@@ -192,7 +200,7 @@ function ModerationItemCard({
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
             <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">
-              {item.item_type}
+              {ITEM_TYPE_LABELS[item.item_type] || item.item_type}
             </span>
             <span className="text-sm text-gray-600">
               Submitted by: {item.user_email || item.submitted_by}
@@ -203,12 +211,23 @@ function ModerationItemCard({
           </div>
           {item.item_data && (
             <div className="mt-2">
-              {item.item_type === 'rating' && (
+              {/* A product review's item_data is shaped like a rating's: its words and its score. */}
+              {(item.item_type === 'rating' || item.item_type === 'product_review') && (
                 <div>
-                  <div className="font-medium">{item.item_data.comment || 'No comment'}</div>
+                  <div className="font-medium whitespace-pre-wrap">{item.item_data.comment || 'No comment'}</div>
                   <div className="text-sm text-gray-600">
                     Rating: {item.item_data.overall_score}/5
                   </div>
+                  {item.item_type === 'rating' && item.item_data.resource_id && (
+                    <Link href={`/resources/${item.item_data.resource_id}`} className="mt-1 inline-block text-sm text-blue-700 underline underline-offset-2">
+                      See the listing
+                    </Link>
+                  )}
+                  {item.item_type === 'product_review' && item.item_data.product_id && (
+                    <Link href={`/shop/${item.item_data.product_id}`} className="mt-1 inline-block text-sm text-blue-700 underline underline-offset-2">
+                      See the product
+                    </Link>
+                  )}
                 </div>
               )}
               {item.item_type === 'resource' && (

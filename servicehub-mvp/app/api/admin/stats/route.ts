@@ -27,7 +27,9 @@ export async function GET(request: NextRequest) {
 
     // Counting everyone's profile needs the admin client: since STEP 64 a
     // session reads only its own row (and before it, only the rows it was
-    // linked to), so these counts were never the whole table.
+    // linked to), so these counts were never the whole table. The same for
+    // listings (a session sees approved ones and its own) and the moderation
+    // queue, so every count below is read as the service, after the check above.
     const admin = createAdminClient()
 
     // Get total counts
@@ -36,36 +38,36 @@ export async function GET(request: NextRequest) {
     const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000)
 
     // Total resources
-    const { count: totalResources } = await supabase
+    const { count: totalResources } = await admin
       .from('resources')
       .select('*', { count: 'exact', head: true })
 
     // Resources this week
-    const { count: resourcesThisWeek } = await supabase
+    const { count: resourcesThisWeek } = await admin
       .from('resources')
       .select('*', { count: 'exact', head: true })
       .gte('created_at', weekAgo.toISOString())
 
     // Resources last week (for growth calculation)
-    const { count: resourcesLastWeek } = await supabase
+    const { count: resourcesLastWeek } = await admin
       .from('resources')
       .select('*', { count: 'exact', head: true })
       .gte('created_at', twoWeeksAgo.toISOString())
       .lt('created_at', weekAgo.toISOString())
 
     // Total ratings
-    const { count: totalRatings } = await supabase
+    const { count: totalRatings } = await admin
       .from('ratings')
       .select('*', { count: 'exact', head: true })
 
     // Ratings this week
-    const { count: ratingsThisWeek } = await supabase
+    const { count: ratingsThisWeek } = await admin
       .from('ratings')
       .select('*', { count: 'exact', head: true })
       .gte('created_at', weekAgo.toISOString())
 
     // Ratings last week
-    const { count: ratingsLastWeek } = await supabase
+    const { count: ratingsLastWeek } = await admin
       .from('ratings')
       .select('*', { count: 'exact', head: true })
       .gte('created_at', twoWeeksAgo.toISOString())
@@ -96,7 +98,7 @@ export async function GET(request: NextRequest) {
       .is('resolved_at', null)
 
     // Pending moderation
-    const { count: pendingModeration } = await supabase
+    const { count: pendingModeration } = await admin
       .from('moderation_queue')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'pending')
@@ -118,7 +120,7 @@ export async function GET(request: NextRequest) {
         : 0
 
     // Get recent activity
-    const activities = await getRecentActivity(supabase)
+    const activities = await getRecentActivity(admin)
 
     return NextResponse.json({
       stats: {
@@ -185,13 +187,16 @@ async function getRecentActivity(supabase: any): Promise<any[]> {
       })
     })
 
-    // Get recent moderation actions
-    const { data: recentModerations } = await supabase
-      .from('moderation_queue')
-      .select('id, created_at, submitted_by, item_type, status, profiles(email)')
-      .eq('status', 'pending')
-      .order('created_at', { ascending: false })
-      .limit(5)
+    // Get recent moderation actions (who sent them: submitted_by, since STEP 105)
+    const pendingQueue = (columns: string) =>
+      supabase.from('moderation_queue').select(columns).eq('status', 'pending').order('created_at', { ascending: false }).limit(5)
+    let { data: recentModerations, error: queueError } = await pendingQueue('id, created_at, submitted_by, item_type, status')
+    if (queueError) ({ data: recentModerations } = await pendingQueue('id, created_at, item_type, status'))
+    const senders = [...new Set((recentModerations || []).map((m: any) => m.submitted_by).filter(Boolean))]
+    const { data: senderRows } = senders.length
+      ? await supabase.from('profiles').select('id, email').in('id', senders)
+      : { data: [] as { id: string; email: string | null }[] }
+    const senderEmail = new Map<string, string | null>((senderRows || []).map((p: any) => [String(p.id), (p.email as string | null) ?? null]))
 
     recentModerations?.forEach((mod: any) => {
       activities.push({
@@ -199,7 +204,7 @@ async function getRecentActivity(supabase: any): Promise<any[]> {
         type: 'moderation',
         action: `submitted ${mod.item_type} for moderation`,
         userId: mod.submitted_by,
-        userName: mod.profiles?.email?.split('@')[0] || 'User',
+        userName: senderEmail.get(mod.submitted_by)?.split('@')[0] || 'User',
         timestamp: mod.created_at,
         metadata: { itemType: mod.item_type, status: mod.status },
       })

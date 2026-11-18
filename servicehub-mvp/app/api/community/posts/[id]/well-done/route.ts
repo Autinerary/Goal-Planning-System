@@ -9,7 +9,7 @@
  * draft (STEP 83's community_post_ratings).
  */
 import { NextRequest, NextResponse } from 'next/server'
-import { getCommunityServiceClient, getCommunityViewer } from '@/lib/community/client'
+import { CANT_POST_MESSAGE, getCommunityServiceClient, getCommunityViewer, isPostingBlockedError } from '@/lib/community/client'
 import { step83Missing } from '@/lib/community/tidbits'
 
 export const dynamic = 'force-dynamic'
@@ -23,8 +23,10 @@ async function counts(client: NonNullable<ReturnType<typeof getCommunityServiceC
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   const client = getCommunityServiceClient()
   if (!client) return NextResponse.json({ error: 'Community is not configured' }, { status: 503 })
-  const viewer = await getCommunityViewer()
+  const viewer = await getCommunityViewer({ forWriting: true })
   if (!viewer) return NextResponse.json({ error: 'Sign-in required' }, { status: 401 })
+  // A Well-Done counts like a vote: not from a banned or suspended account.
+  if (viewer.blocked) return NextResponse.json({ error: viewer.blocked, code: 'blocked' }, { status: 403 })
   const body = await request.json().catch(() => ({}))
   const rating = Math.round(Number(body?.rating))
   if (!(rating >= 1 && rating <= 5)) return NextResponse.json({ error: 'Choose 1 to 5.' }, { status: 400 })
@@ -41,6 +43,9 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     .from('community_post_ratings')
     .upsert({ post_id: params.id, user_id: viewer.user_id, rating }, { onConflict: 'post_id,user_id' })
   if (error) {
+    if (isPostingBlockedError(error)) {
+      return NextResponse.json({ error: CANT_POST_MESSAGE, code: 'blocked' }, { status: 403 })
+    }
     if ((error as any).hint === 'not_rateable') {
       return NextResponse.json({ error: 'You can give a Well-Done to someone else’s published Tidbit.' }, { status: 400 })
     }

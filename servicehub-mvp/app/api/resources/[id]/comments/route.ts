@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getReviewerProfiles } from '@/lib/supabase/queries'
 import { detectSpam } from '@/lib/agents/validation-agent/spam-detector'
 import { moderateText } from '@/lib/community/moderation'
+import { CANT_POST_MESSAGE, isPostingBlockedError, postingBlockedReason } from '@/lib/community/client'
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const MAX = 1000
@@ -54,6 +55,9 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Sign in to comment.' }, { status: 401 })
+  // A banned or paused account can't comment (bug audit, 17 November 2026, item 9).
+  const blocked = await postingBlockedReason(user.id)
+  if (blocked) return NextResponse.json({ error: blocked, code: 'blocked' }, { status: 403 })
   const body = await request.json().catch(() => ({}))
   const text = typeof body?.body === 'string' ? body.body.trim() : ''
   if (!text) return NextResponse.json({ error: 'Write a comment first.' }, { status: 400 })
@@ -74,6 +78,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     .single()
   if (error) {
     if (missing(error)) return NextResponse.json({ error: 'Comments open soon.' }, { status: 503 })
+    if (isPostingBlockedError(error)) return NextResponse.json({ error: CANT_POST_MESSAGE, code: 'blocked' }, { status: 403 })
     console.error('comment failed:', error.message)
     return NextResponse.json({ error: 'Could not post that. Please try again.' }, { status: 500 })
   }

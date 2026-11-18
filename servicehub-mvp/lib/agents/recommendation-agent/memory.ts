@@ -229,6 +229,51 @@ export async function recordRatingOutcome(
 }
 
 /**
+ * A person changed their rating of a resource: record only the change in the
+ * learning signal, (reward of the new score) - (reward of the old one), so a
+ * rating counts once per person and resource however often it is edited.
+ * Editing used to add the whole reward again each time, so re-saving a
+ * rating pushed a resource's learned score as far as anyone liked (bug audit,
+ * 17 November 2026, item 11). No change, no write. Best-effort, like
+ * recordRatingOutcome.
+ *
+ * record_tool_outcomes counts every call as one more sample, so an edit still
+ * adds one to the count while the sum stays right.
+ */
+export async function recordRatingChange(
+  resourceId: string,
+  barriers: string[],
+  previous1to5: number,
+  next1to5: number
+): Promise<boolean> {
+  if (!resourceId) return false
+  const change = ratingToReward(next1to5) - ratingToReward(previous1to5)
+  if (!Number.isFinite(change) || change === 0) return false
+
+  const client = getServiceClient()
+  if (!client) return false
+
+  try {
+    const cleanedBarriers = (barriers || [])
+      .map((b) => String(b || '').trim().toLowerCase())
+      .filter((b) => b.length > 0)
+    const { error } = await client.rpc('record_tool_outcomes', {
+      tool_ids_in: [resourceId],
+      barriers_in: cleanedBarriers,
+      reward_in: change,
+    })
+    if (error) {
+      console.warn('[recommendation-memory] recordRatingChange skipped:', error.message)
+      return false
+    }
+    return true
+  } catch (err) {
+    console.warn('[recommendation-memory] recordRatingChange failed:', err)
+    return false
+  }
+}
+
+/**
  * Pull learned per-tool reward scores for the user's barriers. Returns an
  * empty Map when Supabase isn't configured / no data yet — the scorer
  * treats that as "no learned signal, use static factors only".

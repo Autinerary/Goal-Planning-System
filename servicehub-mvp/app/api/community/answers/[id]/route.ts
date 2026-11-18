@@ -5,15 +5,26 @@
  *
  * Who may edit is decided as the signed-in caller (their session reads the
  * answer; is_admin() answers for moderators). The words then go through the
- * automatic moderation and the server saves them: since STEP 83 people can't
- * write answers straight into the table. DELETE calls
+ * same automatic moderation as a new answer (slurs refused, swear words
+ * bleeped, the AI check marking it for a moderator); edits used to skip the
+ * AI check (bug audit, 17 November 2026, item 16). The server saves them:
+ * since STEP 83 people can't write answers straight into the table. An answer
+ * on a locked post can't be edited, except by a moderator. DELETE calls
  * community_delete_answer, which checks author or admin itself (STEP 58).
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { getCommunityServiceClient, isCommunityAdmin } from '@/lib/community/client';
-import { moderateText, SLUR_MESSAGE } from '@/lib/community/moderation';
+import {
+  CANT_POST_MESSAGE,
+  getCommunityServiceClient,
+  isCommunityAdmin,
+  isPostingBlockedError,
+  postingBlockedReason,
+} from '@/lib/community/client';
+import { keptImageUrls } from '@/lib/community/images';
+import { LOCKED_MESSAGE, loadPostState } from '@/lib/community/locks';
+import { moderateText, reviewFlag, SLUR_MESSAGE } from '@/lib/community/moderation';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,14 +45,27 @@ export async function PATCH(
 
   const { data: answer } = await supabase
     .from('community_answers')
-    .select('author_id, post_id, is_deleted')
+    .select('author_id, post_id, is_deleted, body_markdown, image_urls')
     .eq('id', params.id)
     .maybeSingle();
   if (!answer || answer.is_deleted) {
     return NextResponse.json({ error: 'Answer not found' }, { status: 404 });
   }
-  if (answer.author_id !== user.id && !(await isCommunityAdmin(supabase))) {
+  const isAdmin = await isCommunityAdmin(supabase);
+  if (answer.author_id !== user.id && !isAdmin) {
     return NextResponse.json({ error: 'Not your answer' }, { status: 403 });
+  }
+  if (!isAdmin) {
+    const blocked = await postingBlockedReason(user.id);
+    if (blocked) return NextResponse.json({ error: blocked, code: 'blocked' }, { status: 403 });
+  }
+
+  const client = getCommunityServiceClient();
+  if (!client) return NextResponse.json({ error: 'Community is not configured' }, { status: 503 });
+  // A locked post's answers stay as they are, except for moderators.
+  const post = await loadPostState(client, answer.post_id);
+  if (post?.is_locked && !isAdmin) {
+    return NextResponse.json({ error: LOCKED_MESSAGE, code: 'locked' }, { status: 403 });
   }
 
   let body: PatchBody = {};
@@ -58,24 +82,30 @@ export async function PATCH(
     }
     const moderated = moderateText(m);
     if (moderated.slur) return NextResponse.json({ error: SLUR_MESSAGE, code: 'slur' }, { status: 400 });
-    update.body_markdown = moderated.text;
+    // Changed words get the same AI check as a new answer: anything it flags
+    // is saved but marked for a moderator.
+    if (moderated.text !== answer.body_markdown) {
+      update.body_markdown = moderated.text;
+      const review = await reviewFlag(moderated.text);
+      if (review.flag) Object.assign(update, { auto_flag: review.flag, auto_flag_reason: review.reason });
+    }
   }
   if (Array.isArray(body.image_urls)) {
-    update.image_urls = body.image_urls
-      .filter((u) => typeof u === 'string' && /^https?:\/\//i.test(u))
-      .slice(0, 6);
+    // Pictures from our own storage only; the ones it already had may stay.
+    update.image_urls = keptImageUrls(body.image_urls, Array.isArray(answer.image_urls) ? answer.image_urls : []);
   }
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ ok: true });
   }
-  const client = getCommunityServiceClient();
-  if (!client) return NextResponse.json({ error: 'Community is not configured' }, { status: 503 });
   const { data: updated, error } = await client
     .from('community_answers')
     .update(update)
     .eq('id', params.id)
     .select('id');
   if (error) {
+    if (isPostingBlockedError(error)) {
+      return NextResponse.json({ error: CANT_POST_MESSAGE, code: 'blocked' }, { status: 403 });
+    }
     console.error('[community] PATCH /answers/[id] failed:', error.message);
     return NextResponse.json({ error: 'Failed to update answer' }, { status: 500 });
   }
