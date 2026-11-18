@@ -29,24 +29,27 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import importlib
 import uuid
 from datetime import datetime
-from typing import Any, Dict, List, Literal, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 
 from api.auth_guard import current_user_id, require_self_or_guardian
-from core.orchestrator import Orchestrator
 from core import learning, llm, moderation
 from database.supabase_client import get_supabase
+
+if TYPE_CHECKING:
+    from core.orchestrator import Orchestrator
 
 router = APIRouter()
 
 # Shared orchestrator instance for this router. Reuses the same agents across
 # requests; initialize() is idempotent. Mirrors how paths.py / onboarding.py
 # do it.
-_orchestrator: Optional[Orchestrator] = None
+_orchestrator: Optional["Orchestrator"] = None
 
 # Lightweight fallback log so the GET endpoint still has something to return
 # when Supabase isn't configured. Holds only the most recent entries per
@@ -55,17 +58,26 @@ _in_memory_reflections: List[Dict[str, Any]] = []
 _IN_MEMORY_MAX = 50
 
 
-async def _get_orchestrator() -> Orchestrator:
+async def _get_orchestrator() -> "Orchestrator":
     global _orchestrator
     if _orchestrator is None:
-        _orchestrator = Orchestrator()
+        # Imported on first use, in a worker thread: it loads LangGraph and
+        # all six agents, which the server used to do at startup before it
+        # could answer anything (bug audit, 17 November 2026, item 36).
+        module = await asyncio.to_thread(importlib.import_module, "core.orchestrator")
+        if _orchestrator is None:       # unless another request made it meanwhile
+            _orchestrator = module.Orchestrator()
     if not _orchestrator.initialized:
         await _orchestrator.initialize()
     return _orchestrator
 
 
 def _verified_user_id(authorization: Optional[str]) -> Optional[str]:
-    """Resolve the authenticated Supabase user; never trust a client user id."""
+    """Resolve the authenticated Supabase user; never trust a client user id.
+
+    A network call (supabase-py is synchronous): async code runs it with
+    asyncio.to_thread.
+    """
     if not authorization:
         return None
     scheme, _, token = authorization.partition(" ")
@@ -130,11 +142,17 @@ async def create_reflection(
     request: ReflectionRequest,
     authorization: Optional[str] = Header(default=None),
 ):
-    """Create a reflection, trigger adaptation, and close the learning loop."""
+    """Create a reflection, trigger adaptation, and close the learning loop.
+
+    The database and sign-in calls run in worker threads: supabase-py is
+    synchronous, and on the event loop each one held every other request on
+    the server (bug audit, 17 November 2026, item 34).
+    """
 
     # Anonymous reflections still receive insights but cannot persist or alter
-    # any personal/global learning state.
-    user_id = _verified_user_id(authorization) or "user_123"
+    # any personal/global learning state. The session is checked once.
+    verified = await asyncio.to_thread(_verified_user_id, authorization)
+    user_id = verified or "user_123"
 
     orchestrator = await _get_orchestrator()
 
@@ -165,7 +183,6 @@ async def create_reflection(
     # The safety check on the entry, alongside (9 November 2026): the journal is where people write how things are
     # going, so a sign of danger there shows the crisis lines. Our rules always; the checker as well when an OpenAI
     # model reads the entry anyway. Not for imported old entries: one from months ago isn't a sign of danger now.
-    verified = _verified_user_id(authorization)
     entry = ((request.freeFormText or "").strip()
              or "\n".join(str((q or {}).get("answer") or "") for q in request.questions).strip())
 
@@ -216,7 +233,8 @@ async def create_reflection(
         **reflection_response,
         "explicitFeedback": feedback.model_dump() if feedback else None,
     }
-    reflection_id = learning.persist_reflection(
+    reflection_id = await asyncio.to_thread(
+        learning.persist_reflection,
         user_id=user_id,
         context_type=request.contextType,
         context_id=request.contextId,
@@ -261,8 +279,14 @@ async def create_reflection(
                 learning_labels.append("path")
             used_tool_ids = [str(tool_id) for tool_id in feedback.usedToolIds if tool_id]
             if used_tool_ids:
-                learning_calls.append(learning.record_tool_outcomes(
-                    tool_ids=used_tool_ids,
+                # Only tools we recommended to them in their latest plan, and
+                # each once a day: the ids come from the browser, and every
+                # one sent used to count toward the shared ranking, as often
+                # as it was sent (bug audit, 17 November 2026, item 11).
+                learning_calls.append(learning.record_tool_outcomes_for(
+                    user_id=user_id,
+                    used_tool_ids=used_tool_ids,
+                    recommended_tool_ids=list(latest_ctx.get("recommended_tool_ids") or []),
                     barriers=list(latest_ctx.get("barriers") or []),
                     reward=reward,
                 ))
@@ -303,7 +327,7 @@ async def create_reflection(
             from core.pattern_reindex import current_profile
 
             supa = get_supabase()
-            state = current_profile(supa, user_id) if supa is not None else None
+            state = await asyncio.to_thread(current_profile, supa, user_id) if supa is not None else None
             if state is not None:
                 indexed = await orchestrator.index_user(
                     user_id=user_id,
@@ -374,47 +398,49 @@ async def create_reflection(
 
 @router.get("/user/{user_id}")
 async def get_user_reflections(user_id: str, caller_id: str = Depends(current_user_id)):
-    """Return a user's reflection history. Reads from Supabase when available
-    and falls back to the in-memory mirror otherwise.
+    """Return a user's reflection history, from Supabase: their own entries,
+    newest first, and [] when they have none. 503 when they can't be read.
 
     Only for the person themselves, or their guardian. It had no check, and
     read with the service role, so anyone who knew an account id could read
     that person's journal entries.
-    """
-    from database.supabase_client import get_supabase
 
+    It used to answer someone with no entries (or a failed read) with three
+    made-up entries, which the journal showed as their own (bug audit,
+    17 November 2026, item 18).
+    """
     try:
-        require_self_or_guardian(user_id, caller_id)
+        await asyncio.to_thread(require_self_or_guardian, user_id, caller_id)
     except HTTPException:
         raise HTTPException(status_code=404, detail="No reflections found.")
 
     uid = learning._try_parse_uuid(user_id)
     supa = get_supabase()
-    if supa is not None and uid is not None:
-        try:
-            res = (
-                supa.table("reflections")
-                .select(
-                    "id, created_at, context_type, context_id, sentiment_label, "
-                    "reward_signal, free_form_text, questions, reflection_response"
-                )
-                .eq("user_id", uid)
-                .order("created_at", desc=True)
-                .limit(50)
-                .execute()
-            )
-            rows = res.data or []
-            if rows:
-                return [_row_to_legacy_shape(r) for r in rows]
-        except Exception as e:
-            print(f"[reflections] supabase fetch skipped: {e}")
+    if supa is None or uid is None:
+        # Without a database (local runs), only the entries this process saw.
+        return [r for r in _in_memory_reflections if r.get("userId") == user_id]
+    try:
+        rows = await asyncio.to_thread(_read_reflections, supa, uid)
+    except Exception as e:
+        print(f"[reflections] read failed: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=503, detail="Your journal couldn't be loaded just now. Please try again.")
+    return [_row_to_legacy_shape(r) for r in rows]
 
-    mirror = [r for r in _in_memory_reflections if r.get("userId") == user_id]
-    if mirror:
-        return mirror
 
-    # Seed demo data only when there is literally nothing for this user.
-    return _DEMO_REFLECTIONS
+def _read_reflections(supa, uid: str) -> List[Dict[str, Any]]:
+    """Their 50 newest entries. Raises when the read fails."""
+    res = (
+        supa.table("reflections")
+        .select(
+            "id, created_at, context_type, context_id, sentiment_label, "
+            "reward_signal, free_form_text, questions, reflection_response"
+        )
+        .eq("user_id", uid)
+        .order("created_at", desc=True)
+        .limit(50)
+        .execute()
+    )
+    return res.data or []
 
 
 def _row_to_legacy_shape(row: Dict[str, Any]) -> Dict[str, Any]:
@@ -473,51 +499,3 @@ async def get_reflection_questions(context_type: str):
         ]
     }
     return {"questions": questions.get(context_type, [])}
-
-
-# Demo seed kept around so the journal screen has something to show during
-# local development before any real reflections exist.
-_DEMO_REFLECTIONS: List[Dict[str, Any]] = [
-    {
-        "id": "seed_1",
-        "date": "2026-01-17",
-        "contextType": "path",
-        "contextName": "Graduate University Path",
-        "sentiment": "positive",
-        "summary": "Feeling good about progress on accommodation requests. The disability office was helpful!",
-        "questions": [
-            {"q": "How was today?", "a": "Really productive! Got a lot done."},
-            {"q": "How well done do you think it was?", "a": "8/10 - better than expected"},
-            {"q": "What would you improve?", "a": "Start earlier in the day next time"},
-        ],
-        "insights": ["Positive momentum detected", "Morning routines working well"],
-    },
-    {
-        "id": "seed_2",
-        "date": "2026-01-16",
-        "contextType": "task",
-        "contextName": "Group Project Meeting",
-        "sentiment": "negative",
-        "summary": "Struggled with the group project. Feeling overwhelmed by social interaction.",
-        "questions": [
-            {"q": "How was today?", "a": "Exhausting. The meeting went longer than expected."},
-            {"q": "How well done do you think it was?", "a": "4/10 - I couldn't focus"},
-            {"q": "What would you improve?", "a": "Ask for a smaller group or individual alternative"},
-        ],
-        "insights": ["Social fatigue detected", "Consider requesting accommodation"],
-    },
-    {
-        "id": "seed_3",
-        "date": "2026-01-15",
-        "contextType": "milestone",
-        "contextName": "Request Accommodations",
-        "sentiment": "neutral",
-        "summary": "Started the accommodation request process. Nervous but hopeful.",
-        "questions": [
-            {"q": "How was today?", "a": "Mixed feelings. Progress is slow but steady."},
-            {"q": "How well done do you think it was?", "a": "6/10 - okay"},
-            {"q": "What would you improve?", "a": "More preparation before meetings"},
-        ],
-        "insights": ["Steady progress", "Building confidence"],
-    },
-]

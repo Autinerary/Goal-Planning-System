@@ -12,6 +12,7 @@ Both pieces fall back to the original hardcoded behavior when Supabase isn't
 configured.
 """
 
+import asyncio
 from typing import Dict, Any, List, Optional
 from core.agents.base_agent import BaseAgent
 from core.config import Config
@@ -118,7 +119,8 @@ class AdaptationAgent(BaseAgent):
         if analysis is not None:
             path_id = (analysis.get('completion') or {}).get('path_id')
             if path_id and (path is None or done_ids is None):
-                path, done_ids = self._load(user_id, path_id)
+                # In a worker thread: supabase-py is synchronous.
+                path, done_ids = await asyncio.to_thread(self._load, user_id, path_id)
             return self._from_analysis(analysis, path_id, path, done_ids or [])
 
         reflection_insights = reflection_insights or {}

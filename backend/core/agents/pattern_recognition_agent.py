@@ -12,6 +12,8 @@ The agent's public interface and its placement in the LangGraph orchestration
 graph are unchanged \u2014 only the storage backend was swapped.
 """
 
+import asyncio
+import importlib
 import os
 from typing import List, Dict, Any, Optional
 
@@ -76,8 +78,12 @@ class PatternRecognitionAgent(BaseAgent):
 
         if OPENAI_API_KEY:
             try:
-                from openai import AsyncOpenAI
-                self._openai_client = AsyncOpenAI(api_key=OPENAI_API_KEY)
+                from core import llm
+                # Imported in a worker thread the first time (about a second of CPU), not on the event loop.
+                AsyncOpenAI = (await asyncio.to_thread(importlib.import_module, "openai")).AsyncOpenAI
+                # The same bound on a stuck call as every other model call (core/llm.py).
+                self._openai_client = AsyncOpenAI(api_key=OPENAI_API_KEY, timeout=llm.call_timeout_seconds(),
+                                                  max_retries=llm.CALL_MAX_RETRIES)
             except Exception:
                 pass
         self.initialized = True
@@ -248,10 +254,12 @@ class PatternRecognitionAgent(BaseAgent):
                     'query_user_id': query_user_id,
                 }
 
-                response = self.supabase.rpc(
+                # In a worker thread: supabase-py is synchronous, and on the
+                # event loop the query held every other request while it ran.
+                response = await asyncio.to_thread(self.supabase.rpc(
                     'find_similar_pattern_users',
                     rpc_args,
-                ).execute()
+                ).execute)
 
                 rows = response.data or []
                 if filtered and len(rows) >= CANDIDATE_POOL:
@@ -357,33 +365,38 @@ class PatternRecognitionAgent(BaseAgent):
             if motivation:
                 row['motivation_type'] = str(motivation)
             row['updated_at'] = datetime.now(timezone.utc).isoformat()
-            # Clear the rebuild mark (STEP 56, core/pattern_reindex.py) only
-            # when this write carries the person's current conditions. A
-            # reflection sent from a page loaded before they changed one in
-            # ResourceHub carries the old ones; it leaves the mark for the
-            # sweep, which rebuilds from user_barriers.
-            if self._has_current_conditions(user_id, barriers):
-                row['reindex_requested_at'] = None
-
-            # Columns a migration adds may not exist yet where this runs:
-            # still index the user rather than fail onboarding over a
-            # bookkeeping field.
-            optional = ('embedding_text_version', 'reindex_requested_at')
-            while True:
-                try:
-                    self.supabase.table('pattern_user_embeddings').upsert(
-                        row,
-                        on_conflict='user_id',
-                    ).execute()
-                    break
-                except Exception as e:
-                    missing = next((c for c in optional if c in row and c in str(e)), None)
-                    if missing is None:
-                        raise
-                    row.pop(missing)
+            # The database work in a worker thread: supabase-py is synchronous.
+            await asyncio.to_thread(self._write_vector, user_id, barriers, row)
             print(f"   \u2713 Indexed user {user_id} in pgvector")
             return True
         except Exception as e:
             print(f"[pattern_recognition] pgvector upsert skipped: {e}")
             return False
+
+    def _write_vector(self, user_id: str, barriers: List[str], row: Dict[str, Any]) -> None:
+        """Store the row built by upsert_user_vector. Raises when the write fails."""
+        # Clear the rebuild mark (STEP 56, core/pattern_reindex.py) only
+        # when this write carries the person's current conditions. A
+        # reflection sent from a page loaded before they changed one in
+        # ResourceHub carries the old ones; it leaves the mark for the
+        # sweep, which rebuilds from user_barriers.
+        if self._has_current_conditions(user_id, barriers):
+            row['reindex_requested_at'] = None
+
+        # Columns a migration adds may not exist yet where this runs:
+        # still index the user rather than fail onboarding over a
+        # bookkeeping field.
+        optional = ('embedding_text_version', 'reindex_requested_at')
+        while True:
+            try:
+                self.supabase.table('pattern_user_embeddings').upsert(
+                    row,
+                    on_conflict='user_id',
+                ).execute()
+                return
+            except Exception as e:
+                missing = next((c for c in optional if c in row and c in str(e)), None)
+                if missing is None:
+                    raise
+                row.pop(missing)
 

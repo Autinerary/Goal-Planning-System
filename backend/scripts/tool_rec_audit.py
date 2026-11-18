@@ -33,7 +33,8 @@ Item 2, the ratings it reads: the `ratings` table by rater (seed personas
 apart from other team accounts), by the status of the rated resource, by
 which form most likely wrote the row (ResourceHub's form records the rater's
 conditions; the app's Milestone View writes only a score), and how many
-ratings fall on the resources in today's pool.
+ratings fall on the resources in today's pool. The rater's conditions are in
+`rating_rater_context` since STEP 105 (and on the rating before it).
 
 Item 4, the run log: core/evaluation_runs.py is called at the start and the
 end, but never with the Supabase client, so it writes only to the Postgres
@@ -291,10 +292,40 @@ def filled(value: Any) -> bool:
     return bool(value) and value not in ({}, [], "")
 
 
+# The reviewer's details a rating carries. Since STEP 105 they are kept apart, in rating_rater_context (one row per
+# rating, service role only), and the columns on the rating are always empty.
+RATER_FIELDS = ("rater_diagnostics", "rater_relationships")
+
+
+def _no_such_table(error: Exception) -> bool:
+    text = str(error)
+    return any(sign in text for sign in ("42P01", "PGRST205", "does not exist", "schema cache"))
+
+
+def with_rater_context(sb, ratings: List[Dict[str, Any]]) -> bool:
+    """Put each rating's reviewer details from rating_rater_context on it (by rating id). Before STEP 105 there is no
+    such table and the details are still on the rows, so they are left as they are. True when the table was read."""
+    try:
+        rows = fetch_all(sb, "rating_rater_context", "rating_id, " + ", ".join(RATER_FIELDS))
+    except Exception as e:
+        if not _no_such_table(e):
+            raise
+        return False
+    by_rating = {str(r.get("rating_id")): r for r in rows}
+    for rating in ratings:
+        found = by_rating.get(str(rating.get("id")))
+        for name in RATER_FIELDS:
+            if found and filled(found.get(name)):
+                rating[name] = found[name]
+    return True
+
+
 def item2(sb, account: Callable[..., str]) -> Dict[str, Any]:
     print("\n== Item 2: the ratings it reads")
-    ratings = fetch_all(sb, "ratings", "user_id, resource_id, overall_score, barrier_scores, comment, "
+    ratings = fetch_all(sb, "ratings", "id, user_id, resource_id, overall_score, barrier_scores, comment, "
                                       "rater_diagnostics, rater_relationships, created_at")
+    separate = with_rater_context(sb, ratings)
+    print(f"  reviewers' details read from: {'rating_rater_context (STEP 105)' if separate else 'the ratings themselves'}")
     statuses = {str(r["id"]): r["status"] for r in fetch_all(sb, "resources", "id, status")}
     who = Counter(account(r["user_id"], personas=True) for r in ratings)
     print(f"  ratings: {len(ratings)}  by rater: {dict(who)}")

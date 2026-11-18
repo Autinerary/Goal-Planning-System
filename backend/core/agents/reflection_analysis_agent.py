@@ -18,6 +18,7 @@ fine-tuning cost. See backend/core/learning.py and the
 2026_reflection_learning.sql migration.
 """
 
+import asyncio
 from typing import Dict, Any, List, Optional
 from core.agents.base_agent import BaseAgent
 from core.config import Config
@@ -130,14 +131,17 @@ class ReflectionAnalysisAgent(BaseAgent):
         Someone with no entries and no ratings gets status "no_data".
         """
         sb = get_supabase()
-        result = reflection_analysis.analyze_person(
+        # Its reads in a worker thread: supabase-py is synchronous, and this
+        # runs inside the journal's request (bug audit, 17 November 2026).
+        result = await asyncio.to_thread(
+            reflection_analysis.analyze_person,
             sb, user_id, path_id=path_id, current_entry=current_entry,
         )
         # Optional, off by default: themes from their own words, by the model.
         if reflection_analysis.themes_enabled() and result.get('status') == 'ok':
             try:
                 result['themes'] = await reflection_analysis.themes(
-                    reflection_analysis.recent_entries(sb, user_id, current_entry))
+                    await asyncio.to_thread(reflection_analysis.recent_entries, sb, user_id, current_entry))
             except Exception as e:
                 print(f"[reflection_analysis] themes skipped: {e}")
         return result

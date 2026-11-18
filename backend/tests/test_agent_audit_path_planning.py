@@ -36,6 +36,17 @@ class DefinitionsTests(unittest.TestCase):
         self.assertEqual(job_category("Goals involving harming others aren't supported."), "input rejected by the guardrails")
         self.assertEqual(job_category("Something unexpected happened somewhere"), "other")
 
+    def test_jobs_with_their_kind_in_front(self):
+        # core/jobs.py since 18 November 2026: "[kind] message".
+        self.assertEqual(job_category("[guardrail] You can call or text 9-8-8 any time."), "input rejected by the guardrails")
+        self.assertEqual(job_category("[limit] You've reached today's usage limit for AI generation."), "AI limit: tokens per day")
+        self.assertEqual(job_category("[internal] Your path couldn't be made just now, so please try again in a minute."),
+                         "any other exception (cause only in the server log)")
+        self.assertEqual(job_category("[internal] Interrupted: the server restarted, or the generation hung."),
+                         "interrupted (reaped after a restart or hang)")
+        self.assertEqual(job_category("[internal] Stopped at the generation deadline."),
+                         "stopped at the generation deadline (a call that hung)")
+
     def test_timestamps_with_short_fractions(self):
         self.assertEqual(parse_ts("2026-10-12T22:15:01.12345+00:00").microsecond, 123450)
         self.assertIsNotNone(parse_ts("2026-10-12T22:15:01Z"))

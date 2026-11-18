@@ -1708,7 +1708,9 @@ def summarize_generation(rows: Iterable[dict], user_ids: set) -> Dict:
         "failed": len(failed),
         "median_s": median(seconds) if seconds else None,
         "p90_s": seconds[min(len(seconds) - 1, int(len(seconds) * 0.9))] if seconds else None,
-        "reasons": Counter((j.get("error") or "no message")[:80] for j in failed),
+        # Without the kind a failed job's error starts with since 18 November 2026 ("[guardrail] ...", core/jobs.py).
+        "reasons": Counter(re.sub(r"^\[(?:guardrail|limit|internal)\]\s?", "", j.get("error") or "no message")[:80]
+                           for j in failed),
     }
 
 

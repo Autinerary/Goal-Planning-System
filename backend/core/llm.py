@@ -34,6 +34,7 @@ import json
 import time
 import asyncio
 import contextlib
+import importlib
 from contextvars import ContextVar
 from dataclasses import dataclass, field
 from typing import Any, Dict, Iterable, Optional, Tuple
@@ -48,6 +49,20 @@ from core import device_llm
 # One client per provider — they differ only by api_key and base_url.
 _clients: Dict[str, Any] = {}
 _client_lock = asyncio.Lock()
+
+# How long one model call may take, and how often it is tried again. The
+# OpenAI client's own defaults are 600 s and two retries, so one stuck call
+# could hold a plan for half an hour (bug audit, 17 November 2026, item 34).
+# LLM_TIMEOUT_SECONDS raises it for a slow model.
+CALL_MAX_RETRIES = 1
+
+
+def call_timeout_seconds() -> float:
+    try:
+        value = float(os.getenv("LLM_TIMEOUT_SECONDS", "") or 60)
+    except ValueError:
+        return 60.0
+    return value if value > 0 else 60.0
 
 # Reasoning tokens are billed against the same cap as the visible answer, so a
 # budget sized for prose leaves nothing to reply with.
@@ -325,11 +340,19 @@ async def _client_for(model: registry.Model):
     if key is None:
         return None
 
+    try:
+        # Imported in a worker thread the first time (about a second of CPU), not on the event loop: the server no
+        # longer loads it at startup (main.py). Before the lock, so nothing waits inside it.
+        AsyncOpenAI = (await asyncio.to_thread(importlib.import_module, "openai")).AsyncOpenAI
+    except Exception as e:
+        print(f"   ⚠️  LLM client init failed ({model.provider}): {e}")
+        return None
+
     async with _client_lock:
         if model.provider not in _clients:
             try:
-                from openai import AsyncOpenAI
-                kwargs: Dict[str, Any] = {"api_key": key}
+                kwargs: Dict[str, Any] = {"api_key": key, "timeout": call_timeout_seconds(),
+                                          "max_retries": CALL_MAX_RETRIES}
                 if base_url:
                     kwargs["base_url"] = base_url
                 _clients[model.provider] = AsyncOpenAI(**kwargs)
@@ -407,7 +430,9 @@ async def _guard(model: registry.Model, planned_tokens: int) -> None:
     deadline = time.monotonic() + _rate_wait_seconds()
     while True:
         try:
-            budget.check(actor, model.id, planned_tokens, verified=verified)
+            # In a worker thread: it reads the usage ledger now and then, and
+            # supabase-py is synchronous (core/budget.py).
+            await asyncio.to_thread(budget.check, actor, model.id, planned_tokens, verified)
             return
         except budget.LimitExceeded as e:
             if e.limit != "requests_per_minute" or not (actor and verified):

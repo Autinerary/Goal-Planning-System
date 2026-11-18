@@ -101,5 +101,29 @@ class PromptTests(unittest.TestCase):
             self.assertNotIn('Planning for:', user)
 
 
+class RecommendedChoicesTests(unittest.TestCase):
+    """A step's choices carry no success rates or numbers of attempts: they were the same made-up figures on every
+    milestone (bug audit, 17 November 2026, item 34). The order is as before."""
+
+    def names(self, barriers):
+        choices = run(PathPlanningAgent()._generate_recommended_choices({'id': 'm1'}, barriers, []))
+        for choice in choices:
+            self.assertNotIn('successPercentage', choice)
+            self.assertNotIn('attempts', choice)
+        return [c['name'] for c in choices]
+
+    def test_no_made_up_numbers_and_the_same_order(self):
+        community, structured, flexible = 'Community-Supported', 'Structured Approach', 'Flexible Sprint'
+        self.assertEqual(self.names([]), [community, structured, flexible])
+        self.assertEqual(self.names(['ADHD']), [flexible, community, structured])
+        self.assertEqual(self.names(['Autism']), [structured, community, flexible])
+        self.assertEqual(self.names(['ADHD', 'Autism']), [structured, flexible, community])
+        self.assertEqual(self.names(['ADHD', 'Visible Minority']), [community, flexible, structured])
+
+    def test_ids_are_kept(self):
+        choices = run(PathPlanningAgent()._generate_recommended_choices({'id': 'm1'}, [], []))
+        self.assertEqual(sorted(c['id'] for c in choices), ['choice_m1_1', 'choice_m1_2', 'choice_m1_3'])
+
+
 if __name__ == '__main__':
     unittest.main()

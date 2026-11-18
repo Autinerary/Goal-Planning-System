@@ -19,6 +19,7 @@ numbers or percentages (nobody counted these), and nothing that shames.
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from core import llm
@@ -27,6 +28,10 @@ AVOID_COUNT = 5
 TIPS_COUNT = 5
 MAX_ITEM_CHARS = 120
 CHUNK = 8
+# General advice stands in for AI's when the model didn't answer. While AI is
+# on it is written again, but not sooner than this after the last try, so a
+# step the model keeps failing on isn't asked about on every page view.
+GENERAL_RETRY_SECONDS = 600
 
 # General advice for a kind of step, used when AI is off or fails. Short,
 # plain, and true of most people at a step like it.
@@ -159,13 +164,33 @@ def plan_milestones(payload: Dict[str, Any]) -> List[Dict[str, Any]]:
     return list(seen.values())
 
 
-def stale(payload: Dict[str, Any], milestones: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Milestones with no guidance yet, or whose name changed since."""
+def _retry_due(entry: Dict[str, Any], now: datetime) -> bool:
+    """Whether general advice is old enough to ask AI again (GENERAL_RETRY_SECONDS)."""
+    try:
+        written = datetime.fromisoformat(str(entry.get("writtenAt") or "").replace("Z", "+00:00"))
+    except ValueError:
+        return True      # written before the time was kept
+    if written.tzinfo is None:
+        written = written.replace(tzinfo=timezone.utc)
+    return (now - written).total_seconds() >= GENERAL_RETRY_SECONDS
+
+
+def stale(payload: Dict[str, Any], milestones: List[Dict[str, Any]],
+          ai_on: Optional[bool] = None) -> List[Dict[str, Any]]:
+    """Milestones with no guidance yet, or whose name changed since, and while
+    AI is on, those with general advice. That stood in for AI's when the model
+    didn't answer, and was kept for good: one failed call fixed a plan's
+    guidance as general advice for ever (bug audit, 17 November 2026, item 34)."""
+    if ai_on is None:
+        ai_on = llm.is_enabled()
+    now = datetime.now(timezone.utc)
     have = payload.get("milestoneGuidance") or {}
     out = []
     for m in milestones:
         entry = have.get(m["id"]) if isinstance(have, dict) else None
         if not isinstance(entry, dict) or entry.get("name") != m.get("name") or not entry.get("avoid"):
+            out.append(m)
+        elif ai_on and entry.get("source") == "general" and _retry_due(entry, now):
             out.append(m)
     return out
 
@@ -201,6 +226,8 @@ def general_guidance(milestone: Dict[str, Any], person: Dict[str, Any]) -> Dict[
         "avoid": _clean(avoid, AVOID_COUNT),
         "tips": _clean(tips, TIPS_COUNT),
         "source": "general",
+        # When, so AI is asked again later rather than at once (stale).
+        "writtenAt": datetime.now(timezone.utc).isoformat(),
     }
 
 

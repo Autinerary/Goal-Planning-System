@@ -26,11 +26,23 @@ matching the rest of the backend.
 
 from __future__ import annotations
 
+import asyncio
+import threading
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 from database.supabase_client import get_supabase
+
+
+async def _execute(query: Any) -> Any:
+    """Run one supabase-py request in a worker thread.
+
+    The client is synchronous, so the async functions below used to hold the
+    event loop, and with it every other request on the server, for each
+    round trip (bug audit, 17 November 2026, item 34).
+    """
+    return await asyncio.to_thread(query.execute)
 
 
 # ---------------------------------------------------------------------------
@@ -210,10 +222,10 @@ async def update_learned_patterns(indicators: List[str]) -> bool:
     if supa is None or not indicators:
         return False
     try:
-        supa.rpc(
+        await _execute(supa.rpc(
             "update_learned_patterns",
             {"present_indicators": [str(i) for i in indicators]},
-        ).execute()
+        ))
         return True
     except Exception as e:
         print(f"[learning] update_learned_patterns skipped: {e}")
@@ -231,14 +243,14 @@ async def get_top_learned_patterns(
     if supa is None:
         return []
     try:
-        res = supa.rpc(
+        res = await _execute(supa.rpc(
             "get_top_learned_patterns",
             {
                 "min_observations": int(min_observations),
                 "min_correlation": float(min_correlation),
                 "max_results": int(max_results),
             },
-        ).execute()
+        ))
         return res.data or []
     except Exception as e:
         print(f"[learning] get_top_learned_patterns skipped: {e}")
@@ -271,7 +283,7 @@ async def record_adaptation_outcome(
             row["reflection_id"] = rid
         if threshold_used is not None:
             row["threshold_used"] = float(threshold_used)
-        supa.table("adaptation_outcomes").insert(row).execute()
+        await _execute(supa.table("adaptation_outcomes").insert(row))
         return True
     except Exception as e:
         print(f"[learning] record_adaptation_outcome skipped: {e}")
@@ -286,10 +298,10 @@ async def close_previous_adaptation_loops(user_id: Any, new_reward: float) -> in
     if supa is None or uid is None:
         return 0
     try:
-        res = supa.rpc(
+        res = await _execute(supa.rpc(
             "close_adaptation_loop",
             {"user_id_in": uid, "reward_in": float(new_reward)},
-        ).execute()
+        ))
         # Postgres function returns INT; supabase-py wraps it in data
         data = res.data
         if isinstance(data, int):
@@ -315,14 +327,14 @@ async def get_adaptive_threshold(
     if supa is None:
         return float(default_threshold)
     try:
-        res = supa.rpc(
+        res = await _execute(supa.rpc(
             "best_rule_threshold",
             {
                 "rule_name": str(rule_name),
                 "default_threshold": float(default_threshold),
                 "min_samples": int(min_samples),
             },
-        ).execute()
+        ))
         data = res.data
         if isinstance(data, (int, float)):
             return float(data)
@@ -354,13 +366,13 @@ async def get_success_examples(
     if supa is None:
         return []
     try:
-        res = supa.rpc(
+        res = await _execute(supa.rpc(
             "get_success_examples",
             {
                 "barriers_filter": [str(b) for b in barriers] if barriers else None,
                 "max_results": int(max_results),
             },
-        ).execute()
+        ))
         return res.data or []
     except Exception as e:
         print(f"[learning] get_success_examples skipped: {e}")
@@ -467,13 +479,13 @@ async def get_best_path_shape(
     if supa is None or not profile_signature:
         return None
     try:
-        res = supa.rpc(
+        res = await _execute(supa.rpc(
             "get_best_path_shape",
             {
                 "profile_signature_in": str(profile_signature),
                 "min_samples": int(min_samples),
             },
-        ).execute()
+        ))
         rows = res.data or []
         if rows and isinstance(rows[0], dict):
             return rows[0]
@@ -492,7 +504,7 @@ async def record_path_outcome(
     if supa is None or not profile_signature:
         return False
     try:
-        supa.rpc(
+        await _execute(supa.rpc(
             "record_path_outcome",
             {
                 "profile_signature_in": str(profile_signature),
@@ -500,7 +512,7 @@ async def record_path_outcome(
                 "est_days_avg_in":      float(est_days_avg) if est_days_avg is not None else None,
                 "reward_in":            float(reward),
             },
-        ).execute()
+        ))
         return True
     except Exception as e:
         print(f"[learning] record_path_outcome skipped: {e}")
@@ -521,13 +533,13 @@ async def get_tool_outcome_scores(
         return {}
     try:
         bars = [str(b).strip().lower() for b in (barriers or []) if b]
-        res = supa.rpc(
+        res = await _execute(supa.rpc(
             "get_tool_outcome_scores",
             {
                 "barriers_in": bars or None,
                 "min_samples": int(min_samples),
             },
-        ).execute()
+        ))
         rows = res.data or []
         out: Dict[str, Dict[str, Any]] = {}
         for r in rows:
@@ -553,18 +565,82 @@ async def record_tool_outcomes(
     if supa is None or not tool_ids:
         return False
     try:
-        supa.rpc(
+        await _execute(supa.rpc(
             "record_tool_outcomes",
             {
                 "tool_ids_in": [str(t) for t in tool_ids],
                 "barriers_in": [str(b).strip().lower() for b in (barriers or []) if b],
                 "reward_in":   float(reward),
             },
-        ).execute()
+        ))
         return True
     except Exception as e:
         print(f"[learning] record_tool_outcomes skipped: {e}")
         return False
+
+
+# The tools each person's outcome was counted for today: {(user id, tool id): UTC day}.
+# In this process's memory, so a restart (the server sleeps when idle) forgets
+# it; one count per tool per day per process.
+_tool_outcomes_counted: Dict[Tuple[str, str], str] = {}
+_tool_outcomes_lock = threading.Lock()
+
+
+def _claim_tools(user_id: str, used_tool_ids: List[str], recommended_tool_ids: List[str],
+                 today: Optional[str] = None) -> List[str]:
+    """The tools whose outcome this person may record now: tools we recommended
+    to them in their latest plan, each once a UTC day. Claimed here, so two
+    entries sent at once can't both count one."""
+    day = today or datetime.now(timezone.utc).date().isoformat()
+    recommended = {str(t) for t in recommended_tool_ids or [] if t}
+    wanted: List[str] = []
+    for tool_id in used_tool_ids or []:
+        tool_id = str(tool_id or "").strip()
+        if tool_id and tool_id in recommended and tool_id not in wanted:
+            wanted.append(tool_id)
+    with _tool_outcomes_lock:
+        for key in [k for k, d in _tool_outcomes_counted.items() if d != day]:
+            del _tool_outcomes_counted[key]
+        claimed = [t for t in wanted if (str(user_id), t) not in _tool_outcomes_counted]
+        for tool_id in claimed:
+            _tool_outcomes_counted[(str(user_id), tool_id)] = day
+    return claimed
+
+
+def _release_tools(user_id: str, tool_ids: List[str]) -> None:
+    """Give claims back when their outcome wasn't recorded, so a later entry can."""
+    with _tool_outcomes_lock:
+        for tool_id in tool_ids:
+            _tool_outcomes_counted.pop((str(user_id), tool_id), None)
+
+
+async def record_tool_outcomes_for(
+    user_id: Any,
+    used_tool_ids: List[str],
+    recommended_tool_ids: List[str],
+    barriers: Optional[List[str]],
+    reward: float,
+) -> bool:
+    """A person's answer to "Did this help?" for the tools they say they used,
+    counted toward the shared ranking (tool_outcomes) only for tools we
+    recommended to them in their latest plan (user_latest_context), and at
+    most once per person, tool and day.
+
+    The ids come from the browser. Every one sent used to count, as often as
+    it was sent, so anyone could push any tool up or down the ranking that
+    everyone's recommendations read (bug audit, 17 November 2026, item 11).
+    True when something was recorded.
+    """
+    uid = _try_parse_uuid(user_id)
+    if uid is None:
+        return False
+    tools = _claim_tools(uid, used_tool_ids, recommended_tool_ids)
+    if not tools:
+        return False
+    recorded = await record_tool_outcomes(tools, barriers, reward)
+    if not recorded:
+        _release_tools(uid, tools)
+    return recorded
 
 
 # ---- calendar optimization -------------------------------------------------
@@ -581,14 +657,14 @@ async def get_user_calendar_preferences(
     if supa is None or uid is None:
         return []
     try:
-        res = supa.rpc(
+        res = await _execute(supa.rpc(
             "get_user_calendar_preferences",
             {
                 "user_id_in":  uid,
                 "min_samples": int(min_samples),
                 "max_results": int(max_results),
             },
-        ).execute()
+        ))
         return res.data or []
     except Exception as e:
         print(f"[learning] get_user_calendar_preferences skipped: {e}")
@@ -605,14 +681,14 @@ async def record_calendar_outcomes(
     if supa is None or uid is None or not time_buckets:
         return False
     try:
-        supa.rpc(
+        await _execute(supa.rpc(
             "record_calendar_outcomes",
             {
                 "user_id_in":     uid,
                 "time_buckets_in": [str(b) for b in time_buckets],
                 "reward_in":      float(reward),
             },
-        ).execute()
+        ))
         return True
     except Exception as e:
         print(f"[learning] record_calendar_outcomes skipped: {e}")
@@ -642,7 +718,7 @@ async def record_pattern_user_feedback(
     if not rids:
         return False
     try:
-        supa.rpc(
+        await _execute(supa.rpc(
             "record_pattern_user_feedback",
             {
                 "query_user_id_in":      quid,
@@ -650,7 +726,7 @@ async def record_pattern_user_feedback(
                 "reward_in":             float(reward),
                 "alpha_in":              float(alpha),
             },
-        ).execute()
+        ))
         return True
     except Exception as e:
         print(f"[learning] record_pattern_user_feedback skipped: {e}")
@@ -682,7 +758,7 @@ async def snapshot_user_context(
         if parsed is not None:
             rid_uuids.append(parsed)
     try:
-        supa.rpc(
+        await _execute(supa.rpc(
             "snapshot_user_context",
             {
                 "user_id_in":              uid,
@@ -694,7 +770,7 @@ async def snapshot_user_context(
                 "retrieved_user_ids_in":   rid_uuids,
                 "barriers_in":             [str(b).strip().lower() for b in (barriers or []) if b],
             },
-        ).execute()
+        ))
         return True
     except Exception as e:
         print(f"[learning] snapshot_user_context skipped: {e}")
@@ -709,10 +785,10 @@ async def get_user_latest_context(user_id: Any) -> Optional[Dict[str, Any]]:
     if supa is None or uid is None:
         return None
     try:
-        res = supa.rpc(
+        res = await _execute(supa.rpc(
             "get_user_latest_context",
             {"user_id_in": uid},
-        ).execute()
+        ))
         rows = res.data or []
         if rows and isinstance(rows[0], dict):
             return rows[0]
@@ -758,14 +834,14 @@ async def get_common_mistakes(
     if supa is None or not context_id:
         return []
     try:
-        res = supa.rpc(
+        res = await _execute(supa.rpc(
             "get_common_mistakes",
             {
                 "p_context_id": context_id,
                 "min_samples": int(min_samples),
                 "max_results": int(max_results),
             },
-        ).execute()
+        ))
         return res.data or []
     except Exception as e:
         print(f"[learning] get_common_mistakes skipped: {e}")

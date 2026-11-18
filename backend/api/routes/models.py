@@ -13,6 +13,7 @@ GET /api/models/usage
   tokens are measured, a dollar figure without real prices would be invented.
 """
 
+import asyncio
 from typing import Optional
 
 from fastapi import APIRouter, Depends
@@ -35,4 +36,5 @@ async def list_models():
 
 @router.get("/usage")
 async def usage(actor: Optional[str] = Depends(optional_user_id)):
-    return budget.snapshot(actor, verified=actor is not None)
+    # In a worker thread: it can read the usage ledger, and supabase-py is synchronous.
+    return await asyncio.to_thread(budget.snapshot, actor, actor is not None)

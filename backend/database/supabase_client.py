@@ -17,6 +17,24 @@ except Exception:
 
 _client: Optional["Client"] = None
 
+# How long one database request may take. supabase-py waits 120 s by default,
+# and its calls are synchronous, so a stalled database held a request (and,
+# where the call ran on the event loop, the whole server) for two minutes
+# (bug audit, 17 November 2026, item 34). Sign-in checks have their own
+# 5 s limit (httpx's default, in supabase_auth).
+POSTGREST_TIMEOUT_SECONDS = 10
+
+
+def _options():
+    """Client options with the timeout above, or None (supabase-py's defaults)
+    if this version of supabase-py doesn't take them."""
+    try:
+        from supabase import ClientOptions
+        return ClientOptions(postgrest_client_timeout=POSTGREST_TIMEOUT_SECONDS)
+    except Exception as e:  # pragma: no cover - depends on the installed version
+        print(f"[supabase] default timeouts kept: {type(e).__name__}: {e}")
+        return None
+
 
 def get_supabase() -> Optional["Client"]:
     """Return a shared Supabase client using the service role key.
@@ -35,5 +53,6 @@ def get_supabase() -> Optional["Client"]:
     if not url or not key:
         return None
 
-    _client = create_client(url, key)
+    options = _options()
+    _client = create_client(url, key, options) if options is not None else create_client(url, key)
     return _client

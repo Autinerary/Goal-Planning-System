@@ -489,7 +489,9 @@ class ToolRecommendationAgent(BaseAgent):
         if self.supabase is None:
             return None
         try:
-            rows = (self.supabase.table('profiles').select('location').eq('id', uid).limit(1).execute()).data or []
+            # In a worker thread: supabase-py is synchronous.
+            rows = (await asyncio.to_thread(
+                self.supabase.table('profiles').select('location').eq('id', uid).limit(1).execute)).data or []
             row_loc = (rows[0].get('location') if rows else None) or {}
             return (province_code(row_loc.get('province')) or None) if isinstance(row_loc, dict) else None
         except Exception as e:
@@ -519,6 +521,16 @@ class ToolRecommendationAgent(BaseAgent):
 
         Cached for the run; one query for resources, one for ratings.
         """
+        if self._resource_pool is not None:
+            return self._resource_pool
+        # Read in a worker thread: supabase-py is synchronous, and on the event
+        # loop the ratings and up to thousands of resources held every other
+        # request on the server while they loaded, in every plan made (bug
+        # audit, 17 November 2026, item 34).
+        return await asyncio.to_thread(self._load_resource_pool)
+
+    def _load_resource_pool(self) -> List[Dict[str, Any]]:
+        """_fetch_resource_pool's reads (synchronous)."""
         if self._resource_pool is not None:
             return self._resource_pool
 

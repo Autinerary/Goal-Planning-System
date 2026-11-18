@@ -225,21 +225,30 @@ async def scrub_mine(body: ScrubIn, user_id: str = Depends(current_user_id)):
     names = await asyncio.to_thread(known_names, sb, user_id)
     if body.texts is not None:
         results = await asyncio.to_thread(lambda: [scrubber.scrub(t, names) for t in body.texts])
-        return {"version": scrubber.version(), "names": scrubber.uses_ner(),
+        version, ner = await asyncio.to_thread(_scrubber_version)
+        return {"version": version, "names": ner,
                 "texts": [{"after": r.text, "found": r.found} for r in results]}
     wanted = {(ref.kind, ref.id) for ref in body.items or []}
     mine = await asyncio.to_thread(load_items, sb, user_id)
     chosen = [item for item in mine if (item["kind"], item["id"]) in wanted]
     scrubbed = await asyncio.to_thread(scrub_items, chosen, names)
-    return {"version": scrubber.version(), "names": scrubber.uses_ner(), "items": scrubbed,
+    version, ner = await asyncio.to_thread(_scrubber_version)
+    return {"version": version, "names": ner, "items": scrubbed,
             "missing": len(wanted) - len(chosen)}
+
+
+def _scrubber_version():
+    """(the scrubber's version, whether spaCy finds names). The first call loads spaCy's model, about a second of CPU,
+    so async code runs this in a worker thread rather than on the event loop, where it held every request (bug audit,
+    17 November 2026, item 36)."""
+    return scrubber.version(), scrubber.uses_ner()
 
 
 @router.post("/consent")
 async def record_consent(body: ConsentIn, user_id: str = Depends(current_user_id)):
     """Which items the person approved, when, and with which scrubber. Only their own items, only with the scrubber
     that runs now (so the version recorded is the one that actually scrubbed them), and never any text."""
-    if body.scrubberVersion != scrubber.version():
+    if body.scrubberVersion != (await asyncio.to_thread(_scrubber_version))[0]:
         raise HTTPException(status_code=409, detail="The scrubber has changed since you checked these. Please check them again.")
     keys: List[tuple] = []
     for ref in body.items:

@@ -46,6 +46,25 @@ class PlanMilestonesTests(unittest.TestCase):
         }
         self.assertEqual([m["id"] for m in guide.stale(p, ms)], ["m2", "m3"])
 
+    def test_general_advice_is_written_again_while_ai_is_on(self):
+        # One failed model call used to keep a step's general advice for good (bug audit, 17 November 2026).
+        p = plan()
+        ms = guide.plan_milestones(p)
+        p["milestoneGuidance"] = {
+            "m1": {"name": "Ask for accommodations", "avoid": ["a"], "source": "general"},     # written before the time was kept
+            "m2": {"name": "Update my resume", "avoid": ["a"], "source": "ai"},
+            "m3": {"name": "Join a club", "avoid": ["a"], "source": "general", "writtenAt": "2026-11-17T10:00:00+00:00"},
+        }
+        self.assertEqual([m["id"] for m in guide.stale(p, ms, ai_on=True)], ["m1", "m3"])
+        self.assertEqual(guide.stale(p, ms, ai_on=False), [])
+
+    def test_but_not_again_at_once(self):
+        p = plan()
+        ms = guide.plan_milestones(p)
+        p["milestoneGuidance"] = {m["id"]: guide.general_guidance(m, guide._person(p)) for m in ms}
+        self.assertEqual(guide.stale(p, ms, ai_on=True), [])
+        self.assertTrue(all(entry["writtenAt"] for entry in p["milestoneGuidance"].values()))
+
 
 class GeneralGuidanceTests(unittest.TestCase):
     def test_own_words_first_then_the_kind_of_step(self):

@@ -22,6 +22,7 @@ Goals change only when a path is generated, which already rebuilds the vector.
 """
 from __future__ import annotations
 
+import asyncio
 import json
 from typing import Any, Dict, List, Optional
 
@@ -91,8 +92,12 @@ def current_profile(sb, user_id: str) -> Optional[Dict[str, Any]]:
 
 
 async def reindex_user(sb, orchestrator, user_id: str) -> bool:
-    """Rebuild one person's vector from their current profile."""
-    state = current_profile(sb, user_id)
+    """Rebuild one person's vector from their current profile.
+
+    The reads run in a worker thread: supabase-py is synchronous, and on the
+    event loop they held every other request (bug audit, 17 November 2026).
+    """
+    state = await asyncio.to_thread(current_profile, sb, user_id)
     if state is None:
         return False
     return await orchestrator.index_user(
@@ -108,9 +113,10 @@ async def reindex_user(sb, orchestrator, user_id: str) -> bool:
 async def reindex_pending(sb, orchestrator, limit: int = PENDING_BATCH) -> Dict[str, Any]:
     """Rebuild every vector marked since it was written (oldest mark first)."""
     try:
-        marked = _rows(sb.table("pattern_user_embeddings").select("user_id, reindex_requested_at")
-                       .not_.is_("reindex_requested_at", "null")
-                       .order("reindex_requested_at").limit(limit).execute())
+        marked = _rows(await asyncio.to_thread(
+            sb.table("pattern_user_embeddings").select("user_id, reindex_requested_at")
+            .not_.is_("reindex_requested_at", "null")
+            .order("reindex_requested_at").limit(limit).execute))
     except Exception as e:
         if "reindex_requested_at" in str(e):
             return {"available": False, "pending": 0, "rebuilt": 0, "failed": 0}

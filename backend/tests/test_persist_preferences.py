@@ -62,7 +62,9 @@ SAVED = {
 
 def persist(db, prefs):
     with patch.object(onboarding, "get_supabase", lambda: db):
-        onboarding._persist_preferences_to_supabase("u1", "a@example.com", prefs)
+        onboarding._persist_preferences_to_supabase("u1", prefs)
+    # Never the email: it came from the request (bug audit, 17 November 2026, item 10).
+    assert set(db.written) == {"id", "preferences"}, db.written
     return db.written["preferences"]
 
 
@@ -99,7 +101,7 @@ class PersistPreferencesTests(unittest.TestCase):
     def test_nothing_sent_writes_nothing(self):
         db = DB(dict(SAVED))
         with patch.object(onboarding, "get_supabase", lambda: db):
-            onboarding._persist_preferences_to_supabase("u1", "a@example.com", {})
+            onboarding._persist_preferences_to_supabase("u1", {})
         self.assertIsNone(db.written)
 
 

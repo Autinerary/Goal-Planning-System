@@ -172,6 +172,30 @@ class JobTests(unittest.TestCase):
                 self.start(ws, "guidance", token="bad")
                 self.assertEqual(ws.receive_json(), {"type": "error", "message": "Invalid or expired session."})
 
+    def test_setup_work_has_setups_check(self):
+        # Steps, goal ideas and agents need setup's age and guardian check here as over HTTP; a valid session was
+        # enough (bug audit, 17 November 2026, item 16).
+        from fastapi import HTTPException
+        from api.routes import device
+        refused = HTTPException(status_code=403, detail="Legal guardian approval is required.")
+        self.assertEqual(set(device.SETUP_JOBS), {"goal-steps", "goal-helper", "agent-setup"})
+        for job in device.SETUP_JOBS:
+            with mock.patch("api.auth_guard.current_user_id", return_value="user-1"), \
+                    mock.patch("api.auth_guard.onboarding_user_id", side_effect=refused):
+                with self.client().websocket_connect("/api/device/run") as ws:
+                    self.start(ws, job, {"goal": "Swim weekly", "text": "I want to swim"})
+                    self.assertEqual(ws.receive_json(), {"type": "error", "message": "Legal guardian approval is required."}, job)
+
+    def test_the_http_routes_have_the_same_check(self):
+        import ast
+        from pathlib import Path
+        root = Path(__file__).resolve().parents[1]
+        wanted = {"api/routes/paths.py": {"build_my_goal_steps"}, "api/routes/onboarding.py": {"goal_helper", "agent_setup"}}
+        for rel, names in wanted.items():
+            for fn in ast.parse((root / rel).read_text()).body:
+                if isinstance(fn, ast.AsyncFunctionDef) and fn.name in names:
+                    self.assertEqual(fn.args.defaults[-1].args[0].id, "onboarding_user_id", fn.name)
+
     def test_one_of_each_job_at_a_time(self):
         from api.routes import device
         device._jobs.add("user-1:guidance")

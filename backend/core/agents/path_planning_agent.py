@@ -1009,15 +1009,28 @@ class PathPlanningAgent(BaseAgent):
         barriers: List[str],
         strengths: List[str]
     ) -> List[Dict[str, Any]]:
-        """Generate recommended choices for a milestone"""
-        
+        """Generate recommended choices for a milestone.
+
+        Each choice used to carry a success rate and a number of attempts
+        (87.5% of 1,247, and so on): the same made-up figures on every
+        milestone of every plan, as if counted from people. Nothing counts
+        them, so there are none (bug audit, 17 November 2026, item 34).
+        """
+
+        # In the order they were shown before, when no choice suits the
+        # person's norms more than another.
         base_choices = [
+            {
+                'id': f'choice_{milestone["id"]}_3',
+                'name': 'Community-Supported',
+                'description': 'Work alongside others who understand your journey. Includes mentorship element.',
+                'estimatedTime': 60,
+                'bestFor': ['visible_minority', 'all']
+            },
             {
                 'id': f'choice_{milestone["id"]}_1',
                 'name': 'Structured Approach',
                 'description': 'Step-by-step method with clear checkpoints. Best for those who like predictability.',
-                'successPercentage': 87.5,
-                'attempts': 1247,
                 'estimatedTime': 45,
                 'bestFor': ['autism', 'ocd']
             },
@@ -1025,29 +1038,17 @@ class PathPlanningAgent(BaseAgent):
                 'id': f'choice_{milestone["id"]}_2',
                 'name': 'Flexible Sprint',
                 'description': 'Short bursts of focused work with movement breaks. Ideal for high-energy approaches.',
-                'successPercentage': 84.2,
-                'attempts': 983,
                 'estimatedTime': 30,
                 'bestFor': ['adhd']
             },
-            {
-                'id': f'choice_{milestone["id"]}_3',
-                'name': 'Community-Supported',
-                'description': 'Work alongside others who understand your journey. Includes mentorship element.',
-                'successPercentage': 91.3,
-                'attempts': 567,
-                'estimatedTime': 60,
-                'bestFor': ['visible_minority', 'all']
-            }
         ]
-        
-        # Sort by relevance to user's barriers
-        def relevance_score(choice):
-            score = choice['successPercentage']
-            if any(b.lower().replace(' ', '_') in choice.get('bestFor', []) for b in barriers):
-                score += 10
-            return score
-        
-        choices = sorted(base_choices, key=relevance_score, reverse=True)
-        
+
+        # The ones that suit the person's norms first; the order is otherwise kept.
+        norms = {b.lower().replace(' ', '_') for b in barriers if isinstance(b, str)}
+
+        def suits(choice):
+            return bool(norms & set(choice.get('bestFor', [])))
+
+        choices = sorted(base_choices, key=suits, reverse=True)
+
         return choices[:3]

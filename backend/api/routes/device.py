@@ -74,7 +74,9 @@ async def plan_on_device(ws: WebSocket) -> None:
     from api.routes.onboarding import OnboardingRequest, _generate_path_for
 
     try:
-        actor = onboarding_user_id(f"Bearer {start.get('token') or ''}")
+        # In a worker thread: checking the session is a network call, and
+        # supabase-py is synchronous (bug audit, 17 November 2026, item 34).
+        actor = await asyncio.to_thread(onboarding_user_id, f"Bearer {start.get('token') or ''}")
     except HTTPException as e:
         await fail(str(e.detail))
         return
@@ -171,6 +173,9 @@ async def plan_on_device(ws: WebSocket) -> None:
 # While it runs every model call goes to their device (core.llm.resolve): nothing in it reaches a cloud model.
 
 JOBS = ("guidance", "goal-steps", "reflection", "assistant", "goal-helper", "agent-setup")
+# Setup's work, with setup's check (age, and a guardian's approval: auth_guard.onboarding_user_id), as each one's own
+# endpoint has over HTTP. Here they had only a valid session (bug audit, 17 November 2026, item 16).
+SETUP_JOBS = ("goal-steps", "goal-helper", "agent-setup")
 JOB_TIMEOUT_SECONDS = RUN_TIMEOUT_SECONDS     # a goal's steps took about 15 minutes with llama3.2:3b on an M3 laptop
 _jobs: Set[str] = set()                # one of each job per person at a time
 
@@ -267,9 +272,11 @@ async def run_on_device(ws: WebSocket) -> None:
         return
     job, token = start["job"], str(start.get("token") or "")
 
-    from api.auth_guard import current_user_id
+    from api import auth_guard
+    check = auth_guard.onboarding_user_id if job in SETUP_JOBS else auth_guard.current_user_id
     try:
-        actor = current_user_id(f"Bearer {token}")
+        # In a worker thread: checking the session is a network call, and supabase-py is synchronous.
+        actor = await asyncio.to_thread(check, f"Bearer {token}")
     except HTTPException as e:
         await fail(str(e.detail))
         return

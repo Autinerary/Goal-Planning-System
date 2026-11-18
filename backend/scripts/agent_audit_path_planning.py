@@ -51,6 +51,7 @@ from core.agents.path_planning_agent import (  # noqa: E402
     LIFE_AREAS, MAX_MILESTONES_PER_PATH, MILESTONES_PER_AREA, SUPPORT_TEMPLATES, PathPlanningAgent,
 )
 from core.evaluation_runs import RunLog  # noqa: E402
+from core.jobs import DEADLINE_REASON, INTERNAL_ERROR, INTERRUPTED_REASON  # noqa: E402
 from core.learning import compute_profile_signature  # noqa: E402
 from core.output_quality import _FALLBACK_STAGES  # noqa: E402
 from core.path_provenance import is_legacy_payload  # noqa: E402
@@ -88,10 +89,14 @@ QUALITY_TASK_PREFIX = "Start: "
 # _generate_recommended_choices: the same three choices, with these numbers,
 # on every milestone.
 FIXED_CHOICE_RATES = {87.5, 84.2, 91.3}
-# core/jobs.py and api/routes/onboarding.py: the messages a failed job can carry.
+# core/jobs.py and api/routes/onboarding.py: the messages a failed job can carry (the first two until
+# 18 November 2026, then after "[internal] ").
 JOB_MESSAGES = {
     "Path generation failed. Please try again.": "any other exception (cause only in the server log)",
     "Generation was interrupted. Please try again.": "interrupted (reaped after a restart or hang)",
+    INTERNAL_ERROR: "any other exception (cause only in the server log)",
+    INTERRUPTED_REASON: "interrupted (reaped after a restart or hang)",
+    DEADLINE_REASON: "stopped at the generation deadline (a call that hung)",
 }
 BUDGET_PREFIXES = {
     "Too many requests in the last minute": "AI limit: requests per minute",
@@ -241,6 +246,14 @@ def job_category(message: Any) -> str:
     text = str(message or "").strip()
     if not text:
         return "no message"
+    # Since 18 November 2026 a failed job's error starts with its kind (core/jobs.py, ERROR_KINDS).
+    kind = re.match(r"^\[(guardrail|limit|internal)\]\s?", text)
+    if kind:
+        text = text[kind.end():]
+        if kind.group(1) == "guardrail":
+            return "input rejected by the guardrails"
+        if kind.group(1) == "internal" and text not in JOB_MESSAGES:
+            return JOB_MESSAGES["Path generation failed. Please try again."]
     if text in JOB_MESSAGES:
         return JOB_MESSAGES[text]
     for prefix, label in BUDGET_PREFIXES.items():

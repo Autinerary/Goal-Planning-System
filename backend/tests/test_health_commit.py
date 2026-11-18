@@ -44,5 +44,36 @@ class DeployedCommitTests(unittest.TestCase):
         self.assertEqual(body["status"], "healthy")
 
 
+class ColdStartTests(unittest.TestCase):
+    """The server answers sooner after waking (bug audit, 17 November 2026, item 36): LangGraph and the agents load
+    when something first needs them, not at startup, and the first reindex sweep waits."""
+
+    def test_health_answers_without_making_the_orchestrator(self):
+        lazy = main._LazyOrchestrator()
+        body = asyncio.run(lazy.health_check())
+        self.assertEqual((body["initialized"], body["loaded"]), (False, False))
+        self.assertIsNone(lazy._real)
+
+    def test_it_is_made_when_first_used(self):
+        made = mock.MagicMock()
+        with mock.patch("core.orchestrator.Orchestrator", return_value=made):
+            lazy = main._LazyOrchestrator()
+            self.assertIs(lazy.index_user, made.index_user)
+        self.assertIs(lazy._real, made)
+
+    def test_starting_the_server_loads_no_agents(self):
+        import subprocess
+        root = Path(__file__).resolve().parents[1]
+        code = ("import sys, main; "
+                "print(sorted(m for m in ('langgraph', 'core.orchestrator', 'core.agents.path_planning_agent') "
+                "if m in sys.modules))")
+        out = subprocess.run([sys.executable, "-c", code], cwd=root, capture_output=True, text=True, timeout=120)
+        self.assertEqual(out.returncode, 0, out.stderr[-2000:])
+        self.assertEqual(out.stdout.strip().splitlines()[-1], "[]")
+
+    def test_the_first_sweep_waits(self):
+        self.assertGreaterEqual(main.REINDEX_FIRST_SECONDS, 300)
+
+
 if __name__ == "__main__":
     unittest.main()

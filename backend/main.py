@@ -76,30 +76,73 @@ def _deployed_commit():
 # Choose orchestrator based on environment
 USE_AUTOGEN = os.getenv("USE_AUTOGEN", "false").lower() == "true"
 
-if USE_AUTOGEN:
-    from core.autogen_orchestrator import AutoGenOrchestrator
-    orchestrator = AutoGenOrchestrator()
-    print("🤖 Using AutoGen Multi-Agent Orchestrator")
-else:
-    from core.orchestrator import Orchestrator
-    orchestrator = Orchestrator()
-    print("� Using LangGraph Multi-Agent Orchestrator")
+
+class _LazyOrchestrator:
+    """The server's own orchestrator (the reindex sweep and /health use it),
+    made the first time something needs it.
+
+    Making it imports LangGraph and all six agents: about 1.5 s of CPU on a
+    laptop, far longer on Render's small instance. The server used to do that,
+    and set the agents up, before it could answer anything, /health included,
+    every time it woke from sleep (bug audit, 17 November 2026, item 36).
+    Requests make their own (api/routes/onboarding.py, reflections.py).
+    """
+
+    def __init__(self):
+        self._real = None
+
+    def _get(self):
+        if self._real is None:
+            if USE_AUTOGEN:
+                from core.autogen_orchestrator import AutoGenOrchestrator
+                self._real = AutoGenOrchestrator()
+            else:
+                from core.orchestrator import Orchestrator
+                self._real = Orchestrator()
+        return self._real
+
+    async def initialize(self):
+        await self._get().initialize()
+
+    async def cleanup(self):
+        if self._real is not None:
+            await self._real.cleanup()
+
+    async def health_check(self):
+        if self._real is None:
+            # Not made yet, so not loaded: nothing has needed it since the server started.
+            return {"initialized": False, "orchestrator": "autogen" if USE_AUTOGEN else "langgraph",
+                    "loaded": False, "agents": {}}
+        return await self._real.health_check()
+
+    def __getattr__(self, name):
+        # Anything else (index_user, generate_path, ...) is the real one's.
+        return getattr(self._get(), name)
+
+
+orchestrator = _LazyOrchestrator()
+print("🤖 Using AutoGen Multi-Agent Orchestrator" if USE_AUTOGEN else "Using LangGraph Multi-Agent Orchestrator")
 
 # Rebuild profile vectors whose person's conditions changed since they were
-# written (STEP 56, core/pattern_reindex.py): soon after startup, since the
-# server often wakes from sleep, then every REINDEX_EVERY_SECONDS while awake.
+# written (STEP 56, core/pattern_reindex.py): every REINDEX_EVERY_SECONDS while
+# the server is awake, the first REINDEX_FIRST_SECONDS after it starts. That
+# used to be 30 s: the server wakes for someone who is waiting on it, and the
+# sweep loaded every agent and read the database while they waited (item 36).
 REINDEX_EVERY_SECONDS = 600
+REINDEX_FIRST_SECONDS = 600
 
 
 async def _reindex_loop():
     from core.pattern_reindex import reindex_pending
     from database.supabase_client import get_supabase
 
-    await asyncio.sleep(30)
+    await asyncio.sleep(REINDEX_FIRST_SECONDS)
     while True:
         sb = get_supabase()
         if sb is not None:
             try:
+                # Made (and LangGraph loaded, the first time) in a worker thread, not on the event loop.
+                await asyncio.to_thread(orchestrator._get)
                 result = await reindex_pending(sb, orchestrator)
                 if result.get("pending"):
                     print(f"[pattern_reindex] {result}")
@@ -110,9 +153,8 @@ async def _reindex_loop():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
+    # Startup. The orchestrator is set up when it's first used (_LazyOrchestrator).
     await init_db()
-    await orchestrator.initialize()
     reindex_task = asyncio.create_task(_reindex_loop())
     yield
     # Shutdown

@@ -30,6 +30,12 @@ silently granting everyone a fresh allowance.
 
 Without Supabase configured this degrades to memory only — still a runaway
 guard, just not durable.
+
+Nothing here makes a request wait on the database (bug audit, 17 November
+2026, item 34): the ledger's row for each call is written in the background
+(_write_later), and the occasional re-read of a person's total is done
+outside the lock, which code on the event loop takes. check() can still read
+the ledger, so async code runs it in a worker thread (core/llm.py, _guard).
 """
 
 from __future__ import annotations
@@ -39,9 +45,10 @@ import os
 import threading
 import time
 from collections import deque
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from typing import Deque, Dict, Optional, Tuple
+from typing import Deque, Dict, List, Optional, Tuple
 
 from database.supabase_client import get_supabase
 
@@ -145,8 +152,10 @@ class LimitExceeded(RuntimeError):
 @dataclass
 class _Usage:
     requests: Deque[float] = field(default_factory=deque)
-    # (timestamp, tokens, usd) — this process's own calls only.
-    spend: Deque[Tuple[float, int, float]] = field(default_factory=deque)
+    # [timestamp, tokens, usd, written] — this process's own calls only.
+    # `written` turns True once the call's ledger row has been written (or the
+    # write gave up), so a re-read of the ledger knows which calls it counts.
+    spend: Deque[List] = field(default_factory=deque)
     # Totals loaded from the ledger, covering calls this process never saw.
     persisted_tokens: int = 0
     persisted_usd: float = 0.0
@@ -220,19 +229,36 @@ def _load_persisted(actor: str, verified: bool) -> Optional[Tuple[int, float]]:
     return (tokens, usd)
 
 
-def _refresh(usage: _Usage, actor: str, now: float) -> None:
-    """Reload the ledger total when the cached one is cold or stale."""
-    if now - usage.loaded_at < CACHE_TTL_SECONDS:
-        return
-    loaded = _load_persisted(actor, usage.verified)
+def _refresh(key: str, now: float) -> None:
+    """Reload the ledger total when the cached one is cold or stale.
+
+    Called without _lock held: the read is a round trip to the database, and
+    record() takes the lock on the event loop, so holding it here would stall
+    the whole server for as long as the database takes to answer.
+    """
+    with _lock:
+        usage = _usage.setdefault(key, _Usage())
+        if now - usage.loaded_at < CACHE_TTL_SECONDS:
+            return
+        verified = usage.verified
+        # Calls whose row is in the ledger when the read starts are in the
+        # total it returns.
+        written = [entry for entry in usage.spend if entry[3]]
+    loaded = _load_persisted(key, verified)
     if loaded is None:
         # Keep counting in memory rather than granting a fresh allowance.
         return
-    usage.persisted_tokens, usage.persisted_usd = loaded
-    usage.loaded_at = now
-    # Locally recorded calls are now included in the ledger figure; keeping
-    # them would double-count.
-    usage.spend.clear()
+    with _lock:
+        usage.persisted_tokens, usage.persisted_usd = loaded
+        usage.loaded_at = now
+        # Those calls are now included in the ledger figure; keeping them
+        # would double-count. Calls whose row is still being written stay.
+        counted = {id(entry) for entry in written}
+        usage.spend = deque(entry for entry in usage.spend if id(entry) not in counted)
+
+
+# _persist's default: look the client up at the time of the call (see _write_later).
+_CLIENT_NOW = object()
 
 
 def _persist(
@@ -243,8 +269,11 @@ def _persist(
     prompt_tokens: int,
     completion_tokens: int,
     usd: Optional[float],
+    sb=_CLIENT_NOW,
 ) -> None:
-    sb = get_supabase()
+    # The client _write_later took in the caller's context (None: no database there); only a direct call looks it up.
+    if sb is _CLIENT_NOW:
+        sb = get_supabase()
     if sb is None:
         return
     global _ledger_ok
@@ -264,6 +293,35 @@ def _persist(
         print(f"[budget] usage write failed: {type(e).__name__}: {e}")
 
 
+# The ledger's rows are written here, one at a time, after the call they count
+# has returned to its caller.
+_writer = ThreadPoolExecutor(max_workers=1, thread_name_prefix="llm-usage")
+
+
+def _write_later(entry: List, *row) -> None:
+    """Write one call's ledger row (_persist's arguments) in the background,
+    then mark its in-memory entry as written.
+
+    The database client is taken now, in the caller's context, and handed to
+    the writer. Taken later on the writer thread, it escaped whatever the
+    caller had in place (a test's stand-in), and a local test run with the
+    real keys sent its rows to the live database (18 November 2026)."""
+    sb = get_supabase()
+
+    def write() -> None:
+        try:
+            _persist(*row, sb=sb)
+        finally:
+            with _lock:
+                entry[3] = True
+
+    try:
+        _writer.submit(write)
+    except RuntimeError:
+        # The process is shutting down and the writer has stopped.
+        write()
+
+
 def cost_usd(model_id: str, prompt_tokens: int, completion_tokens: int) -> Optional[float]:
     """Cost of one call, or None when this model has no configured price."""
     price = PRICING.get(model_id)
@@ -278,6 +336,9 @@ def check(actor: Optional[str], model_id: str, planned_tokens: int, verified: bo
     `planned_tokens` is the caller's max output budget, so a request is
     rejected before it can push the account past the daily cap rather than
     after.
+
+    It may read the ledger (once a minute per account), so async code runs it
+    in a worker thread.
     """
     key = actor or ANONYMOUS
     now = time.time()
@@ -286,8 +347,9 @@ def check(actor: Optional[str], model_id: str, planned_tokens: int, verified: bo
         usage = _usage.setdefault(key, _Usage())
         usage.verified = usage.verified or verified
         usage.prune(now)
-        _refresh(usage, key, now)
+    _refresh(key, now)
 
+    with _lock:
         if len(usage.requests) >= REQUESTS_PER_MINUTE:
             raise LimitExceeded(
                 "requests_per_minute",
@@ -333,31 +395,40 @@ def record(
     agent_id: Optional[str] = None,
     verified: bool = False,
 ) -> None:
-    """Record real measured usage from a completed call."""
+    """Record real measured usage from a completed call.
+
+    Counted in memory at once; its ledger row is written in the background,
+    so the request that made the call doesn't wait for the database.
+    """
     key = actor or ANONYMOUS
     now = time.time()
     total = max(0, int(prompt_tokens)) + max(0, int(completion_tokens))
     usd = cost_usd(model_id, prompt_tokens, completion_tokens)
+    entry = [now, total, usd or 0.0, False]
 
     with _lock:
         usage = _usage.setdefault(key, _Usage())
         usage.verified = usage.verified or verified
         usage.prune(now)
-        usage.spend.append((now, total, usd or 0.0))
+        usage.spend.append(entry)
         is_verified = usage.verified
 
-    _persist(key, is_verified, model_id, agent_id, prompt_tokens, completion_tokens, usd)
+    _write_later(entry, key, is_verified, model_id, agent_id, prompt_tokens, completion_tokens, usd)
 
 
 def snapshot(actor: Optional[str], verified: bool = False) -> Dict[str, object]:
-    """What this account has used. `usd` is None when prices aren't configured."""
+    """What this account has used. `usd` is None when prices aren't configured.
+
+    It may read the ledger, so async code runs it in a worker thread.
+    """
     key = actor or ANONYMOUS
     now = time.time()
     with _lock:
         usage = _usage.setdefault(key, _Usage())
         usage.verified = usage.verified or verified
         usage.prune(now)
-        _refresh(usage, key, now)
+    _refresh(key, now)
+    with _lock:
         tokens = usage.tokens_today()
         usd = usage.usd_today() if PRICING else None
         requests = len(usage.requests)

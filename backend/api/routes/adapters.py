@@ -673,8 +673,11 @@ async def publish_adapter(adapter_id: str, user_id: str = Depends(current_user_i
         raise HTTPException(status_code=409, detail="That model has already been shared, or was taken down.")
     files = await asyncio.to_thread(files_check, sb, row)
     names = await asyncio.to_thread(known_names, sb, user_id)
-    checks = {**(row.get("moderation_checks") or {}), "files": files,
-              "metadata": metadata_check(row["title"], row.get("description") or "", row.get("community_tags") or [], None, names)}
+    # The scrubber in a worker thread: its first use loads spaCy's model, which held every request on the event loop
+    # (bug audit, 17 November 2026, item 36).
+    metadata = await asyncio.to_thread(metadata_check, row["title"], row.get("description") or "",
+                                       row.get("community_tags") or [], None, names)
+    checks = {**(row.get("moderation_checks") or {}), "files": files, "metadata": metadata}
     if not passed(checks):
         sb.table("shared_adapters").update({"moderation_checks": checks}).eq("id", row["id"]).execute()
         raise HTTPException(status_code=422, detail={"message": "Not shared: a check didn't pass.", "checks": checks})
@@ -691,8 +694,10 @@ async def edit_adapter(adapter_id: str, body: AdapterEdit, user_id: str = Depend
     visibility = body.visibility or row.get("visibility") or "everyone"
     picked = body.people if body.people is not None else [
         a["user_id"] for a in sb.table("shared_adapter_access").select("user_id").eq("adapter_id", row["id"]).execute().data or []]
+    names = await asyncio.to_thread(known_names, sb, user_id)
     checks = {
-        "metadata": metadata_check(body.title, body.description, body.tags, None, await asyncio.to_thread(known_names, sb, user_id)),
+        # In a worker thread, as in publish_adapter: the scrubber may load spaCy.
+        "metadata": await asyncio.to_thread(metadata_check, body.title, body.description, body.tags, None, names),
         "crowd": await asyncio.to_thread(crowd_check, sb, body.tags, visibility),
         "audience": await asyncio.to_thread(audience_check, sb, user_id, visibility, picked),
     }

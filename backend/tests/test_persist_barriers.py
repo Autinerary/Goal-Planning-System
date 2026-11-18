@@ -26,8 +26,9 @@ class Query:
         self.filters[column] = value
         return self
 
-    def upsert(self, row, on_conflict=None):
-        self.action, self.payload = "upsert", row
+    def upsert(self, row, on_conflict=None, **options):
+        self.action, self.payload, self.options = "upsert", row, options
+        self.db.upserts.append((self.table, dict(row), options))
         return self
 
     def insert(self, rows):
@@ -57,7 +58,7 @@ class Query:
 
 class DB:
     def __init__(self, barriers=()):
-        self.next_id, self.deleted = 0, []
+        self.next_id, self.deleted, self.upserts = 0, [], []
         self.tables = {"user_barriers": [dict(b) for b in barriers]}
 
     def table(self, name):
@@ -73,7 +74,7 @@ HUB_NORM = {"id": "h1", "user_id": "u1", "barrier_type": "adhd", "barrier_catego
 
 def persist(db, types):
     with patch.object(onboarding, "get_supabase", lambda: db):
-        onboarding._persist_barriers_to_supabase("u1", "a@example.com", types)
+        onboarding._persist_barriers_to_supabase("u1", types)
 
 
 class PersistBarriersTests(unittest.TestCase):
@@ -119,9 +120,17 @@ class PersistBarriersTests(unittest.TestCase):
         persist(db, ["Autism"])
         self.assertIn(other, db.tables["user_barriers"])
 
+    def test_the_profile_row_is_never_changed_and_never_given_an_email(self):
+        # profiles.email is used to find people and to send them reminders; it
+        # used to be set from the email in the request (bug audit, item 10).
+        db = DB([HUB_NORM])
+        persist(db, ["Autism"])
+        profiles = [(row, options) for table, row, options in db.upserts if table == "profiles"]
+        self.assertEqual(profiles, [({"id": "u1"}, {"ignore_duplicates": True})])
+
     def test_without_a_database_nothing_happens(self):
         with patch.object(onboarding, "get_supabase", lambda: None):
-            onboarding._persist_barriers_to_supabase("u1", "a@example.com", ["Autism"])
+            onboarding._persist_barriers_to_supabase("u1", ["Autism"])
 
 
 if __name__ == "__main__":

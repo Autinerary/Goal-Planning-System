@@ -13,8 +13,9 @@ restart leaves a visible record instead of a silent gap.
 
 from __future__ import annotations
 
+import re
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 from database.supabase_client import get_supabase
 
@@ -24,6 +25,34 @@ TABLE = "generation_jobs"
 # process restart mid-generation. Comfortably above the slowest observed run
 # (~160s at five concurrent) so a merely slow job is never killed.
 STALE_AFTER = timedelta(minutes=15)
+
+# A generation is stopped after this long (api/routes/onboarding.py), well
+# inside STALE_AFTER. A model call that hung used to run on past it: the job
+# then counted as dead, so the person's next try started a second generation
+# beside the first (bug audit, 17 November 2026, item 34).
+GENERATION_DEADLINE = timedelta(minutes=10)
+
+# Why a job failed, for the page that waits on it:
+#   guardrail  the goals were turned down, and the message is written for the
+#              person (it can be the crisis lines), so it is shown as it is;
+#   limit      a daily or per-minute AI limit, also shown as it is;
+#   internal   anything else, shown as INTERNAL_ERROR whatever it was.
+# generation_jobs has no column for it, so it is kept at the front of the
+# error, "[guardrail] ...", and taken off again when the job is read
+# (failure, below).
+ERROR_KINDS = ("guardrail", "limit", "internal")
+INTERNAL_ERROR = "Your path couldn't be made just now, so please try again in a minute."
+# What an internal failure was, kept with the job for the audits
+# (scripts/agent_audit_path_planning.py). Never shown: the cause of an error
+# is in the server log.
+DEADLINE_REASON = "Stopped at the generation deadline."
+INTERRUPTED_REASON = "Interrupted: the server restarted, or the generation hung."
+_KIND_PREFIX = re.compile(r"^\[(guardrail|limit|internal)\]\s?(.*)$", re.DOTALL)
+# What jobs failed with before the kind was kept (so before 18 November 2026).
+_LIMIT_MESSAGES = ("Too many requests in the last minute", "You've reached today's usage limit",
+                   "You've reached today's AI budget")
+_OLD_INTERNAL_MESSAGES = ("Path generation failed. Please try again.",
+                          "Generation was interrupted. Please try again.", "Generation failed")
 
 
 def _now() -> str:
@@ -97,17 +126,45 @@ def mark_succeeded(job_id: str, path_id: str) -> None:
     })
 
 
-def mark_failed(job_id: str, error: str) -> None:
-    """Record a failure with a message safe to show a user.
+def mark_failed(job_id: str, error: Optional[str] = None, kind: str = "internal") -> None:
+    """Record a failure and its kind (ERROR_KINDS): for "guardrail" and
+    "limit", a message written for the person; for "internal", at most a
+    short reason for the audits (DEADLINE_REASON), never shown.
 
     Tracebacks stay in the logs; the client gets something it can act on.
     """
+    kind = kind if kind in ERROR_KINDS else "internal"
     _update(job_id, {
         "status": "failed",
-        "error": (error or "Generation failed")[:500],
+        "error": f"[{kind}] {error or INTERNAL_ERROR}"[:500],
         "stage": "Failed",
         "finished_at": _now(),
     })
+
+
+def failure(row: Dict[str, Any]) -> Tuple[Optional[str], Optional[str]]:
+    """Why a job failed, as (kind, message for the person); (None, None) when
+    it hasn't failed.
+
+    Jobs that failed before the kind was kept are read by what wrote them:
+    the AI limits' messages, the two fixed internal ones, and otherwise a
+    guardrail's own words, the only other failure recorded then.
+    """
+    if (row or {}).get("status") != "failed":
+        return None, None
+    text = str(row.get("error") or "").strip()
+    match = _KIND_PREFIX.match(text)
+    if match:
+        kind, message = match.group(1), match.group(2).strip()
+    elif text.startswith(_LIMIT_MESSAGES):
+        kind, message = "limit", text
+    elif not text or text in _OLD_INTERNAL_MESSAGES:
+        kind, message = "internal", ""
+    else:
+        kind, message = "guardrail", text
+    if kind == "internal":
+        return kind, INTERNAL_ERROR
+    return kind, message or INTERNAL_ERROR
 
 
 def _update(job_id: str, patch: Dict[str, Any]) -> None:
@@ -189,7 +246,7 @@ def reap_stale() -> int:
             sb.table(TABLE)
             .update({
                 "status": "failed",
-                "error": "Generation was interrupted. Please try again.",
+                "error": f"[internal] {INTERRUPTED_REASON}",
                 "stage": "Failed",
                 "finished_at": _now(),
             })

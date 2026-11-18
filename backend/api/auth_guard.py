@@ -11,6 +11,13 @@ identifying rather than pseudonymous.
 Verification is delegated to Supabase rather than done locally with a shared
 secret: get_user(token) validates signature, expiry and revocation in one
 call, and there is no JWT secret to leak or rotate here.
+
+That is a network call, made with the synchronous supabase-py, so the
+dependencies here are plain functions on purpose: FastAPI runs a plain
+dependency in a worker thread, off the event loop. Made async, every request
+would hold the whole server while Supabase answered. Async code that calls
+one directly runs it with asyncio.to_thread, as api/routes/device.py does
+(bug audit, 17 November 2026, item 34).
 """
 
 from typing import Optional
@@ -31,7 +38,8 @@ def _bearer(authorization: Optional[str]) -> Optional[str]:
 
 
 def current_user_id(authorization: Optional[str] = Header(None)) -> str:
-    """The signed-in user's id, or 401. Use as a FastAPI dependency."""
+    """The signed-in user's id, or 401. Use as a FastAPI dependency (a plain
+    function, so FastAPI runs it off the event loop: see the module's note)."""
     token = _bearer(authorization)
     if not token:
         raise HTTPException(status_code=401, detail="Sign-in required.")
@@ -145,7 +153,10 @@ def _is_guardian(guardian_id: str, child_id: str) -> bool:
 
 
 def require_self_or_guardian(target_user_id: str, caller_id: str) -> None:
-    """Raise unless the caller IS the target, or supervises them."""
+    """Raise unless the caller IS the target, or supervises them.
+
+    A guardian is looked up in the database, so async code runs this with
+    asyncio.to_thread."""
     if caller_id == target_user_id:
         return
     if _is_guardian(caller_id, target_user_id):
