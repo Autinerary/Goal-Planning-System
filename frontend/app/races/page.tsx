@@ -1736,7 +1736,22 @@ function RacesContent() {
                                   <span className={`text-[0.625rem] font-mono ${sub}`}>Step {i + 1}{i === arr.length - 1 ? ' · finish' : ''}</span>
                                   {isHere && <span className={`text-[0.625rem] font-bold ml-auto ${day ? 'text-amber-800' : 'text-amber-300'}`}>YOU ARE HERE</span>}
                                 </div>
-                                <div className={`text-[0.75rem] font-bold leading-snug ${isCompleted ? 'line-through opacity-60' : ''} ${txt}`}>{step.name}</div>
+                                <div className={`text-[0.75rem] font-bold leading-snug ${isCompleted ? 'line-through opacity-60' : ''} ${txt}`}>
+                                  {/* The whole card opens the step, as a step does in the other
+                                      views; it did nothing here ("why can't I click on it", 19
+                                      November 2026). The heart and the tick sit above the link.
+                                      Norms Support lists suggested resources, not steps of the
+                                      plan, so those don't open a step. */}
+                                  {activeDim.key === 'barrier' ? step.name : (
+                                    <Link
+                                      href={`/milestones/${step.id}`}
+                                      prefetch={false}
+                                      className="underline-offset-2 hover:underline focus:outline-none after:absolute after:inset-0 after:rounded-lg focus-visible:after:ring-2 focus-visible:after:ring-sky-500"
+                                    >
+                                      {step.name}
+                                    </Link>
+                                  )}
+                                </div>
                                 {(step as any).isGeneric && !isCompleted && (
                                   <div className={`text-[0.5625rem] mt-0.5 italic ${sub}`}>Generic step. Will refine after milestone</div>
                                 )}
@@ -1751,7 +1766,7 @@ function RacesContent() {
                                 )}
                               </div>
                               {/* Heart + Complete buttons */}
-                              <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                              <div className="relative z-10 flex flex-col items-center gap-1 flex-shrink-0">
                                 <button onClick={(e) => { e.stopPropagation(); toggleHeart(step.id) }} aria-pressed={isHearted} aria-label={`Favourite: ${step.name}`} className={`text-sm transition-transform hover:scale-125 ${isHearted ? '' : 'opacity-40 hover:opacity-100'}`}>
                                   {isHearted ? '❤️' : '🤍'}
                                 </button>
